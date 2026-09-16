@@ -1,0 +1,8 @@
+Debug/
+Release/
+tests/host_test
+tests/empty_host_syntax.o
+*.o
+*.d
+*.out
+*.map
