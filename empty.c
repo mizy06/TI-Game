@@ -81,10 +81,10 @@ static uint8_t g_selftest_case = 0U;
 static void generate_simulated_samples(void)
 {
     /* 4 standard noisy test cases:
-     * 0: Sine 200 Hz, Vpp ~2.0V, 15% noise
-     * 1: Square 250 Hz, 30% duty, Vpp ~2.0V, 15% noise
-     * 2: Triangle 150 Hz, Vpp ~2.0V, 15% noise
-     * 3: Sawtooth 300 Hz, Vpp ~2.0V, 15% noise
+     * 0: Sine 200 Hz, Vpp ~2.0V, 15% Vpp uniform noise
+     * 1: Square 250 Hz, 30% duty, Vpp ~2.0V, 15% Vpp uniform noise
+     * 2: Triangle 150 Hz, Vpp ~2.0V, 15% Vpp uniform noise
+     * 3: Sawtooth 300 Hz, Vpp ~2.0V, 15% Vpp uniform noise
      */
     uint32_t freq_hz = (g_selftest_case == 0U) ? 200U :
                        (g_selftest_case == 1U) ? 250U :
@@ -96,7 +96,7 @@ static void generate_simulated_samples(void)
     uint32_t phase = 0U;
     int32_t vpp_counts = 2482; // ~2.0V (2.0 * 4095 / 3.3)
     int32_t center = 2048;     // 1.65V DC offset
-    int32_t noise_amp = vpp_counts * 15 / 100; // 15% noise
+    int32_t noise_amp = vpp_counts * 15 / 200;
 
     for (uint32_t i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
         int32_t val = 0;
@@ -111,11 +111,11 @@ static void generate_simulated_samples(void)
             break;
         case 2: // Triangle
             if (p16 < 16384U) {
-                val = (int32_t)(((int64_t)p16 * vpp_counts) / 16384U) - (vpp_counts / 2);
+                val = (int32_t)(((int64_t)p16 * vpp_counts) / 32768U);
             } else if (p16 < 49152U) {
-                val = (vpp_counts / 2) - (int32_t)(((int64_t)(p16 - 16384U) * vpp_counts) / 16384U);
+                val = (vpp_counts / 2) - (int32_t)(((int64_t)(p16 - 16384U) * vpp_counts) / 32768U);
             } else {
-                val = -(vpp_counts / 2) + (int32_t)(((int64_t)(p16 - 49152U) * vpp_counts) / 16384U);
+                val = -(vpp_counts / 2) + (int32_t)(((int64_t)(p16 - 49152U) * vpp_counts) / 32768U);
             }
             break;
         case 3: // Falling Sawtooth
@@ -137,16 +137,19 @@ static void generate_simulated_samples(void)
 
 static bool receive_uart_samples(void)
 {
-    uint8_t *dest = (uint8_t *)(uintptr_t)g_adc_samples;
+    volatile uint8_t *dest = (volatile uint8_t *)g_adc_samples;
     uint32_t total = WAVEFORM_SAMPLE_COUNT * sizeof(uint16_t);
     uint32_t count = 0U;
     uint32_t timeout_loops = 0U;
+    uint32_t checksum = 2166136261U;
 
     uart_put_string("READY_FOR_DATA\r\n");
 
     while (count < total) {
         if (!DL_UART_Main_isRXFIFOEmpty(UART_0_INST)) {
-            dest[count++] = DL_UART_Main_receiveData(UART_0_INST);
+            uint8_t value = DL_UART_Main_receiveData(UART_0_INST);
+            dest[count++] = value;
+            checksum = (checksum ^ value) * 16777619U;
             timeout_loops = 0U;
         } else {
             delay_cycles(CPUCLK_FREQ / 100000U); // ~10 us
@@ -154,6 +157,17 @@ static bool receive_uart_samples(void)
                 uart_put_string("ERR_TIMEOUT\r\n");
                 return false;
             }
+        }
+    }
+    uart_put_string("DATA,bytes=");
+    uart_put_u32(total);
+    uart_put_string(",fnv1a=");
+    uart_put_u32(checksum);
+    uart_put_string("\r\n");
+    for (count = 0U; count < WAVEFORM_SAMPLE_COUNT; ++count) {
+        if (g_adc_samples[count] > WAVEFORM_ADC_FULL_SCALE) {
+            uart_put_string("ERR_SAMPLE_RANGE\r\n");
+            return false;
         }
     }
     return true;
@@ -273,6 +287,7 @@ int main(void)
     DL_GPIO_initPeripheralInputFunction(IOMUX_PINCM22, IOMUX_PINCM22_PF_UART0_RX);
 
     uart_put_string("\r\nTI-CUP WAVEFORM CLASSIFIER\r\n");
+    uart_put_string("FW=audited-20260917-v1,INJECT=LE16-4096-FNV1A\r\n");
     uart_put_string("ADC=PA25, FS=20000Hz, N=4096\r\n");
     uart_put_string("READY: send R=ADC, W=Inject, T=Simulate\r\n");
 
