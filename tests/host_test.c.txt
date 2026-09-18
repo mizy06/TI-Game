@@ -240,6 +240,24 @@ int main(void)
             (result.status != WAVEFORM_STATUS_FREQUENCY_OUT_OF_RANGE)) {
             ++contract_failures;
         }
+
+        for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
+            samples[i] = (i & 1U) ? 2048U : 5000U;
+        }
+        if (waveform_analyze(samples, &result) ||
+            (result.status != WAVEFORM_STATUS_ADC_SAMPLE_INVALID) ||
+            (result.invalid_samples == 0U)) {
+            ++contract_failures;
+        }
+
+        for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
+            samples[i] = (i & 1U) ? 2000U : 0U;
+        }
+        if (waveform_analyze(samples, &result) ||
+            (result.status != WAVEFORM_STATUS_ADC_LOW_CLIPPED) ||
+            (result.low_clip_samples == 0U)) {
+            ++contract_failures;
+        }
     }
 
     printf("cases=%u class_fail=%u measurement_fail=%u contract_fail=%u "

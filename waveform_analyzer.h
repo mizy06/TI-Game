@@ -27,7 +27,10 @@ typedef enum {
     WAVEFORM_STATUS_SIGNAL_TOO_SMALL,
     WAVEFORM_STATUS_ADC_HIGH_CLIPPED,
     WAVEFORM_STATUS_PERIOD_NOT_FOUND,
-    WAVEFORM_STATUS_FREQUENCY_OUT_OF_RANGE
+    WAVEFORM_STATUS_FREQUENCY_OUT_OF_RANGE,
+    WAVEFORM_STATUS_ADC_LOW_CLIPPED,
+    WAVEFORM_STATUS_ADC_SAMPLE_INVALID,
+    WAVEFORM_STATUS_CLASSIFICATION_AMBIGUOUS
 } waveform_status_t;
 
 typedef struct {
@@ -42,6 +45,9 @@ typedef struct {
     uint16_t accepted_cycles;
     uint16_t high_clip_samples;
     uint16_t dc_offset_counts;
+    /* Diagnostic counters appended to preserve the original field offsets. */
+    uint16_t low_clip_samples;
+    uint16_t invalid_samples;
 } waveform_result_t;
 
 /*

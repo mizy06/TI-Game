@@ -15,6 +15,7 @@ import sys
 import time
 import re
 import csv
+import math
 import argparse
 from datetime import datetime
 
@@ -54,6 +55,8 @@ RESULT_REGEX = re.compile(
     r"(?:,margin_pct=(?P<margin_pct>[0-9.]+))?"
     r"(?:,cycles=(?P<cycles>[0-9]+))?"
     r"(?:,high_clip_samples=(?P<high_clip_samples>[0-9]+))?"
+    r"(?:,low_clip_samples=(?P<low_clip_samples>[0-9]+))?"
+    r"(?:,invalid_samples=(?P<invalid_samples>[0-9]+))?"
 )
 
 def find_target_port(preferred_port=None):
@@ -66,6 +69,7 @@ def find_target_port(preferred_port=None):
         for p in ports:
             if p.device.upper() == preferred_port.upper():
                 return p.device, f"使用指定端口: {p.device} ({p.description})"
+        return None, f"指定端口不存在: {preferred_port}"
 
     # 优先寻找 XDS110 Application/User UART
     for p in ports:
@@ -90,23 +94,47 @@ def find_target_port(preferred_port=None):
 def parse_result_line(line):
     """解析单片机返回的 RESULT 行"""
     line = line.strip()
-    match = RESULT_REGEX.search(line)
+    match = RESULT_REGEX.fullmatch(line)
     if not match:
         return None
     data = match.groupdict()
-    res = {
-        "status": data.get("status", "UNKNOWN"),
-        "type": data.get("type", "unknown"),
-        "freq_hz": float(data["freq_hz"]) if data.get("freq_hz") else None,
-        "vpp_v": float(data["vpp_v"]) if data.get("vpp_v") else None,
-        "duty_pct": float(data["duty_pct"]) if data.get("duty_pct") and data["duty_pct"] != "NA" else None,
-        "score_pct": float(data["score_pct"]) if data.get("score_pct") else None,
-        "margin_pct": float(data["margin_pct"]) if data.get("margin_pct") else None,
-        "cycles": int(data["cycles"]) if data.get("cycles") else None,
-        "high_clip_samples": int(data["high_clip_samples"]) if data.get("high_clip_samples") else 0,
-        "raw": line,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
+    status = data.get("status", "UNKNOWN")
+    wave_type = data.get("type", "unknown").lower()
+    if status != "OK":
+        if wave_type != "unknown":
+            return None
+    elif wave_type not in ("sine", "square", "triangle", "sawtooth"):
+        return None
+    try:
+        res = {
+            "status": status,
+            "type": wave_type,
+            "freq_hz": float(data["freq_hz"]) if data.get("freq_hz") else None,
+            "vpp_v": float(data["vpp_v"]) if data.get("vpp_v") else None,
+            "duty_pct": float(data["duty_pct"]) if data.get("duty_pct") and data["duty_pct"] != "NA" else None,
+            "score_pct": float(data["score_pct"]) if data.get("score_pct") else None,
+            "margin_pct": float(data["margin_pct"]) if data.get("margin_pct") else None,
+            "cycles": int(data["cycles"]) if data.get("cycles") else None,
+            "high_clip_samples": int(data["high_clip_samples"]) if data.get("high_clip_samples") else 0,
+            "low_clip_samples": int(data["low_clip_samples"]) if data.get("low_clip_samples") else 0,
+            "invalid_samples": int(data["invalid_samples"]) if data.get("invalid_samples") else 0,
+            "raw": line,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+    except (TypeError, ValueError):
+        return None
+    if status == "OK":
+        required = (res["freq_hz"], res["vpp_v"], res["score_pct"],
+                    res["margin_pct"], res["cycles"])
+        if (any(value is None or not math.isfinite(float(value)) or float(value) <= 0
+                for value in required) or
+                (wave_type == "square" and
+                 (res["duty_pct"] is None or not math.isfinite(res["duty_pct"]) or
+                  not 0.0 < res["duty_pct"] < 100.0)) or
+                (wave_type != "square" and data.get("duty_pct") not in (None, "NA")) or
+                (res["high_clip_samples"] != 0 or res["low_clip_samples"] != 0 or
+                 res["invalid_samples"] != 0)):
+            return None
     return res
 
 def trigger_and_read(ser, timeout=3.0):

@@ -44,7 +44,9 @@ USB-UART TX      -------------- PA1  (UART0.RX)
 | 有启动信息但发 R 无响应 | RX 未接到 PA1 | 用 PB13 触发并检查 RX |
 | 一直停在 CAPTURING | TIMA0→ADC 事件或 ADC 中断配置未生成 | CCS Clean，打开 SysConfig 检查后重新 Build |
 | SIGNAL_TOO_SMALL | 幅度太小、输入未接、地线断开 | 示波器检查 PA25 |
-| ADC_HIGH_CLIPPED | 输入达到/超过 3.3 V | 立即降低幅度/偏置 |
+| ADC_HIGH_CLIPPED / ADC_LOW_CLIPPED | 输入达到/超过 ADC 两端 | 立即降低幅度/调整偏置 |
+| ADC_SAMPLE_INVALID | 注入数据超过 12 位范围 | 检查串口端序和采样缓冲 |
+| CLASSIFICATION_AMBIGUOUS | 最佳/次佳模板过于接近 | 降低噪声、检查前端滤波后重测 |
 | PERIOD_NOT_FOUND | 波形未稳定、频率不在范围、噪声或接触问题 | 等信号稳定后重测并检查接线 |
 | FREQUENCY_OUT_OF_RANGE | 实际频率超范围或错误多边沿 | 检查发生器频率，必要时加轻度 RC |
 | 类别正确但 Vpp 有固定比例误差 | VDDA 或发生器负载标定问题 | 实测 VDDA，检查 50 Ω/Hi-Z 设置 |

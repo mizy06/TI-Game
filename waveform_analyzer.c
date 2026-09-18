@@ -10,7 +10,12 @@
 #define MIN_VALID_CYCLES       (3U)
 #define MIN_ROBUST_SPAN_COUNTS (48U)
 #define HIGH_CLIP_CODE         (4092U)
+#define LOW_CLIP_CODE          (3U)
 #define MAX_HIGH_CLIP_SAMPLES  (WAVEFORM_SAMPLE_COUNT / 200U)
+#define MAX_LOW_CLIP_SAMPLES   (WAVEFORM_SAMPLE_COUNT / 200U)
+#define MIN_FREQUENCY_MILLIHZ  (98000U)
+#define MAX_FREQUENCY_MILLIHZ  (402000U)
+#define MIN_CLASS_MARGIN_PERMILLE (8U)
 
 static int16_t g_filtered[WAVEFORM_SAMPLE_COUNT];
 static uint16_t g_histogram[256];
@@ -48,31 +53,43 @@ static uint16_t histogram_quantile(uint32_t target)
 }
 
 static void filter_and_histogram(const uint16_t *samples,
-                                 uint16_t *high_clip_samples)
+                                 uint16_t *high_clip_samples,
+                                 uint16_t *low_clip_samples,
+                                 uint16_t *invalid_samples)
 {
     uint32_t i;
     uint16_t clips = 0U;
+    uint16_t low_clips = 0U;
+    uint16_t invalid = 0U;
 
     memset(g_histogram, 0, sizeof(g_histogram));
-    g_filtered[0] = (int16_t)samples[0];
-    g_filtered[WAVEFORM_SAMPLE_COUNT - 1U] =
-        (int16_t)samples[WAVEFORM_SAMPLE_COUNT - 1U];
-
     for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
-        uint16_t sample = (uint16_t)(samples[i] & 0x0FFFU);
+        uint16_t sample = samples[i];
+        if (sample > WAVEFORM_ADC_FULL_SCALE) {
+            ++invalid;
+            sample = WAVEFORM_ADC_FULL_SCALE;
+        }
         if (sample >= HIGH_CLIP_CODE) {
             ++clips;
         }
+        if (sample <= LOW_CLIP_CODE) {
+            ++low_clips;
+        }
         ++g_histogram[sample >> 4U];
+        g_filtered[i] = (int16_t)sample;
     }
 
     /* Symmetric 1-2-1 FIR: suppresses high-frequency noise with little
      * attenuation at the worst-case 400 Hz input frequency. */
     for (i = 1U; i < (WAVEFORM_SAMPLE_COUNT - 1U); ++i) {
-        uint32_t value = samples[i - 1U] + (2U * samples[i]) + samples[i + 1U];
+        uint32_t value = (uint32_t)g_filtered[i - 1U] +
+                         (2U * (uint32_t)g_filtered[i]) +
+                         (uint32_t)g_filtered[i + 1U];
         g_filtered[i] = (int16_t)((value + 2U) >> 2U);
     }
     *high_clip_samples = clips;
+    *low_clip_samples = low_clips;
+    *invalid_samples = invalid;
 }
 
 static uint32_t interpolate_rising_crossing_q8(uint32_t right_index,
@@ -306,14 +323,18 @@ static uint16_t correlation_score_permille(void)
     /* y and t were scaled by PHASE_BINS above. Shift all terms by the same
      * amount before squaring so Cortex-M0+ 64-bit arithmetic cannot overflow. */
     {
-        uint64_t abs_dot = (dot < 0) ? (uint64_t)(-dot) : (uint64_t)dot;
-        while ((abs_dot > 0x3FFFFFFFU) ||
+        uint64_t positive_dot;
+        if (dot <= 0) {
+            return 0U;
+        }
+        positive_dot = (uint64_t)dot;
+        while ((positive_dot > 0x3FFFFFFFU) ||
                (energy_y > 0x3FFFFFFFU) || (energy_t > 0x3FFFFFFFU)) {
-            abs_dot >>= 1U;
+            positive_dot >>= 1U;
             energy_y >>= 1U;
             energy_t >>= 1U;
         }
-        numerator = abs_dot * abs_dot;
+        numerator = positive_dot * positive_dot;
         denominator = energy_y * energy_t;
     }
     if (numerator >= denominator) {
@@ -378,7 +399,13 @@ bool waveform_analyze(const uint16_t *samples, waveform_result_t *result)
     result->type = WAVEFORM_TYPE_UNKNOWN;
     result->status = WAVEFORM_STATUS_PERIOD_NOT_FOUND;
 
-    filter_and_histogram(samples, &result->high_clip_samples);
+    filter_and_histogram(samples, &result->high_clip_samples,
+                         &result->low_clip_samples,
+                         &result->invalid_samples);
+    if (result->invalid_samples != 0U) {
+        result->status = WAVEFORM_STATUS_ADC_SAMPLE_INVALID;
+        return false;
+    }
     low_quantile = histogram_quantile(WAVEFORM_SAMPLE_COUNT / 20U);
     high_quantile = histogram_quantile((WAVEFORM_SAMPLE_COUNT * 19U) / 20U);
     result->dc_offset_counts = (uint16_t)(((uint32_t)low_quantile + high_quantile) / 2U);
@@ -389,6 +416,10 @@ bool waveform_analyze(const uint16_t *samples, waveform_result_t *result)
     }
     if (result->high_clip_samples > MAX_HIGH_CLIP_SAMPLES) {
         result->status = WAVEFORM_STATUS_ADC_HIGH_CLIPPED;
+        return false;
+    }
+    if (result->low_clip_samples > MAX_LOW_CLIP_SAMPLES) {
+        result->status = WAVEFORM_STATUS_ADC_LOW_CLIPPED;
         return false;
     }
 
@@ -429,8 +460,8 @@ bool waveform_analyze(const uint16_t *samples, waveform_result_t *result)
         (uint32_t)((((uint64_t)WAVEFORM_SAMPLE_RATE_HZ * 1000U * 256U *
                      accepted_cycles) + (accepted_period_sum_q8 / 2U)) /
                    accepted_period_sum_q8);
-    if ((result->frequency_millihz < 90000U) ||
-        (result->frequency_millihz > 450000U)) {
+    if ((result->frequency_millihz < MIN_FREQUENCY_MILLIHZ) ||
+        (result->frequency_millihz > MAX_FREQUENCY_MILLIHZ)) {
         result->status = WAVEFORM_STATUS_FREQUENCY_OUT_OF_RANGE;
         return false;
     }
@@ -451,6 +482,13 @@ bool waveform_analyze(const uint16_t *samples, waveform_result_t *result)
     result->best_score_permille = best_score;
     result->second_score_permille = second_score;
     result->confidence_permille = (best_score > 1000U) ? 1000U : best_score;
+    if ((best_score < MIN_CLASS_MARGIN_PERMILLE) ||
+        ((best_score - second_score) < MIN_CLASS_MARGIN_PERMILLE)) {
+        result->type = WAVEFORM_TYPE_UNKNOWN;
+        result->duty_permille = 0U;
+        result->status = WAVEFORM_STATUS_CLASSIFICATION_AMBIGUOUS;
+        return false;
+    }
 
     {
         uint32_t vpp_counts = (uint16_t)(fold_max - fold_min);
@@ -473,7 +511,7 @@ const char *waveform_type_name(waveform_type_t type)
     static const char *const names[] = {
         "sine", "square", "triangle", "sawtooth", "unknown"
     };
-    if (type > WAVEFORM_TYPE_UNKNOWN) {
+    if ((type < WAVEFORM_TYPE_SINE) || (type > WAVEFORM_TYPE_UNKNOWN)) {
         type = WAVEFORM_TYPE_UNKNOWN;
     }
     return names[type];
@@ -486,9 +524,13 @@ const char *waveform_status_name(waveform_status_t status)
         "SIGNAL_TOO_SMALL",
         "ADC_HIGH_CLIPPED",
         "PERIOD_NOT_FOUND",
-        "FREQUENCY_OUT_OF_RANGE"
+        "FREQUENCY_OUT_OF_RANGE",
+        "ADC_LOW_CLIPPED",
+        "ADC_SAMPLE_INVALID",
+        "CLASSIFICATION_AMBIGUOUS"
     };
-    if (status > WAVEFORM_STATUS_FREQUENCY_OUT_OF_RANGE) {
+    if ((status < WAVEFORM_STATUS_OK) ||
+        (status > WAVEFORM_STATUS_CLASSIFICATION_AMBIGUOUS)) {
         return "UNKNOWN_STATUS";
     }
     return names[status];

@@ -77,6 +77,8 @@ class WaveformResult(ctypes.Structure):
         ('accepted_cycles', ctypes.c_uint16),
         ('high_clip_samples', ctypes.c_uint16),
         ('dc_offset_counts', ctypes.c_uint16),
+        ('low_clip_samples', ctypes.c_uint16),
+        ('invalid_samples', ctypes.c_uint16),
     ]
 
 def analyze_waveform_host(samples):
@@ -93,7 +95,9 @@ def analyze_waveform_host(samples):
         res_c = WaveformResult()
         valid = dll.waveform_analyze(arr, ctypes.byref(res_c))
         type_names = ['sine', 'square', 'triangle', 'sawtooth', 'unknown']
-        status_names = ['OK', 'SIGNAL_TOO_SMALL', 'ADC_HIGH_CLIPPED', 'PERIOD_NOT_FOUND', 'FREQUENCY_OUT_OF_RANGE']
+        status_names = ['OK', 'SIGNAL_TOO_SMALL', 'ADC_HIGH_CLIPPED', 'PERIOD_NOT_FOUND',
+                        'FREQUENCY_OUT_OF_RANGE', 'ADC_LOW_CLIPPED',
+                        'ADC_SAMPLE_INVALID', 'CLASSIFICATION_AMBIGUOUS']
 
         t_name = type_names[res_c.type] if 0 <= res_c.type < len(type_names) else 'unknown'
         s_name = status_names[res_c.status] if 0 <= res_c.status < len(status_names) else 'UNKNOWN'
@@ -127,6 +131,8 @@ RESULT_REGEX = re.compile(
     r"(?:,margin_pct=(?P<margin_pct>[0-9.]+))?"
     r"(?:,cycles=(?P<cycles>[0-9]+))?"
     r"(?:,high_clip_samples=(?P<high_clip_samples>[0-9]+))?"
+    r"(?:,low_clip_samples=(?P<low_clip_samples>[0-9]+))?"
+    r"(?:,invalid_samples=(?P<invalid_samples>[0-9]+))?"
 )
 
 def find_xds110_port(specified_port=None):
@@ -139,6 +145,7 @@ def find_xds110_port(specified_port=None):
         for p in ports:
             if p.device.upper() == specified_port.upper():
                 return p.device, f"指定端口: {p.device} ({p.description})"
+        return None, f"指定端口不存在: {specified_port}"
 
     for p in ports:
         desc = p.description or ""
@@ -247,10 +254,7 @@ def inject_waveform_and_get_result(ser, samples, timeout=3.5):
             pass
 
     if not ready:
-        # 再次尝试单字节触发
-        ser.write(b'W')
-        ser.flush()
-        time.sleep(0.05)
+        return None, ["ERROR: READY_FOR_DATA handshake timeout; payload not sent"]
 
     # 2. 打包发送 4096 个 uint16 (8192 字节，Little-Endian)
     payload = struct.pack(f"<{SAMPLE_COUNT}H", *samples)
@@ -274,7 +278,7 @@ def inject_waveform_and_get_result(ser, samples, timeout=3.5):
             continue
         log_lines.append(line_str)
         if line_str.startswith("RESULT"):
-            m = RESULT_REGEX.search(line_str)
+            m = RESULT_REGEX.fullmatch(line_str)
             if m:
                 d = m.groupdict()
                 result_data = {
@@ -286,6 +290,9 @@ def inject_waveform_and_get_result(ser, samples, timeout=3.5):
                     "score_pct": float(d["score_pct"]) if d.get("score_pct") else None,
                     "margin_pct": float(d["margin_pct"]) if d.get("margin_pct") else None,
                     "cycles": int(d["cycles"]) if d.get("cycles") else None,
+                    "high_clip_samples": int(d["high_clip_samples"]) if d.get("high_clip_samples") else 0,
+                    "low_clip_samples": int(d["low_clip_samples"]) if d.get("low_clip_samples") else 0,
+                    "invalid_samples": int(d["invalid_samples"]) if d.get("invalid_samples") else 0,
                     "raw": line_str
                 }
         elif line_str == "READY" and result_data is not None:
@@ -314,7 +321,7 @@ def trigger_onchip_selftest(ser, timeout=2.0):
             continue
         log_lines.append(line_str)
         if line_str.startswith("RESULT"):
-            m = RESULT_REGEX.search(line_str)
+            m = RESULT_REGEX.fullmatch(line_str)
             if m:
                 d = m.groupdict()
                 result_data = {
@@ -326,6 +333,9 @@ def trigger_onchip_selftest(ser, timeout=2.0):
                     "score_pct": float(d["score_pct"]) if d.get("score_pct") else None,
                     "margin_pct": float(d["margin_pct"]) if d.get("margin_pct") else None,
                     "cycles": int(d["cycles"]) if d.get("cycles") else None,
+                    "high_clip_samples": int(d["high_clip_samples"]) if d.get("high_clip_samples") else 0,
+                    "low_clip_samples": int(d["low_clip_samples"]) if d.get("low_clip_samples") else 0,
+                    "invalid_samples": int(d["invalid_samples"]) if d.get("invalid_samples") else 0,
                     "raw": line_str
                 }
         elif line_str == "READY" and result_data is not None:
@@ -343,23 +353,26 @@ def evaluate_case(gt, res):
     type_match = (gt["type"] == res["type"])
     
     # 频率误差 (允许 ±2.0%)
-    freq_err_pct = 0.0
-    if res["freq_hz"] and gt["freq_hz"]:
+    freq_err_pct = 100.0
+    if res.get("freq_hz") is not None and gt.get("freq_hz"):
         freq_err_pct = abs(res["freq_hz"] - gt["freq_hz"]) / gt["freq_hz"] * 100.0
-    freq_ok = (freq_err_pct <= 2.0)
+    freq_ok = (res.get("freq_hz") is not None and freq_err_pct <= 2.0)
 
     # 峰峰值误差 (允许 ±8.0%)
-    vpp_err_pct = 0.0
-    if res["vpp_v"] and gt["vpp_v"]:
+    vpp_err_pct = 100.0
+    if res.get("vpp_v") is not None and gt.get("vpp_v"):
         vpp_err_pct = abs(res["vpp_v"] - gt["vpp_v"]) / gt["vpp_v"] * 100.0
-    vpp_ok = (vpp_err_pct <= 8.0)
+    vpp_ok = (res.get("vpp_v") is not None and vpp_err_pct <= 8.0)
 
     # 占空比误差 (允许 ±3.0 百分点)
-    duty_ok = True
-    duty_err = 0.0
-    if gt["type"] == "square" and gt["duty_pct"] is not None and res["duty_pct"] is not None:
-        duty_err = abs(res["duty_pct"] - gt["duty_pct"])
-        duty_ok = (duty_err <= 3.0)
+    duty_ok = gt["type"] != "square"
+    duty_err = None
+    if gt["type"] == "square":
+        if gt["duty_pct"] is not None and res.get("duty_pct") is not None:
+            duty_err = abs(res["duty_pct"] - gt["duty_pct"])
+            duty_ok = (duty_err <= 3.0)
+        else:
+            duty_ok = False
 
     passed = type_match and freq_ok and vpp_ok and duty_ok
     details = {

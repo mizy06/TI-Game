@@ -238,6 +238,10 @@ static void print_result(const waveform_result_t *result, bool valid)
         uart_put_string(waveform_status_name(result->status));
         uart_put_string(",type=unknown,high_clip_samples=");
         uart_put_u32(result->high_clip_samples);
+        uart_put_string(",low_clip_samples=");
+        uart_put_u32(result->low_clip_samples);
+        uart_put_string(",invalid_samples=");
+        uart_put_u32(result->invalid_samples);
         uart_put_string("\r\n");
         return;
     }
