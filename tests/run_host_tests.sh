@@ -11,3 +11,11 @@ cc -std=c99 -O2 -Wall -Wextra -Werror \
   -lm -o "$script_dir/host_test"
 
 "$script_dir/host_test"
+
+cc -std=c99 -O2 -Wall -Wextra -Werror \
+  -I"$project_dir" \
+  "$project_dir/waveform_analyzer.c" \
+  -x c "$script_dir/precision_validation.c.txt" \
+  -lm -o "$script_dir/precision_validation"
+
+"$script_dir/precision_validation"

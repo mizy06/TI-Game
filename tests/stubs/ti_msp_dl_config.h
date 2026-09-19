@@ -28,6 +28,10 @@ static ADC12_Regs g_stub_adc;
 #define DL_GPIO_RESISTOR_PULL_UP               (1U)
 #define DL_GPIO_HYSTERESIS_ENABLE              (1U)
 #define DL_GPIO_WAKEUP_DISABLE                 (0U)
+#define IOMUX_PINCM21                          (21U)
+#define IOMUX_PINCM22                          (22U)
+#define IOMUX_PINCM21_PF_UART0_TX              (1U)
+#define IOMUX_PINCM22_PF_UART0_RX              (1U)
 #define CPUCLK_FREQ                            (32000000U)
 
 #define ADC12_0_INST_IRQHandler ADC0_IRQHandler
@@ -51,6 +55,12 @@ static inline void DL_GPIO_initDigitalInputFeatures(uint32_t iomux,
                                                     uint32_t hysteresis,
                                                     uint32_t wakeup)
 { (void)iomux; (void)inversion; (void)resistor; (void)hysteresis; (void)wakeup; }
+static inline void DL_GPIO_initPeripheralOutputFunction(uint32_t iomux,
+                                                        uint32_t function)
+{ (void)iomux; (void)function; }
+static inline void DL_GPIO_initPeripheralInputFunction(uint32_t iomux,
+                                                       uint32_t function)
+{ (void)iomux; (void)function; }
 static inline void DL_TimerA_stopCounter(GPTIMER_Regs *timer)
 { (void)timer; }
 static inline void DL_TimerA_startCounter(GPTIMER_Regs *timer)

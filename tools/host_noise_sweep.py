@@ -12,6 +12,7 @@ FS = 20_000.0
 N = 4096
 ADC_MAX = 4095.0
 VDDA = 3.3
+ALGORITHM_VERSION = 0x00020000
 
 
 class WaveformResult(ctypes.Structure):
@@ -29,6 +30,14 @@ class WaveformResult(ctypes.Structure):
         ("dc_offset_counts", ctypes.c_uint16),
         ("low_clip_samples", ctypes.c_uint16),
         ("invalid_samples", ctypes.c_uint16),
+        ("algorithm_version", ctypes.c_uint32),
+        ("sequence", ctypes.c_uint32),
+        ("vpp_microvolts", ctypes.c_uint32),
+        ("duty_ppm", ctypes.c_uint32),
+        ("period_q16_samples", ctypes.c_uint32),
+        ("vpp_counts_q16", ctypes.c_uint32),
+        ("quality_flags", ctypes.c_uint16),
+        ("model_margin_permille", ctypes.c_uint16),
     ]
 
 
@@ -42,6 +51,9 @@ STATUS_NAMES = [
     "ADC_LOW_CLIPPED",
     "ADC_SAMPLE_INVALID",
     "CLASSIFICATION_AMBIGUOUS",
+    "BAD_ARGUMENT",
+    "BAD_METADATA",
+    "INSUFFICIENT_SAMPLES",
 ]
 
 
@@ -81,6 +93,11 @@ def analyze(dll, samples):
     arr = (ctypes.c_uint16 * N)(*samples)
     result = WaveformResult()
     valid = bool(dll.waveform_analyze(arr, ctypes.byref(result)))
+    if result.algorithm_version != ALGORITHM_VERSION:
+        raise RuntimeError(
+            f"DLL algorithm version {result.algorithm_version:#010x} does not "
+            f"match required {ALGORITHM_VERSION:#010x}; rebuild the DLL"
+        )
     kind = TYPE_NAMES[result.type] if 0 <= result.type < len(TYPE_NAMES) else "unknown"
     status = STATUS_NAMES[result.status] if 0 <= result.status < len(STATUS_NAMES) else "UNKNOWN"
     return valid, result, kind, status

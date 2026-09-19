@@ -41,9 +41,10 @@ if sys.platform.startswith('win'):
 try:
     import serial
     import serial.tools.list_ports
+    HAVE_SERIAL = True
 except ImportError:
-    print("[错误] 未安装 pyserial，请运行: pip install pyserial")
-    sys.exit(1)
+    serial = None
+    HAVE_SERIAL = False
 
 try:
     from rich.console import Console
@@ -60,6 +61,7 @@ SAMPLE_RATE_HZ = 20000
 SAMPLE_COUNT = 4096
 ADC_VDDA_MV = 3300.0
 ADC_MAX_COUNT = 4095.0
+ALGORITHM_VERSION = 0x00020000
 
 import ctypes
 import os
@@ -79,6 +81,14 @@ class WaveformResult(ctypes.Structure):
         ('dc_offset_counts', ctypes.c_uint16),
         ('low_clip_samples', ctypes.c_uint16),
         ('invalid_samples', ctypes.c_uint16),
+        ('algorithm_version', ctypes.c_uint32),
+        ('sequence', ctypes.c_uint32),
+        ('vpp_microvolts', ctypes.c_uint32),
+        ('duty_ppm', ctypes.c_uint32),
+        ('period_q16_samples', ctypes.c_uint32),
+        ('vpp_counts_q16', ctypes.c_uint32),
+        ('quality_flags', ctypes.c_uint16),
+        ('model_margin_permille', ctypes.c_uint16),
     ]
 
 def analyze_waveform_host(samples):
@@ -94,10 +104,16 @@ def analyze_waveform_host(samples):
         arr = (ctypes.c_uint16 * SAMPLE_COUNT)(*samples)
         res_c = WaveformResult()
         valid = dll.waveform_analyze(arr, ctypes.byref(res_c))
+        if res_c.algorithm_version != ALGORITHM_VERSION:
+            raise RuntimeError(
+                f"DLL算法版本 {res_c.algorithm_version:#010x} 与要求的 "
+                f"{ALGORITHM_VERSION:#010x} 不一致，请重新编译DLL"
+            )
         type_names = ['sine', 'square', 'triangle', 'sawtooth', 'unknown']
         status_names = ['OK', 'SIGNAL_TOO_SMALL', 'ADC_HIGH_CLIPPED', 'PERIOD_NOT_FOUND',
                         'FREQUENCY_OUT_OF_RANGE', 'ADC_LOW_CLIPPED',
-                        'ADC_SAMPLE_INVALID', 'CLASSIFICATION_AMBIGUOUS']
+                        'ADC_SAMPLE_INVALID', 'CLASSIFICATION_AMBIGUOUS',
+                        'BAD_ARGUMENT', 'BAD_METADATA', 'INSUFFICIENT_SAMPLES']
 
         t_name = type_names[res_c.type] if 0 <= res_c.type < len(type_names) else 'unknown'
         s_name = status_names[res_c.status] if 0 <= res_c.status < len(status_names) else 'UNKNOWN'
@@ -133,6 +149,12 @@ RESULT_REGEX = re.compile(
     r"(?:,high_clip_samples=(?P<high_clip_samples>[0-9]+))?"
     r"(?:,low_clip_samples=(?P<low_clip_samples>[0-9]+))?"
     r"(?:,invalid_samples=(?P<invalid_samples>[0-9]+))?"
+    r"(?:,freq_millihz=(?P<freq_millihz>[0-9]+))?"
+    r"(?:,vpp_microvolts=(?P<vpp_microvolts>[0-9]+))?"
+    r"(?:,duty_ppm=(?P<duty_ppm>[0-9]+|NA))?"
+    r"(?:,sequence=(?P<sequence>[0-9]+))?"
+    r"(?:,algorithm_version=(?P<algorithm_version>[0-9]+))?"
+    r"(?:,quality_flags=(?P<quality_flags>[0-9]+))?"
 )
 
 def find_xds110_port(specified_port=None):
@@ -443,6 +465,9 @@ def print_result_table(gt, res, details, idx=1):
         print("-" * 60)
 
 def main():
+    if not HAVE_SERIAL:
+        print("[错误] 未安装 pyserial，请运行: pip install pyserial")
+        return 1
     parser = argparse.ArgumentParser(description="MSPM0 串口带噪波形模拟与识别评测工具")
     parser.add_argument("-p", "--port", type=str, default=None, help="串口号 (如 COM15)")
     parser.add_argument("-b", "--baud", type=int, default=115200, help="波特率 (默认 115200)")
@@ -581,4 +606,4 @@ def main():
     print("=" * 65 + "\n")
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -1,5 +1,10 @@
 # Serial waveform test audit - 2026-09-17
 
+> Historical baseline evidence only. It predates the
+> algorithm/precision-waveform-analysis branch and must not be cited as a
+> board-level validation of algorithm version 2.0. Re-run the audited serial
+> matrix after building and flashing the new branch.
+
 ## Follow-up after approved firmware flash
 
 The user approved rebuilding and flashing the reviewed injection firmware.

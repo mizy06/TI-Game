@@ -14,6 +14,7 @@
 static volatile uint16_t g_adc_samples[WAVEFORM_SAMPLE_COUNT];
 static volatile uint32_t g_sample_index;
 static volatile bool g_capture_done;
+static uint32_t g_frame_sequence;
 
 static void uart_put_char(char value)
 {
@@ -242,6 +243,10 @@ static void print_result(const waveform_result_t *result, bool valid)
         uart_put_u32(result->low_clip_samples);
         uart_put_string(",invalid_samples=");
         uart_put_u32(result->invalid_samples);
+        uart_put_string(",sequence=");
+        uart_put_u32(result->sequence);
+        uart_put_string(",quality_flags=");
+        uart_put_u32(result->quality_flags);
         uart_put_string("\r\n");
         return;
     }
@@ -269,6 +274,22 @@ static void print_result(const waveform_result_t *result, bool valid)
     }
     uart_put_string(",cycles=");
     uart_put_u32(result->accepted_cycles);
+    uart_put_string(",freq_millihz=");
+    uart_put_u32(result->frequency_millihz);
+    uart_put_string(",vpp_microvolts=");
+    uart_put_u32(result->vpp_microvolts);
+    uart_put_string(",duty_ppm=");
+    if (result->type == WAVEFORM_TYPE_SQUARE) {
+        uart_put_u32(result->duty_ppm);
+    } else {
+        uart_put_string("NA");
+    }
+    uart_put_string(",sequence=");
+    uart_put_u32(result->sequence);
+    uart_put_string(",algorithm_version=");
+    uart_put_u32(result->algorithm_version);
+    uart_put_string(",quality_flags=");
+    uart_put_u32(result->quality_flags);
     uart_put_string("\r\n");
 }
 
@@ -291,12 +312,17 @@ int main(void)
     DL_GPIO_initPeripheralInputFunction(IOMUX_PINCM22, IOMUX_PINCM22_PF_UART0_RX);
 
     uart_put_string("\r\nTI-CUP WAVEFORM CLASSIFIER\r\n");
-    uart_put_string("FW=audited-20260917-v1,INJECT=LE16-4096-FNV1A\r\n");
-    uart_put_string("ADC=PA25, FS=20000Hz, N=4096\r\n");
+    uart_put_string("FW=algorithm-v2,API=0x00020000,INJECT=LE16-4096-FNV1A\r\n");
+    uart_put_string("ADC=PA25, FS_HZ=");
+    uart_put_milli(WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ);
+    uart_put_string(", N=");
+    uart_put_u32(WAVEFORM_SAMPLE_COUNT);
+    uart_put_string("\r\n");
     uart_put_string("READY: send R=ADC, W=Inject, T=Simulate\r\n");
 
     for (;;) {
         waveform_result_t result;
+        waveform_frame_t frame;
         bool valid;
         trigger_mode_t mode = wait_for_trigger();
 
@@ -314,7 +340,18 @@ int main(void)
         }
 
         uart_put_string("PROCESSING\r\n");
-        valid = waveform_analyze((const uint16_t *)g_adc_samples, &result);
+        frame.samples = (const uint16_t *)g_adc_samples;
+        frame.sample_count = WAVEFORM_SAMPLE_COUNT;
+        frame.adc_full_scale = WAVEFORM_ADC_FULL_SCALE;
+        frame.sample_rate_millihz =
+            WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ;
+        frame.adc_reference_microvolts =
+            WAVEFORM_ACQUISITION_REFERENCE_MICROVOLTS;
+        frame.frontend_gain_ppm =
+            WAVEFORM_ACQUISITION_FRONTEND_GAIN_PPM;
+        frame.sequence = ++g_frame_sequence;
+        frame.flags = WAVEFORM_ACQUISITION_FLAGS;
+        valid = waveform_analyze_frame(&frame, &result);
         print_result(&result, valid);
         wait_for_button_release();
         uart_put_string("READY\r\n");

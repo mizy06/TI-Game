@@ -50,3 +50,13 @@ USB-UART TX      -------------- PA1  (UART0.RX)
 | PERIOD_NOT_FOUND | 波形未稳定、频率不在范围、噪声或接触问题 | 等信号稳定后重测并检查接线 |
 | FREQUENCY_OUT_OF_RANGE | 实际频率超范围或错误多边沿 | 检查发生器频率，必要时加轻度 RC |
 | 类别正确但 Vpp 有固定比例误差 | VDDA 或发生器负载标定问题 | 实测 VDDA，检查 50 Ω/Hi-Z 设置 |
+
+## 5. 与算法接口的校准
+
+新版算法不在输出端硬编码补偿，采集侧必须通过 waveform_frame_t 传入：
+
+- 实际 sample_rate_millihz；
+- 实测 adc_reference_microvolts；
+- 前端的 frontend_gain_ppm。
+
+若使用 SYSOSC 标称频率且不校准，数据手册给出的时钟精度会直接限制频率绝对误差；若用 VDD 作 ADC 参考而仍固定填 3.300 V，VDD 的实际偏差会原样进入 Vpp。完整字段定义、增益方向和验收步骤见 [采集-算法接口协议](ACQUISITION_ALGORITHM_INTERFACE.md)。

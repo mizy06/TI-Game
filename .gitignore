@@ -1,6 +1,9 @@
 Debug/
 Release/
 tests/host_test
+tests/precision_validation
+tests/host_test_sanitized
+tests/precision_validation_sanitized
 tests/empty_host_syntax.o
 *.o
 *.d

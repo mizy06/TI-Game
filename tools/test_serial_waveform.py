@@ -29,9 +29,10 @@ if sys.platform.startswith('win'):
 try:
     import serial
     import serial.tools.list_ports
+    HAVE_SERIAL = True
 except ImportError:
-    print("错误: 未安装 pyserial。请运行: pip install pyserial")
-    sys.exit(1)
+    serial = None
+    HAVE_SERIAL = False
 
 try:
     from rich.console import Console
@@ -57,6 +58,12 @@ RESULT_REGEX = re.compile(
     r"(?:,high_clip_samples=(?P<high_clip_samples>[0-9]+))?"
     r"(?:,low_clip_samples=(?P<low_clip_samples>[0-9]+))?"
     r"(?:,invalid_samples=(?P<invalid_samples>[0-9]+))?"
+    r"(?:,freq_millihz=(?P<freq_millihz>[0-9]+))?"
+    r"(?:,vpp_microvolts=(?P<vpp_microvolts>[0-9]+))?"
+    r"(?:,duty_ppm=(?P<duty_ppm>[0-9]+|NA))?"
+    r"(?:,sequence=(?P<sequence>[0-9]+))?"
+    r"(?:,algorithm_version=(?P<algorithm_version>[0-9]+))?"
+    r"(?:,quality_flags=(?P<quality_flags>[0-9]+))?"
 )
 
 def find_target_port(preferred_port=None):
@@ -334,6 +341,9 @@ def run_continuous_test(ser, count=10, interval=0.5, csv_writer=None):
     print("=" * 60 + "\n")
 
 def main():
+    if not HAVE_SERIAL:
+        print("错误: 未安装 pyserial。请运行: pip install pyserial")
+        return 1
     parser = argparse.ArgumentParser(description="MSPM0G3507 串口波形识别测试工具")
     parser.add_argument("-p", "--port", type=str, default=None, help="串口号 (如 COM15)")
     parser.add_argument("-b", "--baud", type=int, default=115200, help="波特率 (默认 115200)")
@@ -442,4 +452,4 @@ def main():
         print(f"\n测试记录已追加保存至: {args.csv}")
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

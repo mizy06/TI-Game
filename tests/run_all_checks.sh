@@ -9,4 +9,5 @@ cc -std=c99 -O2 -Wall -Wextra -Werror \
   -c "$project_dir/empty.c" -o "$script_dir/empty_host_syntax.o"
 
 rm -f "$script_dir/empty_host_syntax.o"
-"$script_dir/run_host_tests.sh"
+bash "$script_dir/run_host_tests.sh"
+python3 -B -m unittest discover -s "$script_dir" -p 'test_*.py' -v
