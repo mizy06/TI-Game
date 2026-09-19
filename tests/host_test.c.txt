@@ -1,0 +1,270 @@
+#include "../waveform_analyzer.h"
+
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+#ifndef TEST_MAX_NOISE_RATIO
+#define TEST_MAX_NOISE_RATIO 0.20
+#endif
+
+#ifndef TEST_MAX_VPP_COUNTS
+#define TEST_MAX_VPP_COUNTS 3240.0
+#endif
+
+static uint32_t g_rng = 0x13579BDFU;
+static double g_noise[WAVEFORM_SAMPLE_COUNT];
+
+static uint32_t next_random(void)
+{
+    g_rng = (1664525U * g_rng) + 1013904223U;
+    return g_rng;
+}
+
+static double random_unit(void)
+{
+    return (double)(next_random() & 0x00FFFFFFU) / 16777216.0;
+}
+
+static double ideal_wave(waveform_type_t type, double phase, double duty)
+{
+    switch (type) {
+    case WAVEFORM_TYPE_SINE:
+        return sin(2.0 * M_PI * phase);
+    case WAVEFORM_TYPE_SQUARE:
+        return (phase < duty) ? 1.0 : -1.0;
+    case WAVEFORM_TYPE_TRIANGLE:
+        if (phase < 0.25) {
+            return 4.0 * phase;
+        }
+        if (phase < 0.75) {
+            return 2.0 - (4.0 * phase);
+        }
+        return (4.0 * phase) - 4.0;
+    case WAVEFORM_TYPE_SAWTOOTH:
+        return 1.0 - (2.0 * phase);
+    default:
+        return 0.0;
+    }
+}
+
+static void generate_signal(uint16_t *samples, waveform_type_t type,
+                            double frequency_hz, double vpp_counts,
+                            double center_counts, double duty,
+                            double noise_pp_ratio, double start_phase,
+                            int gaussian_noise)
+{
+    uint32_t i;
+    double noise_phase[5];
+    double noise_ratio[5];
+    unsigned k;
+
+    for (k = 0U; k < 5U; ++k) {
+        noise_phase[k] = random_unit() * 2.0 * M_PI;
+        noise_ratio[k] = 5.0 + (3.0 * k) + random_unit();
+    }
+    if (gaussian_noise) {
+        double minimum = 1.0e30;
+        double maximum = -1.0e30;
+        double midpoint;
+        double scale;
+        for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
+            double u1 = random_unit();
+            double u2 = random_unit();
+            if (u1 < 1.0e-12) {
+                u1 = 1.0e-12;
+            }
+            g_noise[i] = sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
+            if (g_noise[i] < minimum) {
+                minimum = g_noise[i];
+            }
+            if (g_noise[i] > maximum) {
+                maximum = g_noise[i];
+            }
+        }
+        midpoint = 0.5 * (minimum + maximum);
+        scale = (maximum > minimum) ?
+                ((noise_pp_ratio * vpp_counts) / (maximum - minimum)) : 0.0;
+        for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
+            g_noise[i] = (g_noise[i] - midpoint) * scale;
+        }
+    }
+    for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
+        double time = (double)i / (double)WAVEFORM_SAMPLE_RATE_HZ;
+        double phase = start_phase + (frequency_hz * time);
+        double noise = 0.0;
+        double value;
+        phase -= floor(phase);
+        if (gaussian_noise) {
+            noise = g_noise[i];
+        } else {
+            for (k = 0U; k < 5U; ++k) {
+                noise += sin((2.0 * M_PI * frequency_hz * noise_ratio[k] * time) +
+                             noise_phase[k]);
+            }
+            /* Sum is bounded to the requested peak-to-peak envelope. */
+            noise *= (noise_pp_ratio * vpp_counts) / 10.0;
+        }
+        value = center_counts + (0.5 * vpp_counts * ideal_wave(type, phase, duty)) + noise;
+        if (value < 0.0) {
+            value = 0.0;
+        } else if (value > 4095.0) {
+            value = 4095.0;
+        }
+        samples[i] = (uint16_t)(value + 0.5);
+    }
+}
+
+static double absolute(double value)
+{
+    return (value < 0.0) ? -value : value;
+}
+
+int main(void)
+{
+    static uint16_t samples[WAVEFORM_SAMPLE_COUNT];
+    unsigned total = 0U;
+    unsigned classification_failures = 0U;
+    unsigned measurement_failures = 0U;
+    unsigned contract_failures = 0U;
+    double worst_frequency_percent = 0.0;
+    double worst_vpp_percent = 0.0;
+    double worst_duty_percent = 0.0;
+    waveform_type_t type;
+
+    for (type = WAVEFORM_TYPE_SINE; type <= WAVEFORM_TYPE_SAWTOOTH;
+         type = (waveform_type_t)(type + 1)) {
+        unsigned case_index;
+        for (case_index = 0U; case_index < 600U; ++case_index) {
+            waveform_result_t result;
+            double frequency = 100.0 + (300.0 * random_unit());
+            double vpp = 80.0 + ((TEST_MAX_VPP_COUNTS - 80.0) * random_unit());
+            double duty = 0.20 + (0.60 * random_unit());
+            double noise_ratio = TEST_MAX_NOISE_RATIO * random_unit();
+            double occupied_half_span;
+            double center;
+            double frequency_error;
+            double vpp_error;
+
+            if ((case_index % 20U) == 0U) {
+                static const double edge_frequencies[] = {100.0, 101.0, 399.0, 400.0};
+                frequency = edge_frequencies[(case_index / 20U) % 4U];
+            }
+            if ((case_index % 30U) == 0U) {
+                vpp = 80.0;
+            } else if ((case_index % 30U) == 1U) {
+                vpp = TEST_MAX_VPP_COUNTS;
+            }
+            if ((type == WAVEFORM_TYPE_SQUARE) && ((case_index % 15U) == 0U)) {
+                static const double edge_duties[] = {0.20, 0.21, 0.50, 0.79, 0.80};
+                duty = edge_duties[(case_index / 15U) % 5U];
+            }
+            occupied_half_span = 0.5 * vpp * (1.0 + noise_ratio);
+            center = (occupied_half_span + 8.0) +
+                     ((4079.0 - (2.0 * occupied_half_span)) * random_unit());
+            generate_signal(samples, type, frequency, vpp, center, duty,
+                            noise_ratio, random_unit(), (case_index & 1U) != 0U);
+            ++total;
+            if (!waveform_analyze(samples, &result) || (result.type != type)) {
+                ++classification_failures;
+                if (classification_failures <= 12U) {
+                    printf("CLASS FAIL expected=%s got=%s status=%s f=%.3f duty=%.3f "
+                           "scores=%u/%u cycles=%u\n",
+                           waveform_type_name(type), waveform_type_name(result.type),
+                           waveform_status_name(result.status), frequency, duty,
+                           result.best_score_permille, result.second_score_permille,
+                           result.accepted_cycles);
+                }
+                continue;
+            }
+            frequency_error = absolute(((double)result.frequency_millihz / 1000.0) - frequency) /
+                              frequency * 100.0;
+            vpp_error = absolute((double)result.vpp_millivolts -
+                                 (vpp * WAVEFORM_ADC_VDDA_MV / WAVEFORM_ADC_FULL_SCALE)) /
+                        (vpp * WAVEFORM_ADC_VDDA_MV / WAVEFORM_ADC_FULL_SCALE) * 100.0;
+            if (frequency_error > worst_frequency_percent) {
+                worst_frequency_percent = frequency_error;
+            }
+            if (vpp_error > worst_vpp_percent) {
+                worst_vpp_percent = vpp_error;
+            }
+            if ((frequency_error > 1.0) || (vpp_error > 8.0)) {
+                ++measurement_failures;
+            }
+            if (type == WAVEFORM_TYPE_SQUARE) {
+                double measured_duty = (double)result.duty_permille / 1000.0;
+                double duty_error = absolute(measured_duty - duty) * 100.0;
+                if (duty_error > worst_duty_percent) {
+                    worst_duty_percent = duty_error;
+                }
+                if (duty_error > 2.0) {
+                    ++measurement_failures;
+                    if (measurement_failures <= 12U) {
+                        printf("DUTY FAIL f=%.3f expected=%.3f got=%.3f noise=%.3f "
+                               "model=%s score=%u/%u\n",
+                               frequency, duty, measured_duty, noise_ratio,
+                               ((case_index & 1U) != 0U) ? "gaussian" : "multisine",
+                               result.best_score_permille, result.second_score_permille);
+                    }
+                }
+            }
+        }
+    }
+
+    {
+        waveform_result_t result;
+        uint32_t i;
+        for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
+            samples[i] = 2048U;
+        }
+        if (waveform_analyze(samples, &result) ||
+            (result.status != WAVEFORM_STATUS_SIGNAL_TOO_SMALL)) {
+            ++contract_failures;
+        }
+
+        generate_signal(samples, WAVEFORM_TYPE_SQUARE, 200.0, 3995.0,
+                        2097.5, 0.50, 0.0, 0.0, 0);
+        if (waveform_analyze(samples, &result) ||
+            (result.status != WAVEFORM_STATUS_ADC_HIGH_CLIPPED)) {
+            ++contract_failures;
+        }
+
+        generate_signal(samples, WAVEFORM_TYPE_SINE, 60.0, 1200.0,
+                        2000.0, 0.50, 0.0, 0.13, 0);
+        if (waveform_analyze(samples, &result) ||
+            (result.status != WAVEFORM_STATUS_FREQUENCY_OUT_OF_RANGE)) {
+            ++contract_failures;
+        }
+
+        for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
+            samples[i] = (i & 1U) ? 2048U : 5000U;
+        }
+        if (waveform_analyze(samples, &result) ||
+            (result.status != WAVEFORM_STATUS_ADC_SAMPLE_INVALID) ||
+            (result.invalid_samples == 0U)) {
+            ++contract_failures;
+        }
+
+        for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
+            samples[i] = (i & 1U) ? 2000U : 0U;
+        }
+        if (waveform_analyze(samples, &result) ||
+            (result.status != WAVEFORM_STATUS_ADC_LOW_CLIPPED) ||
+            (result.low_clip_samples == 0U)) {
+            ++contract_failures;
+        }
+    }
+
+    printf("cases=%u class_fail=%u measurement_fail=%u contract_fail=%u "
+           "worst_freq=%.4f%% worst_vpp=%.3f%% worst_duty=%.3f percentage-point\n",
+           total, classification_failures, measurement_failures, contract_failures,
+           worst_frequency_percent, worst_vpp_percent, worst_duty_percent);
+
+    return ((classification_failures == 0U) && (measurement_failures == 0U) &&
+            (contract_failures == 0U)) ? 0 : 1;
+}

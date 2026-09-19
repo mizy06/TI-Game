@@ -1,0 +1,56 @@
+[
+  {
+    "command": "R",
+    "rx": [
+      {
+        "elapsed_s": 0.0,
+        "raw_hex": "434150545552494e470d0a",
+        "text": "CAPTURING"
+      },
+      {
+        "elapsed_s": 0.20299999999997453,
+        "raw_hex": "50524f43455353494e470d0a",
+        "text": "PROCESSING"
+      },
+      {
+        "elapsed_s": 0.2179999999998472,
+        "raw_hex": "524553554c542c7374617475733d5349474e414c5f544f4f5f534d414c4c2c747970653d756e6b6e6f776e2c686967685f636c69705f73616d706c65733d300d0a",
+        "text": "RESULT,status=SIGNAL_TOO_SMALL,type=unknown,high_clip_samples=0"
+      },
+      {
+        "elapsed_s": 0.2179999999998472,
+        "raw_hex": "52454144590d0a",
+        "text": "READY"
+      }
+    ]
+  },
+  {
+    "command": "W",
+    "rx": []
+  },
+  {
+    "command": "R",
+    "rx": [
+      {
+        "elapsed_s": 0.0,
+        "raw_hex": "434150545552494e470d0a",
+        "text": "CAPTURING"
+      },
+      {
+        "elapsed_s": 0.20299999999997453,
+        "raw_hex": "50524f43455353494e470d0a",
+        "text": "PROCESSING"
+      },
+      {
+        "elapsed_s": 0.2179999999998472,
+        "raw_hex": "524553554c542c7374617475733d5349474e414c5f544f4f5f534d414c4c2c747970653d756e6b6e6f776e2c686967685f636c69705f73616d706c65733d300d0a",
+        "text": "RESULT,status=SIGNAL_TOO_SMALL,type=unknown,high_clip_samples=0"
+      },
+      {
+        "elapsed_s": 0.2339999999999236,
+        "raw_hex": "52454144590d0a",
+        "text": "READY"
+      }
+    ]
+  }
+]

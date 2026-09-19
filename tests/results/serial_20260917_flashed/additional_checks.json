@@ -1,0 +1,132 @@
+[
+  {
+    "name": "constant",
+    "result": {
+      "status": "SIGNAL_TOO_SMALL",
+      "type": "unknown",
+      "high_clip_samples": "0"
+    },
+    "elapsed_s": 0.7350000000001273,
+    "log": [
+      {
+        "elapsed_s": 0.0,
+        "raw_hex": "52454144595f464f525f444154410d0a",
+        "text": "READY_FOR_DATA"
+      },
+      {
+        "elapsed_s": 0.7190000000000509,
+        "raw_hex": "444154412c62797465733d383139322c666e7631613d313736323130363832310d0a",
+        "text": "DATA,bytes=8192,fnv1a=1762106821"
+      },
+      {
+        "elapsed_s": 0.7190000000000509,
+        "raw_hex": "50524f43455353494e470d0a",
+        "text": "PROCESSING"
+      },
+      {
+        "elapsed_s": 0.7350000000001273,
+        "raw_hex": "524553554c542c7374617475733d5349474e414c5f544f4f5f534d414c4c2c747970653d756e6b6e6f776e2c686967685f636c69705f73616d706c65733d300d0a",
+        "text": "RESULT,status=SIGNAL_TOO_SMALL,type=unknown,high_clip_samples=0"
+      },
+      {
+        "elapsed_s": 0.7350000000001273,
+        "raw_hex": "52454144590d0a",
+        "text": "READY"
+      }
+    ]
+  },
+  {
+    "name": "high_clip",
+    "result": {
+      "status": "ADC_HIGH_CLIPPED",
+      "type": "unknown",
+      "high_clip_samples": "2048"
+    },
+    "elapsed_s": 0.7339999999999236,
+    "log": [
+      {
+        "elapsed_s": 0.0,
+        "raw_hex": "52454144595f464f525f444154410d0a",
+        "text": "READY_FOR_DATA"
+      },
+      {
+        "elapsed_s": 0.7190000000000509,
+        "raw_hex": "444154412c62797465733d383139322c666e7631613d313533313135373935370d0a",
+        "text": "DATA,bytes=8192,fnv1a=1531157957"
+      },
+      {
+        "elapsed_s": 0.7190000000000509,
+        "raw_hex": "50524f43455353494e470d0a",
+        "text": "PROCESSING"
+      },
+      {
+        "elapsed_s": 0.7339999999999236,
+        "raw_hex": "524553554c542c7374617475733d4144435f484947485f434c49505045442c747970653d756e6b6e6f776e2c686967685f636c69705f73616d706c65733d323034380d0a",
+        "text": "RESULT,status=ADC_HIGH_CLIPPED,type=unknown,high_clip_samples=2048"
+      },
+      {
+        "elapsed_s": 0.75,
+        "raw_hex": "52454144590d0a",
+        "text": "READY"
+      }
+    ]
+  },
+  {
+    "name": "invalid_12bit",
+    "lines": [
+      "DATA,bytes=8192,fnv1a=2179145157",
+      "ERR_SAMPLE_RANGE",
+      "READY"
+    ]
+  },
+  {
+    "command": "T",
+    "elapsed_s": 0.6559999999999491,
+    "lines": [
+      "GENERATING",
+      "PROCESSING",
+      "RESULT,status=OK,type=sine,freq_hz=200.015,vpp_v=2.011,duty_pct=NA,score_pct=99.9,margin_pct=1.4,cycles=39",
+      "READY"
+    ]
+  },
+  {
+    "command": "T",
+    "elapsed_s": 0.06199999999989814,
+    "lines": [
+      "GENERATING",
+      "PROCESSING",
+      "RESULT,status=OK,type=square,freq_hz=250.007,vpp_v=2.018,duty_pct=30.0,score_pct=97.7,margin_pct=36.1,cycles=50",
+      "READY"
+    ]
+  },
+  {
+    "command": "T",
+    "elapsed_s": 0.09400000000005093,
+    "lines": [
+      "GENERATING",
+      "PROCESSING",
+      "RESULT,status=OK,type=triangle,freq_hz=149.866,vpp_v=1.949,duty_pct=NA,score_pct=99.7,margin_pct=1.3,cycles=29",
+      "READY"
+    ]
+  },
+  {
+    "command": "T",
+    "elapsed_s": 0.07799999999997453,
+    "lines": [
+      "GENERATING",
+      "PROCESSING",
+      "RESULT,status=OK,type=sawtooth,freq_hz=300.003,vpp_v=1.918,duty_pct=NA,score_pct=96.8,margin_pct=21.5,cycles=60",
+      "READY"
+    ]
+  },
+  {
+    "command": "R",
+    "elapsed_s": 0.23500000000012733,
+    "lines": [
+      "CAPTURING",
+      "PROCESSING",
+      "RESULT,status=SIGNAL_TOO_SMALL,type=unknown,high_clip_samples=0",
+      "READY"
+    ]
+  }
+]

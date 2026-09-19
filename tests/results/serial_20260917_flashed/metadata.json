@@ -1,0 +1,19 @@
+{
+  "port": "COM15",
+  "hwid": "USB VID:PID=0451:BEF3 SER=MG350001 LOCATION=1-5:x.0",
+  "mode": "UART injection; NOT ADC",
+  "seed": 20260917,
+  "fs": 20000,
+  "count": 4096,
+  "dc_v": 1.65,
+  "vpp_v": 2,
+  "noise_model": "Finite Gaussian white record scaled to requested Vpp; Nyquist 10kHz",
+  "thresholds_NOT_official": {
+    "freq_pct": 2,
+    "vpp_pct": 8,
+    "duty_pp": 3
+  },
+  "firmware_identity": "audited-20260917-v1; see flash and boot logs",
+  "firmware_sha256": "212fa89f859151a0250812436a488c7e740811f3aa49a4648a2bcef950337faf",
+  "test_script_sha256": "3d1093a3a485a8d18ea91e519bf925e596d4345fd0b6ad78b994a259627c30bd"
+}

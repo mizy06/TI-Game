@@ -1,0 +1,1 @@
+{"index": 1, "expected": {"type": "sine", "freq": 100, "duty": 50, "edge": 0, "noise": 0}, "log": [], "input_sha256": "42370e4d53605f7fc6c2db1784fcaead3de5fb960be8043b42cf06d8639a3a1b", "error": "TimeoutError: 10 second deadline exceeded"}
