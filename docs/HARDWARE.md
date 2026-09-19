@@ -5,10 +5,12 @@
 ```text
 信号发生器 OUT  ---- 1 kΩ ---- PA25 (ADC0.CH2)
 信号发生器 GND  -------------- MSPM0 GND
-USB-UART RX      -------------- PA0  (UART0.TX)
-USB-UART TX      -------------- PA1  (UART0.RX)
+LaunchPad USB    -------------- XDS110 Application/User UART
+                                  PA10 (UART0.TX), PA11 (UART0.RX)
 触发按键         -------------- PB13 与 GND 之间
 ```
+
+默认直接使用 LaunchPad 板载 XDS110 虚拟串口，不需要另接 USB-UART。若必须使用外置串口，应在 SysConfig 中把 UART0 改到 PA0/PA1 后重新生成；不要同时把两组引脚都映射到 UART0。
 
 只有在示波器已经确认输入全程位于 0–3.3 V 时，才允许使用该最小连接。信号发生器端通常应设为高阻负载显示模式；如果仪器按 50 Ω 负载标定而实际接高阻，显示值和实际输出可能相差一倍，必须现场用示波器确认。
 
@@ -27,7 +29,7 @@ USB-UART TX      -------------- PA1  (UART0.RX)
 - [ ] MSPM0G3507 板和信号发生器已经共地；
 - [ ] PA25 输入最小值 ≥ 0 V，最大值 ≤ 3.3 V；
 - [ ] 串联保护电阻已焊接，杜邦线无松动；
-- [ ] PA0/PA1 与 USB-UART 交叉连接，且串口地共地；
+- [ ] 电脑已识别 XDS110 Application/User UART；
 - [ ] 串口为 115200、8 数据位、无校验、1 停止位；
 - [ ] PB13 按键只把引脚拉到 GND，不外加 5 V；
 - [ ] 使用 100、250、400 Hz 各跑一次；
@@ -40,9 +42,9 @@ USB-UART TX      -------------- PA1  (UART0.RX)
 
 | 串口现象 | 最可能原因 | 处理 |
 | --- | --- | --- |
-| 完全无启动信息 | TX/RX 接反、未共地、未运行新固件 | 检查 PA0→USB-UART RX 和 GND |
-| 有启动信息但发 R 无响应 | RX 未接到 PA1 | 用 PB13 触发并检查 RX |
-| 一直停在 CAPTURING | TIMA0→ADC 事件或 ADC 中断配置未生成 | CCS Clean，打开 SysConfig 检查后重新 Build |
+| 完全无启动信息 | 串口选错、未运行新固件 | 选择 XDS110 Application/User UART，确认启动横幅为 `prelim-dma-20260919-v1` |
+| 有启动信息但发 R 无响应 | 终端换行/流控设置错误 | 使用 115200 8-N-1、关闭硬件流控，或用 PB13 触发 |
+| `ERR_ADC_DMA` | TIMA0→ADC 事件、ADC→DMA 触发或 DMA 地址配置异常 | CCS Clean，打开 SysConfig 检查后重新 Build |
 | SIGNAL_TOO_SMALL | 幅度太小、输入未接、地线断开 | 示波器检查 PA25 |
 | ADC_HIGH_CLIPPED / ADC_LOW_CLIPPED | 输入达到/超过 ADC 两端 | 立即降低幅度/调整偏置 |
 | ADC_SAMPLE_INVALID | 注入数据超过 12 位范围 | 检查串口端序和采样缓冲 |

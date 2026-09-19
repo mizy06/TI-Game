@@ -12,8 +12,22 @@
 #include <stdint.h>
 
 static volatile uint16_t g_adc_samples[WAVEFORM_SAMPLE_COUNT];
-static volatile uint32_t g_sample_index;
 static volatile bool g_capture_done;
+static volatile bool g_capture_failed;
+
+/* MSPM0G3507 has 32 KB SRAM.  Keep one 8 KB sample buffer and let the
+ * analyzer operate in place; a second DMA buffer would unnecessarily consume
+ * the stack/runtime headroom needed by waveform_analyze(). */
+#if WAVEFORM_SAMPLE_COUNT > 65535
+#error "DMA transfer size must fit the MSPM0 DMA 16-bit counter"
+#endif
+
+#define UART_RX_ERROR_MASK (DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR | \
+                            DL_UART_MAIN_INTERRUPT_BREAK_ERROR |   \
+                            DL_UART_MAIN_INTERRUPT_PARITY_ERROR |  \
+                            DL_UART_MAIN_INTERRUPT_FRAMING_ERROR | \
+                            DL_UART_MAIN_INTERRUPT_NOISE_ERROR)
+#define CAPTURE_TIMEOUT_MS (500U)
 
 static void uart_put_char(char value)
 {
@@ -58,6 +72,18 @@ static void uart_put_percent_permille(uint16_t permille)
     uart_put_u32(permille / 10U);
     uart_put_char('.');
     uart_put_char((char)('0' + (permille % 10U)));
+}
+
+static bool uart_rx_error_pending(void)
+{
+    uint32_t status = DL_UART_Main_getRawInterruptStatus(UART_0_INST,
+                                                         UART_RX_ERROR_MASK);
+
+    if (status == 0U) {
+        return false;
+    }
+    DL_UART_Main_clearInterruptStatus(UART_0_INST, status);
+    return true;
 }
 
 #include <math.h>
@@ -146,6 +172,10 @@ static bool receive_uart_samples(void)
     uart_put_string("READY_FOR_DATA\r\n");
 
     while (count < total) {
+        if (uart_rx_error_pending()) {
+            uart_put_string("ERR_UART_RX\r\n");
+            return false;
+        }
         if (!DL_UART_Main_isRXFIFOEmpty(UART_0_INST)) {
             uint8_t value = DL_UART_Main_receiveData(UART_0_INST);
             dest[count++] = value;
@@ -182,6 +212,7 @@ static bool button_is_pressed(void)
 static trigger_mode_t wait_for_trigger(void)
 {
     for (;;) {
+        (void)uart_rx_error_pending();
         while (!DL_UART_Main_isRXFIFOEmpty(UART_0_INST)) {
             uint8_t value = DL_UART_Main_receiveData(UART_0_INST);
             if ((value == 'r') || (value == 'R')) {
@@ -212,23 +243,83 @@ static void wait_for_button_release(void)
     delay_cycles(CPUCLK_FREQ / 100U);
 }
 
-static void capture_samples(void)
+static void configure_adc_dma_capture(void)
 {
-    __disable_irq();
-    g_sample_index = 0U;
-    g_capture_done = false;
-    DL_TimerA_stopCounter(TIMER_0_INST);
+    /* SysConfig creates DMA_CH0 and connects ADC0's event trigger.  Addresses
+     * and size must be restored for every capture because a completed block
+     * leaves the DMA destination at the end of the sample buffer. */
+    DL_DMA_disableChannel(DMA, DMA_CH0_CHAN_ID);
+    DL_DMA_configTransfer(DMA, DMA_CH0_CHAN_ID,
+                          DL_DMA_SINGLE_TRANSFER_MODE,
+                          DL_DMA_NORMAL_MODE,
+                          DL_DMA_WIDTH_HALF_WORD,
+                          DL_DMA_WIDTH_HALF_WORD,
+                          DL_DMA_ADDR_UNCHANGED,
+                          DL_DMA_ADDR_INCREMENT);
+    DL_DMA_setSrcAddr(DMA, DMA_CH0_CHAN_ID,
+                      DL_ADC12_getMemResultAddress(ADC12_0_INST,
+                                                   ADC12_0_ADCMEM_0));
+    DL_DMA_setDestAddr(DMA, DMA_CH0_CHAN_ID,
+                       (uint32_t)(uintptr_t)g_adc_samples);
+    DL_DMA_setTransferSize(DMA, DMA_CH0_CHAN_ID,
+                           (uint16_t)WAVEFORM_SAMPLE_COUNT);
+    DL_DMA_clearInterruptStatus(DMA, DL_DMA_INTERRUPT_CHANNEL0 |
+                                     DL_DMA_INTERRUPT_ADDR_ERROR |
+                                     DL_DMA_INTERRUPT_DATA_ERROR);
+
+    /* DMA_DONE is reported by ADC0 when the configured DMA block completes.
+     * Keep the completion path on the already-used ADC IRQ; this avoids a
+     * second application ISR and leaves the DMA channel interrupt disabled. */
     DL_ADC12_clearInterruptStatus(ADC12_0_INST,
-                                 DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED);
+                                  DL_ADC12_INTERRUPT_DMA_DONE);
+    DL_ADC12_enableDMA(ADC12_0_INST);
+    DL_ADC12_enableDMATrigger(ADC12_0_INST,
+                              DL_ADC12_DMA_MEM0_RESULT_LOADED);
+    DL_DMA_enableChannel(DMA, DMA_CH0_CHAN_ID);
+}
+
+static void stop_adc_dma_capture(bool failed)
+{
+    DL_TimerA_stopCounter(TIMER_0_INST);
+    DL_ADC12_disableDMATrigger(ADC12_0_INST,
+                               DL_ADC12_DMA_MEM0_RESULT_LOADED);
+    DL_ADC12_disableDMA(ADC12_0_INST);
+    DL_DMA_disableChannel(DMA, DMA_CH0_CHAN_ID);
+    g_capture_failed = failed;
+    g_capture_done = true;
+}
+
+static bool capture_samples(void)
+{
+    uint32_t elapsed_ms;
+
+    __disable_irq();
+    g_capture_done = false;
+    g_capture_failed = false;
+    DL_TimerA_stopCounter(TIMER_0_INST);
+    configure_adc_dma_capture();
     NVIC_ClearPendingIRQ(ADC12_0_INST_INT_IRQN);
     NVIC_EnableIRQ(ADC12_0_INST_INT_IRQN);
     DL_TimerA_startCounter(TIMER_0_INST);
     __enable_irq();
 
-    while (!g_capture_done) {
-        __WFI();
+    for (elapsed_ms = 0U;
+         (!g_capture_done) && (elapsed_ms < CAPTURE_TIMEOUT_MS);
+         ++elapsed_ms) {
+        uint32_t dma_errors = DL_DMA_getRawInterruptStatus(
+            DMA, DL_DMA_INTERRUPT_ADDR_ERROR | DL_DMA_INTERRUPT_DATA_ERROR);
+        if (dma_errors != 0U) {
+            DL_DMA_clearInterruptStatus(DMA, dma_errors);
+            stop_adc_dma_capture(true);
+            break;
+        }
+        delay_cycles(CPUCLK_FREQ / 1000U);
+    }
+    if (!g_capture_done) {
+        stop_adc_dma_capture(true);
     }
     NVIC_DisableIRQ(ADC12_0_INST_INT_IRQN);
+    return !g_capture_failed;
 }
 
 static void print_result(const waveform_result_t *result, bool valid)
@@ -276,8 +367,8 @@ int main(void)
 {
     SYSCFG_DL_init();
 
-    /* The starter project selected UART loopback and a floating input. These
-     * application overrides avoid editing the protected .syscfg source. */
+    /* Keep these runtime settings explicit so a regenerated SysConfig project
+     * cannot silently restore loopback or a floating trigger input. */
     DL_UART_Main_disableLoopbackMode(UART_0_INST);
     DL_GPIO_initDigitalInputFeatures(GPIO_GRP_0_PIN_0_IOMUX,
                                      DL_GPIO_INVERSION_DISABLE,
@@ -285,14 +376,9 @@ int main(void)
                                      DL_GPIO_HYSTERESIS_ENABLE,
                                      DL_GPIO_WAKEUP_DISABLE);
 
-    /* Also map UART0 to PA10 (TX) and PA11 (RX) so the onboard LaunchPad XDS110
-     * backchannel virtual COM port works directly without external jumper wires. */
-    DL_GPIO_initPeripheralOutputFunction(IOMUX_PINCM21, IOMUX_PINCM21_PF_UART0_TX);
-    DL_GPIO_initPeripheralInputFunction(IOMUX_PINCM22, IOMUX_PINCM22_PF_UART0_RX);
-
     uart_put_string("\r\nTI-CUP WAVEFORM CLASSIFIER\r\n");
-    uart_put_string("FW=audited-20260917-v1,INJECT=LE16-4096-FNV1A\r\n");
-    uart_put_string("ADC=PA25, FS=20000Hz, N=4096\r\n");
+    uart_put_string("FW=prelim-dma-20260919-v1,INJECT=LE16-4096-FNV1A\r\n");
+    uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS=20000Hz, N=4096\r\n");
     uart_put_string("READY: send R=ADC, W=Inject, T=Simulate\r\n");
 
     for (;;) {
@@ -302,7 +388,12 @@ int main(void)
 
         if (mode == TRIGGER_ADC_CAPTURE) {
             uart_put_string("CAPTURING\r\n");
-            capture_samples();
+            if (!capture_samples()) {
+                uart_put_string("ERR_ADC_DMA\r\n");
+                wait_for_button_release();
+                uart_put_string("READY\r\n");
+                continue;
+            }
         } else if (mode == TRIGGER_UART_INJECT) {
             if (!receive_uart_samples()) {
                 uart_put_string("READY\r\n");
@@ -324,18 +415,11 @@ int main(void)
 void ADC12_0_INST_IRQHandler(void)
 {
     switch (DL_ADC12_getPendingInterrupt(ADC12_0_INST)) {
-    case DL_ADC12_IIDX_MEM0_RESULT_LOADED:
-        if (g_sample_index < WAVEFORM_SAMPLE_COUNT) {
-            g_adc_samples[g_sample_index++] =
-                DL_ADC12_getMemResult(ADC12_0_INST, ADC12_0_ADCMEM_0);
-            if (g_sample_index >= WAVEFORM_SAMPLE_COUNT) {
-                DL_TimerA_stopCounter(TIMER_0_INST);
-                g_capture_done = true;
-            }
-        } else {
-            DL_TimerA_stopCounter(TIMER_0_INST);
-            g_capture_done = true;
-        }
+    case DL_ADC12_IIDX_DMA_DONE:
+        stop_adc_dma_capture(false);
+        break;
+    case DL_ADC12_IIDX_UNDERFLOW:
+        stop_adc_dma_capture(true);
         break;
     default:
         break;

@@ -8,11 +8,13 @@ typedef struct { uint32_t unused; } UART_Regs;
 typedef struct { uint32_t unused; } GPIO_Regs;
 typedef struct { uint32_t unused; } GPTIMER_Regs;
 typedef struct { uint32_t unused; } ADC12_Regs;
+typedef struct { uint32_t unused; } DMA_Regs;
 
 static UART_Regs g_stub_uart;
 static GPIO_Regs g_stub_gpio;
 static GPTIMER_Regs g_stub_timer;
 static ADC12_Regs g_stub_adc;
+static DMA_Regs g_stub_dma;
 
 #define UART_0_INST               (&g_stub_uart)
 #define GPIO_GRP_0_PORT           (&g_stub_gpio)
@@ -22,8 +24,25 @@ static ADC12_Regs g_stub_adc;
 #define ADC12_0_INST              (&g_stub_adc)
 #define ADC12_0_ADCMEM_0          (0U)
 #define ADC12_0_INST_INT_IRQN     (0U)
-#define DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED (1U)
-#define DL_ADC12_IIDX_MEM0_RESULT_LOADED      (1U)
+#define DMA                       (&g_stub_dma)
+#define DMA_CH0_CHAN_ID           (0U)
+#define DL_ADC12_INTERRUPT_DMA_DONE           (1U)
+#define DL_ADC12_IIDX_DMA_DONE                (1U)
+#define DL_ADC12_IIDX_UNDERFLOW                (2U)
+#define DL_ADC12_DMA_MEM0_RESULT_LOADED       (1U)
+#define DL_DMA_INTERRUPT_CHANNEL0             (1U)
+#define DL_DMA_INTERRUPT_ADDR_ERROR           (2U)
+#define DL_DMA_INTERRUPT_DATA_ERROR           (4U)
+#define DL_DMA_SINGLE_TRANSFER_MODE           (0U)
+#define DL_DMA_NORMAL_MODE                    (0U)
+#define DL_DMA_WIDTH_HALF_WORD                (1U)
+#define DL_DMA_ADDR_UNCHANGED                 (0U)
+#define DL_DMA_ADDR_INCREMENT                 (1U)
+#define DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR  (1U)
+#define DL_UART_MAIN_INTERRUPT_BREAK_ERROR    (2U)
+#define DL_UART_MAIN_INTERRUPT_PARITY_ERROR   (4U)
+#define DL_UART_MAIN_INTERRUPT_FRAMING_ERROR  (8U)
+#define DL_UART_MAIN_INTERRUPT_NOISE_ERROR    (16U)
 #define DL_GPIO_INVERSION_DISABLE             (0U)
 #define DL_GPIO_RESISTOR_PULL_UP               (1U)
 #define DL_GPIO_HYSTERESIS_ENABLE              (1U)
@@ -41,6 +60,12 @@ static inline bool DL_UART_Main_isRXFIFOEmpty(UART_Regs *uart)
 { (void)uart; return true; }
 static inline uint8_t DL_UART_Main_receiveData(UART_Regs *uart)
 { (void)uart; return 0U; }
+static inline uint32_t DL_UART_Main_getRawInterruptStatus(
+    UART_Regs *uart, uint32_t mask)
+{ (void)uart; (void)mask; return 0U; }
+static inline void DL_UART_Main_clearInterruptStatus(
+    UART_Regs *uart, uint32_t mask)
+{ (void)uart; (void)mask; }
 static inline void DL_UART_Main_disableLoopbackMode(UART_Regs *uart)
 { (void)uart; }
 static inline uint32_t DL_GPIO_readPins(GPIO_Regs *gpio, uint32_t pins)
@@ -58,9 +83,43 @@ static inline void DL_TimerA_startCounter(GPTIMER_Regs *timer)
 static inline void DL_ADC12_clearInterruptStatus(ADC12_Regs *adc, uint32_t mask)
 { (void)adc; (void)mask; }
 static inline uint32_t DL_ADC12_getPendingInterrupt(ADC12_Regs *adc)
-{ (void)adc; return DL_ADC12_IIDX_MEM0_RESULT_LOADED; }
-static inline uint16_t DL_ADC12_getMemResult(ADC12_Regs *adc, uint32_t index)
+{ (void)adc; return DL_ADC12_IIDX_DMA_DONE; }
+static inline uint32_t DL_ADC12_getMemResultAddress(
+    ADC12_Regs *adc, uint32_t index)
 { (void)adc; (void)index; return 0U; }
+static inline void DL_ADC12_enableDMA(ADC12_Regs *adc) { (void)adc; }
+static inline void DL_ADC12_disableDMA(ADC12_Regs *adc) { (void)adc; }
+static inline void DL_ADC12_enableDMATrigger(ADC12_Regs *adc, uint32_t mask)
+{ (void)adc; (void)mask; }
+static inline void DL_ADC12_disableDMATrigger(ADC12_Regs *adc, uint32_t mask)
+{ (void)adc; (void)mask; }
+static inline void DL_DMA_disableChannel(DMA_Regs *dma, uint8_t channel)
+{ (void)dma; (void)channel; }
+static inline void DL_DMA_enableChannel(DMA_Regs *dma, uint8_t channel)
+{ (void)dma; (void)channel; }
+static inline void DL_DMA_configTransfer(DMA_Regs *dma, uint8_t channel,
+                                         uint32_t transfer_mode,
+                                         uint32_t extended_mode,
+                                         uint32_t src_width,
+                                         uint32_t dest_width,
+                                         uint32_t src_increment,
+                                         uint32_t dest_increment)
+{ (void)dma; (void)channel; (void)transfer_mode; (void)extended_mode;
+  (void)src_width; (void)dest_width; (void)src_increment; (void)dest_increment; }
+static inline void DL_DMA_setSrcAddr(
+    DMA_Regs *dma, uint8_t channel, uint32_t address)
+{ (void)dma; (void)channel; (void)address; }
+static inline void DL_DMA_setDestAddr(
+    DMA_Regs *dma, uint8_t channel, uint32_t address)
+{ (void)dma; (void)channel; (void)address; }
+static inline void DL_DMA_setTransferSize(
+    DMA_Regs *dma, uint8_t channel, uint16_t size)
+{ (void)dma; (void)channel; (void)size; }
+static inline void DL_DMA_clearInterruptStatus(DMA_Regs *dma, uint32_t mask)
+{ (void)dma; (void)mask; }
+static inline uint32_t DL_DMA_getRawInterruptStatus(
+    DMA_Regs *dma, uint32_t mask)
+{ (void)dma; (void)mask; return 0U; }
 static inline void NVIC_ClearPendingIRQ(uint32_t irq) { (void)irq; }
 static inline void NVIC_EnableIRQ(uint32_t irq) { (void)irq; }
 static inline void NVIC_DisableIRQ(uint32_t irq) { (void)irq; }
