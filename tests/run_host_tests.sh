@@ -19,3 +19,12 @@ cc -std=c99 -O2 -Wall -Wextra -Werror \
   -lm -o "$script_dir/precision_validation"
 
 "$script_dir/precision_validation"
+
+cc -std=c99 -O2 -Wall -Wextra -Werror -fPIC -shared \
+  -I"$project_dir" \
+  "$project_dir/waveform_analyzer.c" \
+  -lm -o "$script_dir/waveform_analyzer_host.so"
+
+python3 -B "$project_dir/tools/competition_stress_suite.py" \
+  --library "$script_dir/waveform_analyzer_host.so" \
+  --json "$script_dir/results/competition_stress_report.json"
