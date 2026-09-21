@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Deterministic host-side noise sweep for waveform_analyzer.dll."""
+"""在电脑上对 C 算法 DLL 做可重复的噪声扫描。
+
+脚本按多个噪声等级生成四类波形，通过 ctypes 调用与固件同源的
+``waveform_analyze``，统计分类正确率和频率/Vpp/占空比误差。固定随机种子
+使回归结果可复现；它验证数字算法，不验证开发板模拟采集链路。
+"""
 
 import argparse
 import ctypes
@@ -8,14 +13,19 @@ import math
 import random
 from pathlib import Path
 
-FS = 20_000.0
-N = 4096
+FS = 20_000.0  # 采样率 Hz；下划线只是 Python 的数字可读分隔符。
+N = 4096       # 每帧采样点数，必须与 C 兼容入口一致。
 ADC_MAX = 4095.0
 VDDA = 3.3
 ALGORITHM_VERSION = 0x00020000
 
 
 class WaveformResult(ctypes.Structure):
+    """C ``waveform_result_t`` 的逐字段二进制镜像。
+
+    ctypes 按顺序解释 C 写入的内存，因此字段类型、顺序和数量必须与
+    waveform_analyzer.h 完全一致；只改一边会让后续字段全部错位。
+    """
     _fields_ = [
         ("type", ctypes.c_int),
         ("status", ctypes.c_int),
@@ -58,6 +68,7 @@ STATUS_NAMES = [
 
 
 def ideal_wave(kind, phase, duty):
+    """返回相位 ``phase`` 处的归一化理想波形值（约 -1 到 +1）。"""
     if kind == "sine":
         return math.sin(2.0 * math.pi * phase)
     if kind == "square":
@@ -72,6 +83,12 @@ def ideal_wave(kind, phase, duty):
 
 
 def generate(kind, freq, vpp, duty, noise_ratio, rng):
+    """生成一帧不会主动拒绝削顶的 12 位 ADC 整数样本。
+
+    噪声先生成有限 4096 点高斯记录，再按该记录的实际峰峰值缩放到
+    ``noise_ratio * signal_vpp``；这样 20% 的含义对每个用例都确定。
+    ``rng`` 由调用者持有，保证整套扫描在固定 seed 下复现。
+    """
     center = 1.65 / VDDA * ADC_MAX
     vpp_counts = vpp / VDDA * ADC_MAX
     # Scale one finite Gaussian record so its observed peak-to-peak equals
@@ -80,6 +97,7 @@ def generate(kind, freq, vpp, duty, noise_ratio, rng):
     lo, hi = min(noise), max(noise)
     scale = (noise_ratio * vpp_counts) / (hi - lo) if hi > lo else 0.0
     noise = [(x - 0.5 * (lo + hi)) * scale for x in noise]
+    # 随机起始相位防止算法依赖“第一点恰好在过零/峰值”的特殊情况。
     phase0 = rng.random()
     samples = []
     for i in range(N):
@@ -90,6 +108,11 @@ def generate(kind, freq, vpp, duty, noise_ratio, rng):
 
 
 def analyze(dll, samples):
+    """把 Python 整数列表转成 C 数组，调用 DLL 并解码枚举。
+
+    返回 ``(valid, 原始结构体, 类别名, 状态名)``。版本不匹配立即报错，
+    防止测试脚本用新版布局读取旧 DLL。
+    """
     arr = (ctypes.c_uint16 * N)(*samples)
     result = WaveformResult()
     valid = bool(dll.waveform_analyze(arr, ctypes.byref(result)))
@@ -104,6 +127,7 @@ def analyze(dll, samples):
 
 
 def main():
+    """运行全部噪声等级，打印摘要并保存 JSON 报告。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", type=int, default=25,
                         help="cases per waveform and noise level")
@@ -112,6 +136,8 @@ def main():
     parser.add_argument("--json", default="tests/results/host_noise_sweep.json")
     args = parser.parse_args()
 
+    # 明确声明参数/返回类型非常重要；否则 ctypes 会按默认 int/指针规则
+    # 猜测，64 位系统上可能截断地址。
     dll = ctypes.CDLL(args.dll)
     dll.waveform_analyze.argtypes = [ctypes.POINTER(ctypes.c_uint16), ctypes.POINTER(WaveformResult)]
     dll.waveform_analyze.restype = ctypes.c_bool
@@ -129,6 +155,7 @@ def main():
                 freq = edge_freqs[index % len(edge_freqs)] if index < len(edge_freqs) else rng.uniform(100.0, 400.0)
                 duty = rng.uniform(0.20, 0.80) if kind == "square" else 0.50
                 # Keep the stress cases inside 0-3.3 V even at 50% noise.
+                # 噪声越大，允许的信号 Vpp 越小，给 0~3.3 V 两端留余量。
                 max_vpp = min(2.6, 3.0 / (1.0 + level) - 0.02)
                 vpp = rng.uniform(0.80, max_vpp)
                 samples = generate(kind, freq, vpp, duty, level, rng)
@@ -139,6 +166,7 @@ def main():
                 vpp_err = abs(measured_vpp - vpp) / vpp * 100.0 if valid else 100.0
                 duty_err = (abs(result.duty_permille / 10.0 - duty * 100.0)
                             if kind == "square" and valid else 0.0)
+                # 方波 duty_err 用百分点；其他两项用相对百分比。
                 passed = (valid and status == "OK" and got_kind == kind and
                           freq_err <= 2.0 and vpp_err <= 8.0 and duty_err <= 3.0)
                 row = {
@@ -154,6 +182,7 @@ def main():
                 rows.append(row)
                 if not passed and len(failures) < 8:
                     failures.append(row)
+        # 摘要保留有限数量失败详情，既便于定位又避免 JSON/终端过大。
         valid_rows = [r for r in rows if r["status"] == "OK"]
         level_summary = {
             "noise_pct": level * 100.0,
@@ -173,6 +202,7 @@ def main():
               "min_margin={min_margin_pct:.1f}%".format(**level_summary))
 
     output = Path(args.json)
+    # 自动创建父目录；报告是生成物，可以覆盖同一路径的旧扫描结果。
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(f"saved={output}")

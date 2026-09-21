@@ -5,6 +5,8 @@
 
 本工程面向 MSPM0G3507，处理采集侧交付的无符号 ADC 数组，识别正弦波、方波、三角波和下降锯齿波，并输出频率、Vpp；方波额外输出占空比。
 
+第一次接触单片机或信号处理，请先读 [波形识别工程零基础导读](BEGINNER_GUIDE.md)。它从采样点、ADC 码值、频率和峰峰值讲起，再按实际调用顺序解释全部算法步骤、定点数单位、串口协议、测试方法和文件地图；源码中也已按同样思路补充逐函数注释。
+
 ## 已完成
 
 - 新增版本化采集-算法接口 waveform_frame_t；
@@ -21,6 +23,7 @@
 
 ## 文档
 
+- [零基础导读：从 ADC 采样到四类波形识别](BEGINNER_GUIDE.md)
 - [算法培训研读、替代方案与最终取舍](docs/ALGORITHM_RESEARCH_AND_DECISIONS.md)
 - [ADC 采集侧与算法侧对接协议](docs/ACQUISITION_ALGORITHM_INTERFACE.md)
 - [算法分支设计说明](docs/DESIGN.md)

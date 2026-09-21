@@ -1,12 +1,19 @@
+# CCS 的构建输出目录。里面的 .o/.out/.map 可从源码重新生成，不应提交。
 Debug/
 Release/
+
+# Python 导入模块时产生的字节码缓存。
 __pycache__/
+
+# 主机 C 回归测试和语法检查生成的临时可执行文件/目标文件/共享库。
 tests/host_test
 tests/precision_validation
 tests/host_test_sanitized
 tests/precision_validation_sanitized
 tests/empty_host_syntax.o
 tests/waveform_analyzer_host.so
+
+# 通用编译中间件和最终映像。忽略规则只影响 Git，不会删除本地文件。
 *.o
 *.d
 *.out

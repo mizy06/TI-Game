@@ -1,8 +1,10 @@
-# This is an auto-generated file - do not add it to source-control
+# clangd 代码补全配置（自动生成，通常不要手工维护）。
+# 它只影响编辑器的跳转/提示，不参与 CCS 的实际固件构建。
 
 CompileFlags:
+   # 读取 CCS Debug 构建导出的编译数据库，获得真实宏、头文件路径和参数。
    CompilationDatabase: Debug/.clangd
 
 Diagnostics:
+   # 编辑器端关闭全部 clangd 诊断；真正的严格告警由构建和主机测试承担。
    Suppress: '*'
-

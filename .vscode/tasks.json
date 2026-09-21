@@ -1,0 +1,36 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build (gmake)",
+            "type": "shell",
+            "command": "C:/ti/ccs2101/ccs/utils/bin/gmake.exe",
+            "args": [
+                "-C",
+                "C:/Users/L/workspace_ccstheia/TI-game/Debug",
+                "all"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "options": {
+                "cwd": "C:/Users/L/workspace_ccstheia/TI-game"
+            }
+        },
+        {
+            "label": "clean (gmake)",
+            "type": "shell",
+            "command": "C:/ti/ccs2101/ccs/utils/bin/gmake.exe",
+            "args": [
+                "-C",
+                "C:/Users/L/workspace_ccstheia/TI-game/Debug",
+                "clean"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

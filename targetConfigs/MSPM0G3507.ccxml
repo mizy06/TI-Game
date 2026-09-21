@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  CCS 目标连接配置：使用 XDS110 经 SWD 连接 MSPM0G3507。
+  这是调试器链路而不是应用逻辑；IDE 可能根据工程属性自动重新生成。
+  1 MHz 调试时钟偏保守、兼容性好，不能与应用的 20 kHz ADC 采样率混淆。
+-->
 <configurations XML_version="1.2" id="configurations_0">
     <configuration XML_version="1.2" id="configuration_0">
         <instance XML_version="1.2" desc="Texas Instruments XDS110 USB Debug Probe" href="connections/TIXDS110_Connection.xml" id="Texas Instruments XDS110 USB Debug Probe" xml="TIXDS110_Connection.xml" xmlpath="connections"/>
@@ -6,6 +11,7 @@
             <instance XML_version="1.2" href="drivers/tixds510cs_dap.xml" id="drivers" xml="tixds510cs_dap.xml" xmlpath="drivers"/>
             <instance XML_version="1.2" href="drivers/tixds510cortexM0.xml" id="drivers" xml="tixds510cortexM0.xml" xmlpath="drivers"/>
             <instance XML_version="1.2" href="drivers/tixds510sec_ap.xml" id="drivers" xml="tixds510sec_ap.xml" xmlpath="drivers"/>
+            <!-- SWD/JTAG 调试时钟设置为固定 1 MHz。 -->
             <property Type="choicelist" Value="1" id="The JTAG TCLK Frequency (MHz)">
                 <choice Name="Fixed with user specified value" value="SPECIFIC">
                     <property Type="stringfield" Value="1MHz" id="-- Enter a value from 100.0kHz to 2.5MHz"/>
@@ -14,6 +20,7 @@
             <property Type="choicelist" Value="2" id="SWD Mode Settings">
                 <choice Name="SWD Mode - Aux COM port is target TDO pin" value="nothing"/>
             </property>
+            <!-- 最终目标芯片型号，决定可见寄存器和下载算法。 -->
             <platform XML_version="1.2" id="platform_0">
                 <instance XML_version="1.2" desc="MSPM0G3507" href="devices/MSPM0G3507.xml" id="MSPM0G3507" xml="MSPM0G3507.xml" xmlpath="devices"/>
             </platform>

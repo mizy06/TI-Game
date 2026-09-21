@@ -12,6 +12,11 @@
 
 /**
  * Import the modules used in this configuration.
+ *
+ * 零基础说明：SysConfig 是 TI 的外设配置生成器。这里的 JavaScript 风格
+ * 语句不会在 MCU 上运行，而是让工具生成 ti_msp_dl_config.c/.h。ADC12
+ * 负责采样，TIMER 周期触发 ADC，UART 与电脑通信，GPIO 是用户按键，
+ * SYSCTL 管理系统时钟。addInstance() 表示创建该外设的一个具体实例。
  */
 const ADC12  = scripting.addModule("/ti/driverlib/ADC12", {}, false);
 const ADC121 = ADC12.addInstance();
@@ -26,6 +31,9 @@ const UART1  = UART.addInstance();
 /**
  * Write custom configuration values to the imported modules.
  */
+/* ADC12_0：12 位 ADC，时钟二分频；由外部事件（下方 TIMER_0）触发。
+ * adcMem0chansel=CHAN_2 对应最终建议引脚 PA25。repeatMode 使每次定时器
+ * 事件都可产生新转换；结果装入 MEM0 后触发中断，由 empty.c 读取。 */
 ADC121.$name               = "ADC12_0";
 ADC121.sampClkDiv          = "DL_ADC12_CLOCK_DIVIDE_2";
 ADC121.trigSrc             = "DL_ADC12_TRIG_SRC_EVENT";
@@ -37,14 +45,19 @@ ADC121.subChanID           = 1;
 ADC121.enabledInterrupts   = ["DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED"];
 ADC121.adcPin2Config.$name = "ti_driverlib_gpio_GPIOPinGeneric2";
 
+/* Board 模块保留调试系统 SWD 引脚，供 XDS110 下载和单步调试。 */
 const Board = scripting.addModule("/ti/driverlib/Board", {}, false);
 
+/* GPIO_GRP_0.PIN_0 是输入按键；empty.c 运行时再启用上拉和迟滞。 */
 GPIO1.$name                       = "GPIO_GRP_0";
 GPIO1.associatedPins[0].$name     = "PIN_0";
 GPIO1.associatedPins[0].direction = "INPUT";
 
+/* 使用 SDK 默认系统时钟方案；CPUCLK_FREQ 由生成头文件提供给延时计算。 */
 SYSCTL.forceDefaultClkConfig = true;
 
+/* TIMER_0 周期为 0.05 ms，即每秒 1/0.00005=20000 次。ZERO 事件发布到
+ * 通道 1，ADC 订阅这个事件，因此无需 CPU 软件启动每次转换。 */
 TIMER1.$name                       = "TIMER_0";
 TIMER1.interrupts                  = ["ZERO"];
 TIMER1.timerPeriod                 = "0.05 ms";
@@ -54,6 +67,8 @@ TIMER1.event1PublisherChannel      = 1;
 TIMER1.event1ControllerInterruptEn = ["ZERO_EVENT"];
 
 UART1.$name             = "UART_0";
+/* UART profile 包含波特率等通信参数。SysConfig 当前建议 PA0/PA1；empty.c
+ * 还在运行时把 UART0 映射到 PA10/PA11，以适配 LaunchPad XDS110 回传串口。 */
 UART1.profile           = "CONFIG_PROFILE_1";
 UART1.txPinConfig.$name = "ti_driverlib_gpio_GPIOPinGeneric0";
 UART1.rxPinConfig.$name = "ti_driverlib_gpio_GPIOPinGeneric1";
@@ -62,6 +77,9 @@ UART1.rxPinConfig.$name = "ti_driverlib_gpio_GPIOPinGeneric1";
  * Pinmux solution for unlocked pins/peripherals. This ensures that minor changes to the automatic solver in a future
  * version of the tool will not impact the pinmux you originally saw.  These lines can be completely deleted in order to
  * re-solve from scratch.
+ *
+ * suggestSolution 锁定自动求解器当前选中的外设实例与物理引脚。若在 GUI
+ * 中改引脚，应让 SysConfig 重新求解，不要只改某一行而留下资源冲突。
  */
 ADC121.peripheral.$suggestSolution           = "ADC0";
 ADC121.peripheral.adcPin2.$suggestSolution   = "PA25";

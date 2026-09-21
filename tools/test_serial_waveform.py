@@ -9,6 +9,10 @@ MSPM0G3507 波形识别工程 - 串口自动化测试与评估工具
 3. 结构化解析识别结果：波形类型、频率、峰峰值、方波占空比、模板得分、置信余量
 4. 支持单次测试、连续稳定性统计测试、标称参数对比判定 (PASS/FAIL)
 5. 测试记录导出为 CSV 文件
+
+本工具的 R 命令会让固件从真实 ADC 引脚采样，因此它观察的是“模拟前端 +
+ADC + 采样时钟 + 数字算法”的整体。只有在用户提供已知信号源参数时，
+``--type/--freq/--vpp`` 对比才具有精度测试意义；否则只是读取和展示结果。
 """
 
 import sys
@@ -19,6 +23,7 @@ import math
 import argparse
 from datetime import datetime
 
+# 尽量让 Windows 终端正确显示中文；旧 Python/终端不支持时静默回退。
 if sys.platform.startswith('win'):
     try:
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -26,6 +31,8 @@ if sys.platform.startswith('win'):
     except Exception:
         pass
 
+# pyserial 是实际串口运行所需；rich 只负责美观显示。模块仍可在缺少它们
+# 时被单元测试导入，以测试纯解析逻辑。
 try:
     import serial
     import serial.tools.list_ports
@@ -45,7 +52,8 @@ except ImportError:
 
 console = Console() if HAVE_RICH else None
 
-# 正则表达式匹配 RESULT 行
+# 固件成功/失败 RESULT 行的严格语法。后半测量字段对失败行是可选的，但
+# parse_result_line 会进一步要求 OK 行必须具备完整且合理的字段。
 RESULT_REGEX = re.compile(
     r"RESULT,status=(?P<status>[^,]+)"
     r",type=(?P<type>[^,]+)"
@@ -67,7 +75,12 @@ RESULT_REGEX = re.compile(
 )
 
 def find_target_port(preferred_port=None):
-    """查找 TI XDS110 Application/User UART 端口"""
+    """寻找 TI XDS110 Application/User UART，返回 ``(端口, 说明)``。
+
+    优先级是显式端口、明确的 XDS110 Application、任意非 Auxiliary XDS110、
+    常见 COM15、最后才是系统第一个端口。正式测试最好显式传 ``--port``，
+    因为最终回退可能选中与开发板无关的串口。
+    """
     ports = list(serial.tools.list_ports.comports())
     if not ports:
         return None, "未检测到任何可用串口，请检查开发板 USB 是否连接。"
@@ -99,7 +112,12 @@ def find_target_port(preferred_port=None):
     return ports[0].device, f"未匹配到明确的 XDS110，默认使用第一个端口: {ports[0].device} ({ports[0].description})"
 
 def parse_result_line(line):
-    """解析单片机返回的 RESULT 行"""
+    """严格解析固件 RESULT 行，畸形或自相矛盾时返回 None。
+
+    ``fullmatch`` 要求整行都符合协议；OK 行必须有正且有限的频率、Vpp、
+    得分、余量、周期数，方波必须有 0~100% 占空比，非方波必须为 NA，且
+    不能同时报告削顶/非法点。失败状态的类型必须是 unknown。
+    """
     line = line.strip()
     match = RESULT_REGEX.fullmatch(line)
     if not match:
@@ -112,6 +130,7 @@ def parse_result_line(line):
             return None
     elif wave_type not in ("sine", "square", "triangle", "sawtooth"):
         return None
+    # 字符串到数字的转换集中在 try 中，任何非法字面量统一判解析失败。
     try:
         res = {
             "status": status,
@@ -145,7 +164,12 @@ def parse_result_line(line):
     return res
 
 def trigger_and_read(ser, timeout=3.0):
-    """发送 'R' 触发并等待返回结果"""
+    """清空旧输入，发送 R 触发真实 ADC，并等待 RESULT 后的 READY。
+
+    返回 ``(结果字典或 None, 收到的全部非空文本行)``。保存完整日志便于
+    区分“没触发”“处理中超时”“RESULT 畸形”等故障；READY 只在已经得到
+    有效 RESULT 后才结束本次读取。
+    """
     ser.reset_input_buffer()
     ser.write(b'R')
     start_time = time.time()
@@ -172,7 +196,11 @@ def trigger_and_read(ser, timeout=3.0):
     return result_data, log_messages
 
 def display_single_result(res, expected=None):
-    """格式化展示单次识别测试结果"""
+    """显示一次测量；若提供 expected，再按工程阈值显示真值对比。
+
+    rich 可用时输出彩色表格，否则输出纯文本。这个函数只负责展示，不把
+    PASS/FAIL 写回算法，也不会改变 res。
+    """
     if not res:
         if HAVE_RICH:
             console.print("[bold red][FAIL] 触发超时或未收到有效 RESULT 响应！[/bold red]")
@@ -226,7 +254,7 @@ def display_single_result(res, expected=None):
 
         console.print(table)
 
-        # 标称对比
+        # 标称对比只检查用户实际提供的字段，不凭空假设输入信号。
         if expected:
             eval_table = Table(title="标称输入对比判定", border_style="yellow")
             eval_table.add_column("项目", style="cyan")
@@ -273,7 +301,12 @@ def display_single_result(res, expected=None):
         print("=" * 60)
 
 def run_continuous_test(ser, count=10, interval=0.5, csv_writer=None):
-    """连续测试并统计稳定性与准确率"""
+    """连续触发真实采集，统计成功率、类别分布和测量波动。
+
+    没有外部真值时这里的“成功率”是收到 status=OK 的比例，不是分类准确率。
+    频率抖动使用本批最大值减最小值；若传入 csv_writer，每个有效解析结果
+    会立即追加，减少中途断开导致的数据丢失。
+    """
     if HAVE_RICH:
         console.print(f"[bold green]> 开始连续测试 {count} 次，触发间隔 {interval}s...[/bold green]")
     else:
@@ -315,7 +348,7 @@ def run_continuous_test(ser, count=10, interval=0.5, csv_writer=None):
                 print(f"#{i:02d} 响应超时或失败！")
         time.sleep(interval)
 
-    # 统计总结
+    # 只有成功解析的结果参与数值统计，但成功率分母仍是总触发次数 count。
     if not results:
         print("未获取到任何测试数据！")
         return
@@ -341,6 +374,7 @@ def run_continuous_test(ser, count=10, interval=0.5, csv_writer=None):
     print("=" * 60 + "\n")
 
 def main():
+    """解析命令行、打开串口，并进入单次/连续/交互三种工作流之一。"""
     if not HAVE_SERIAL:
         print("错误: 未安装 pyserial。请运行: pip install pyserial")
         return 1
@@ -374,7 +408,7 @@ def main():
         print(f"目标端口: {port_name}, 波特率: {args.baud}")
         print(f"{msg}")
 
-    # 尝试打开串口
+    # 打开失败时对最常见的“串口被其他软件占用”给出针对性说明。
     try:
         ser = serial.Serial(port_name, args.baud, timeout=1.0)
     except serial.SerialException as e:
@@ -392,12 +426,14 @@ def main():
             print(f"[串口打开失败] {e}")
         return 1
 
+    # 只收集用户显式提供的真值；0 在这里表示“未提供”，比赛合法频率/Vpp
+    # 本来也应大于 0。
     expected = {}
     if args.type: expected["type"] = args.type
     if args.freq: expected["freq_hz"] = args.freq
     if args.vpp: expected["vpp_v"] = args.vpp
 
-    # 打开 CSV 记录文件
+    # 追加模式保留历次真实采集；utf-8-sig 让 Excel 更可靠地识别中文。
     csv_file = open(args.csv, mode="a", newline="", encoding="utf-8-sig")
     csv_writer = csv.writer(csv_file)
     if csv_file.tell() == 0:
@@ -447,6 +483,7 @@ def main():
                     ])
             csv_file.flush()
     finally:
+        # 即使用户 Ctrl+C 或读取异常，也关闭文件和端口，避免 COM 口一直占用。
         csv_file.close()
         ser.close()
         print(f"\n测试记录已追加保存至: {args.csv}")

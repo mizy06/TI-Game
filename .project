@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CCS 基于 Eclipse/CDT，此文件描述工程名称、构建器和工程性质（nature）。
+  它是 IDE 元数据，不会被编译进固件。通常应通过 CCS 工程属性修改，手工
+  删除 nature 可能让工程失去 C/C++ 构建或 TI 调试能力。
+-->
 <projectDescription>
 	<name>TI-game</name>
 	<comment></comment>
@@ -6,12 +11,14 @@
 	</projects>
 	<buildSpec>
 		<buildCommand>
+			<!-- CDT managed builder 负责调用生成的 make/gmake 规则。 -->
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
 			<arguments>
 			</arguments>
 		</buildCommand>
 	</buildSpec>
 	<natures>
+		<!-- TI CCS nature + C/CDT + managed-build nature 的组合。 -->
 		<nature>com.ti.ccstudio.core.ccsNature</nature>
 		<nature>org.eclipse.cdt.core.cnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>

@@ -1,19 +1,32 @@
 #ifndef TI_MSP_DL_CONFIG_HOST_STUB_H_
 #define TI_MSP_DL_CONFIG_HOST_STUB_H_
 
+/*
+ * 主机语法检查用的最小 TI DriverLib 替身（stub）。
+ *
+ * 电脑上没有 MSPM0 寄存器和 TI SDK，但仍希望 cc -Wall -Werror 检查
+ * empty.c 的普通 C 语法。这里声明 empty.c 用到的类型、宏和函数，并让
+ * 所有硬件函数成为“什么也不做”的 static inline。它不能模拟真实硬件，
+ * 也不参与开发板固件构建，只用于 tests/run_all_checks.sh。
+ */
+
 #include <stdbool.h>
 #include <stdint.h>
 
+/* 占位寄存器类型至少含一个成员，避免某些 C 编译器不接受空结构体。 */
 typedef struct { uint32_t unused; } UART_Regs;
 typedef struct { uint32_t unused; } GPIO_Regs;
 typedef struct { uint32_t unused; } GPTIMER_Regs;
 typedef struct { uint32_t unused; } ADC12_Regs;
 
+/* 给实例宏一个类型正确且非空的地址。 */
 static UART_Regs g_stub_uart;
 static GPIO_Regs g_stub_gpio;
 static GPTIMER_Regs g_stub_timer;
 static ADC12_Regs g_stub_adc;
 
+/* 名称与 SysConfig 生成的 ti_msp_dl_config.h 保持一致，具体数值只需让
+ * empty.c 编译，绝不代表真实寄存器地址或引脚复用编码。 */
 #define UART_0_INST               (&g_stub_uart)
 #define GPIO_GRP_0_PORT           (&g_stub_gpio)
 #define GPIO_GRP_0_PIN_0_PIN      (1U << 13U)
@@ -34,8 +47,12 @@ static ADC12_Regs g_stub_adc;
 #define IOMUX_PINCM22_PF_UART0_RX              (1U)
 #define CPUCLK_FREQ                            (32000000U)
 
+/* 模拟生成头文件对中断函数名的别名，避免 empty.c 重复定义实际向量名。 */
 #define ADC12_0_INST_IRQHandler ADC0_IRQHandler
 
+/* 以下 inline 函数有与 DriverLib 调用相容的签名。把未使用参数显式转为
+ * void 可在 -Wextra -Werror 下消除告警。返回值只选择能让语法测试终止或
+ * 编译的固定值；这些函数不会被 run_all_checks.sh 真正执行。 */
 static inline void SYSCFG_DL_init(void) {}
 static inline bool DL_UART_Main_isTXFIFOFull(UART_Regs *uart)
 { (void)uart; return false; }

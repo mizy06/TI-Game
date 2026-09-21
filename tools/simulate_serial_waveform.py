@@ -19,6 +19,11 @@ MSPM0G3507 波形识别工程 - 串口带噪波形模拟与识别效果自动化
    - 发送 'T' 指令触发单片机片上生成带噪波并分析
 4. 批量评测与报告生成：
    - 支持全自动覆盖所有波形种类和频段，生成综合评分卡与 CSV 测试日志
+
+零基础提示：本工具中的“真值”来自生成波形时使用的参数。host 模式直接
+调用电脑上的 C DLL；inject 模式把 ADC 整数发给板端；onchip 模式只发送
+触发命令，由固件内部轮流生成四类固定波形。三种模式的数据来源不同，
+因此结果不能不加说明地混为同一次硬件 ADC 校准证据。
 """
 
 import sys
@@ -31,6 +36,7 @@ import argparse
 import csv
 from datetime import datetime
 
+# Windows 旧终端默认编码可能不是 UTF-8；尽量重配，失败也不影响核心测试。
 if sys.platform.startswith('win'):
     try:
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -38,6 +44,8 @@ if sys.platform.startswith('win'):
     except Exception:
         pass
 
+# pyserial 和 rich 都是可选依赖。没有串口库时 host 模式仍应可用；没有
+# rich 时退回普通 print，算法结果不受显示方式影响。
 try:
     import serial
     import serial.tools.list_ports
@@ -67,6 +75,13 @@ import ctypes
 import os
 
 class WaveformResult(ctypes.Structure):
+    """C ``waveform_result_t`` 的内存布局镜像。
+
+    ctypes 不是按字段名与 C 对接，而是按字节偏移读内存，所以类型和顺序
+    必须与 waveform_analyzer.h 完全一致。结构体一旦修改，所有 ctypes
+    镜像都必须同步，并重新编译 DLL。
+    """
+
     _fields_ = [
         ('type', ctypes.c_int),
         ('status', ctypes.c_int),
@@ -92,12 +107,17 @@ class WaveformResult(ctypes.Structure):
     ]
 
 def analyze_waveform_host(samples):
-    """使用本地已编译的原版 C 核心算法库执行高精度仿真分析"""
+    """使用同目录 DLL 中的原版 C 核心算法分析一帧样本。
+
+    若 DLL 不存在返回 None；存在但版本错、加载失败或调用异常也打印错误
+    并返回 None。成功则把 C 枚举和定点单位转换成便于 UI/CSV 使用的字典。
+    """
     dll_path = os.path.join(os.path.dirname(__file__), "waveform_analyzer.dll")
     if not os.path.exists(dll_path):
         return None
     try:
         dll = ctypes.CDLL(dll_path)
+        # 明确签名可防止 ctypes 把 64 位指针误当默认 int。
         dll.waveform_analyze.argtypes = [ctypes.POINTER(ctypes.c_uint16), ctypes.POINTER(WaveformResult)]
         dll.waveform_analyze.restype = ctypes.c_bool
 
@@ -118,6 +138,7 @@ def analyze_waveform_host(samples):
         t_name = type_names[res_c.type] if 0 <= res_c.type < len(type_names) else 'unknown'
         s_name = status_names[res_c.status] if 0 <= res_c.status < len(status_names) else 'UNKNOWN'
 
+        # 分数是千分比，差值除以 10 后成为百分数，例如 150 -> 15.0%。
         margin = 0.0
         if res_c.best_score_permille >= res_c.second_score_permille:
             margin = (res_c.best_score_permille - res_c.second_score_permille) / 10.0
@@ -137,6 +158,8 @@ def analyze_waveform_host(samples):
         print(f"[DLL分析错误] {e}")
         return None
 
+# RESULT 的字段顺序由固件 print_result() 固定。失败行只含前半部分诊断字段，
+# 所以后续组是可选的；解析时使用 fullmatch，拒绝尾部乱码或未知残片。
 RESULT_REGEX = re.compile(
     r"RESULT,status=(?P<status>[^,]+)"
     r",type=(?P<type>[^,]+)"
@@ -158,7 +181,11 @@ RESULT_REGEX = re.compile(
 )
 
 def find_xds110_port(specified_port=None):
-    """查找可用串口"""
+    """按“显式端口 -> XDS110 Application -> COM15 -> 首个端口”选择串口。
+
+    返回 ``(设备名, 人类可读说明)``；完全没有端口或指定端口不存在时设备
+    名为 None。自动回退方便调试，但正式审计应显式给 ``--port``。
+    """
     ports = list(serial.tools.list_ports.comports())
     if not ports:
         return None, "未找到任何可用串口"
@@ -192,6 +219,7 @@ def generate_noisy_waveform(wave_type="sine", freq_hz=200.0, vpp_volts=2.0,
     :param noise_ratio: 噪声峰峰值与信号峰峰值的比例 (例如 0.15 = 15% 噪声)
     :return: list of 4096 uint16 values, ground_truth dict
     """
+    # dt 是相邻样本时间；20 kHz 时为 50 us。
     dt = 1.0 / SAMPLE_RATE_HZ
     samples = []
     vpp_counts = (vpp_volts / 3.3) * 4095.0
@@ -199,7 +227,7 @@ def generate_noisy_waveform(wave_type="sine", freq_hz=200.0, vpp_volts=2.0,
     half_amp = vpp_counts / 2.0
     start_phase = random.uniform(0.0, 2.0 * math.pi)
 
-    # 随机谐波噪声基频与相位
+    # 三个噪声正弦位于主频 3~15 倍处，各自相位随机。
     noise_freqs = [freq_hz * random.uniform(3.0, 15.0) for _ in range(3)]
     noise_phases = [random.uniform(0.0, 2.0 * math.pi) for _ in range(3)]
 
@@ -225,7 +253,7 @@ def generate_noisy_waveform(wave_type="sine", freq_hz=200.0, vpp_volts=2.0,
         else:
             val = 0.0
 
-        # 计算信号基础采样
+        # 归一化波形乘信号半幅，再加直流中心，得到 ADC 浮点码。
         signal_count = center_counts + (val * half_amp)
 
         # 叠加高斯随机噪声与多频噪声 (幅值上限按 noise_ratio 严格控制)
@@ -254,8 +282,11 @@ def generate_noisy_waveform(wave_type="sine", freq_hz=200.0, vpp_volts=2.0,
     return samples, ground_truth
 
 def inject_waveform_and_get_result(ser, samples, timeout=3.5):
-    """
-    通过串口注入 4096 点波形数据并读取 MCU 识别结果
+    """执行 W 注入事务并返回 ``(解析结果或 None, 串口文本列表)``。
+
+    只有收到 READY_FOR_DATA 才发送 8192 字节，避免协议不同步。样本按
+    little-endian uint16 打包并分块发送；随后收集到 RESULT 且再次 READY。
+    timeout 是结果阶段上限，握手另有 1 秒上限。
     """
     ser.reset_input_buffer()
     ser.reset_output_buffer()
@@ -279,6 +310,7 @@ def inject_waveform_and_get_result(ser, samples, timeout=3.5):
         return None, ["ERROR: READY_FOR_DATA handshake timeout; payload not sent"]
 
     # 2. 打包发送 4096 个 uint16 (8192 字节，Little-Endian)
+    # '<' 表示小端，H 表示 16 位无符号；长度必须为 4096*2=8192 字节。
     payload = struct.pack(f"<{SAMPLE_COUNT}H", *samples)
     # 分块发送避免 Windows 串口驱动瞬时吞吐拥塞
     chunk_size = 512
@@ -323,8 +355,10 @@ def inject_waveform_and_get_result(ser, samples, timeout=3.5):
     return result_data, log_lines
 
 def trigger_onchip_selftest(ser, timeout=2.0):
-    """
-    触发单片机片上生成带噪波并读取识别结果
+    """发送 T 触发固件片上生成波形，并读取到 RESULT/READY。
+
+    片上自测每次自动轮换类别。调用方预设的 gt 只有在调用顺序与固件当前
+    g_selftest_case 同步时才成立，不能把它当成独立的模拟输入证明。
     """
     ser.reset_input_buffer()
     ser.write(b'T')
@@ -366,7 +400,11 @@ def trigger_onchip_selftest(ser, timeout=2.0):
     return result_data, log_lines
 
 def evaluate_case(gt, res):
-    """对比真实参数与识别结果"""
+    """对比生成真值与识别结果，返回 ``(是否通过, 详细误差字典)``。
+
+    分类必须相同；频率相对误差 <=2%，Vpp 相对误差 <=8%；方波占空比
+    绝对误差 <=3 个百分点。缺失测量被视为 100% 误差，绝不会默认通过。
+    """
     if not res:
         return False, {"passed": False, "type_match": False, "freq_err_pct": 100.0, "vpp_err_pct": 100.0, "duty_err": None, "reason": "无有效响应"}
     if res.get("status") != "OK":
@@ -408,7 +446,7 @@ def evaluate_case(gt, res):
     return passed, details
 
 def print_result_table(gt, res, details, idx=1):
-    """以表格输出单次评测对比"""
+    """用 rich 表格或纯文本展示一次真值/实测/误差对比；不改变判定。"""
     if not res:
         print(f"[{idx:02d}] 注入超时或无响应！")
         return
@@ -465,6 +503,7 @@ def print_result_table(gt, res, details, idx=1):
         print("-" * 60)
 
 def main():
+    """解析三种运行模式、生成用例、执行评测并写 CSV。"""
     if not HAVE_SERIAL:
         print("[错误] 未安装 pyserial，请运行: pip install pyserial")
         return 1
@@ -481,6 +520,7 @@ def main():
     ser = None
     port_name = "N/A (Host Simulation)"
 
+    # 只有串口模式才查找/打开 COM 口；host 模式无需开发板。
     if args.mode != "host":
         port_name, msg = find_xds110_port(args.port)
         if not port_name:
@@ -515,7 +555,7 @@ def main():
         else:
             print(f"=== MSPM0G3507 算法仿真评测 (HOST 本地 C 核心) ===")
 
-    # 标准预设波形列表
+    # 前四例固定覆盖四种类别，便于每次快速肉眼比较。
     test_cases = [
         {"type": "sine", "freq": 200.0, "vpp": 2.0, "duty": 0.5, "noise": args.noise},
         {"type": "square", "freq": 250.0, "vpp": 2.2, "duty": 0.3, "noise": args.noise},
@@ -523,7 +563,7 @@ def main():
         {"type": "sawtooth", "freq": 300.0, "vpp": 2.0, "duty": 0.5, "noise": args.noise},
     ]
 
-    # 如果用例数大于 4，追加随机用例
+    # 超过四例后追加范围内随机参数；未设 seed，因此用于探索而非严格回归。
     for _ in range(max(0, args.count - 4)):
         w_type = random.choice(["sine", "square", "triangle", "sawtooth"])
         w_freq = round(random.uniform(110.0, 390.0), 1)
@@ -535,6 +575,8 @@ def main():
             "duty": w_duty, "noise": w_noise
         })
 
+    # utf-8-sig 带 BOM，便于 Windows Excel 正确识别中文表头。每次运行覆盖
+    # 文件，避免把不同模式或噪声设置混在同一统计中。
     csv_file = open(args.csv, mode="w", newline="", encoding="utf-8-sig")
     csv_writer = csv.writer(csv_file)
     csv_writer.writerow([
@@ -562,7 +604,7 @@ def main():
             elif args.mode == "onchip":
                 gt = {"type": tc["type"], "freq_hz": tc["freq"], "vpp_v": tc["vpp"], "duty_pct": tc["duty"]*100, "noise_pct": tc["noise"]*100}
                 res, logs = trigger_onchip_selftest(ser)
-            else: # host
+            else:  # host：不经过串口，直接调用同源 C DLL。
                 if HAVE_RICH:
                     console.print(f"\n[bold cyan]>>> [#{idx:02d}/{total_tests}] 仿真分析带噪波形: {gt['type'].upper()} {gt['freq_hz']:.1f}Hz Vpp={gt['vpp_v']:.2f}V 噪声={gt['noise_pct']:.0f}% ...[/bold cyan]")
                 else:
@@ -591,11 +633,13 @@ def main():
             time.sleep(0.3)
 
     finally:
+        # 无论中途是否异常，都刷新/关闭文件和串口，避免句柄占用。
         csv_file.close()
         if ser:
             ser.close()
 
     # 打印总结报告
+    # test_cases 至少包含前四例，所以这里不会除以 0。
     acc = (passed_count / total_tests) * 100.0
     print("\n" + "=" * 65)
     print("【MSPM0 波形识别综合评测报告】")

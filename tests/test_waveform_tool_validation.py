@@ -1,3 +1,9 @@
+"""两个通用波形工具的输入验证回归。
+
+这些测试针对“缺字段却被当成通过”这一类危险情况，不连接串口也不加载
+C DLL。它们确保协议解析必须完整，评测器必须把缺失测量视为失败。
+"""
+
 import importlib.util
 from pathlib import Path
 import unittest
@@ -7,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_tool(name):
+    """从 tools 目录按文件名动态导入脚本，而不要求其成为 Python 包。"""
     spec = importlib.util.spec_from_file_location(name, ROOT / "tools" / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -18,7 +25,10 @@ simulate_tool = load_tool("simulate_serial_waveform")
 
 
 class WaveformToolValidationTests(unittest.TestCase):
+    """解析完整性与缺失测量判定测试。"""
+
     def test_legacy_parser_rejects_partial_success(self):
+        """status=OK 但缺 Vpp 的行不能算有效成功。"""
         line = (
             "RESULT,status=OK,type=square,freq_hz=250.000,"
             "duty_pct=50.0,score_pct=99.0,margin_pct=20.0,cycles=50"
@@ -26,6 +36,7 @@ class WaveformToolValidationTests(unittest.TestCase):
         self.assertIsNone(serial_tool.parse_result_line(line))
 
     def test_legacy_parser_rejects_trailing_text(self):
+        """合法字段后的未知尾部文本必须被 fullmatch 拒绝。"""
         line = (
             "RESULT,status=OK,type=square,freq_hz=250.000,vpp_v=2.000,"
             "duty_pct=50.0,score_pct=99.0,margin_pct=20.0,cycles=50,garbage"
@@ -33,6 +44,7 @@ class WaveformToolValidationTests(unittest.TestCase):
         self.assertIsNone(serial_tool.parse_result_line(line))
 
     def test_evaluator_does_not_pass_missing_measurements(self):
+        """缺频率/Vpp 必须得到 100% 占位误差和失败。"""
         ground_truth = {"type": "sine", "freq_hz": 250.0, "vpp_v": 2.0,
                         "duty_pct": None}
         result = {"status": "OK", "type": "sine", "freq_hz": None,
@@ -43,6 +55,7 @@ class WaveformToolValidationTests(unittest.TestCase):
         self.assertEqual(details["vpp_err_pct"], 100.0)
 
     def test_evaluator_requires_square_duty(self):
+        """方波结果缺占空比时，即使类别/频率/Vpp 正确也必须失败。"""
         ground_truth = {"type": "square", "freq_hz": 250.0, "vpp_v": 2.0,
                         "duty_pct": 50.0}
         result = {"status": "OK", "type": "square", "freq_hz": 250.0,

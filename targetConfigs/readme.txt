@@ -1,6 +1,9 @@
 The 'targetConfigs' folder contains target-configuration (.ccxml) files, automatically generated based
 on the device and connection settings specified in your project on the Properties > General page.
 
+中文提示：本目录只描述 CCS 如何通过 XDS110/SWD 找到并调试 MSPM0G3507，
+不包含波形识别算法，也不决定 ADC 采样率。初学者通常无需手工修改。
+
 Please note that in automatic target-configuration management, changes to the project's device and/or
 connection settings will either modify an existing or generate a new target-configuration file. Thus,
 if you manually edit these auto-generated files, you may need to re-apply your changes. Alternatively,

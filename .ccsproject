@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <?ccsproject version="1.0"?>
+<!--
+  TI Code Composer Studio 专用工程元数据。这里选择 MSPM0 对应设备族、
+  XDS110 调试器、活动 .ccxml 和 SDK DriverLib 源码查找路径。
+  origin 记录最初模板所在电脑的路径，仅用于追溯，不是当前构建路径。
+-->
 <projectOptions>
+	<!-- Theia-based 表示新版 CCS 前端；ccsVersion 是创建/保存该工程的版本。 -->
 	<ccsVariant value="50:Theia-based"/>
 	<ccsVersion value="71.0.1"/>
 	<deviceFamily value="TMS470"/>
+	<!-- 板载 XDS110 用于下载、SWD 调试和虚拟串口。 -->
 	<connection value="common/targetdb/connections/TIXDS110_Connection.xml"/>
 	<executableActions value=""/>
 	<createSlaveProjects value=""/>
 	<ignoreDefaultDeviceSettings value="true"/>
 	<ignoreDefaultCCSSettings value="true"/>
 	<templateProperties value="id=empty_LP_MSPM0G3507_nortos_gcc.projectspec.TI-game,buildProfile=release,isHybrid=true"/>
+	<!-- 实际调试连接细节见该 ccxml。 -->
 	<activeTargetConfiguration value="targetConfigs/MSPM0G3507.ccxml"/>
 	<isTargetConfigurationManual value="false"/>
+	<!-- 变量由本机 CCS 安装解析，便于调试时进入 DriverLib 源码。 -->
 	<sourceLookupPath value="${COM_TI_MSPM0_SDK_INSTALL_DIR}/source/ti/driverlib"/>
 	<origin value="C:\ti\mspm0_sdk_2_11_00_07\examples\nortos\LP_MSPM0G3507\driverlib\empty\gcc\empty_LP_MSPM0G3507_nortos_gcc.projectspec"/>
 	<filesToOpen value="README.md,empty.syscfg"/>

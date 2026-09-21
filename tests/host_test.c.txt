@@ -1,5 +1,14 @@
 #include "../waveform_analyzer.h"
 
+/*
+ * 最基础的主机回归测试。
+ *
+ * 文件后缀故意是 .c.txt，避免 CCS 把它和板端固件一起编译；
+ * run_host_tests.sh 使用“-x c”明确告诉主机编译器按 C 源码处理。
+ * 测试用数学公式生成已知类别/频率/幅度/占空比的 4096 点信号，再调用
+ * 与单片机完全相同的 waveform_analyze()，比较真值与测量值。
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,27 +19,34 @@
 #endif
 
 #ifndef TEST_MAX_NOISE_RATIO
+/* 噪声峰峰值最多为信号峰峰值的 20%。可由编译参数覆盖以做额外压力测试。 */
 #define TEST_MAX_NOISE_RATIO 0.20
 #endif
 
 #ifndef TEST_MAX_VPP_COUNTS
+/* 最大信号幅度留出噪声和直流偏置余量，防止常规用例意外削顶。 */
 #define TEST_MAX_VPP_COUNTS 3240.0
 #endif
 
+/* 固定随机种子使每次回归生成完全相同的 2400 例，失败可复现。 */
 static uint32_t g_rng = 0x13579BDFU;
 static double g_noise[WAVEFORM_SAMPLE_COUNT];
 
+/* 32 位线性同余伪随机数发生器；无符号溢出等价于模 2^32。 */
 static uint32_t next_random(void)
 {
     g_rng = (1664525U * g_rng) + 1013904223U;
     return g_rng;
 }
 
+/* 取随机数低 24 位并缩放到 [0,1)。24 位足够生成测试参数。 */
 static double random_unit(void)
 {
     return (double)(next_random() & 0x00FFFFFFU) / 16777216.0;
 }
 
+/* 计算给定归一化相位 [0,1) 上的理想波形值，输出约在 [-1,+1]。
+ * duty 只对方波生效；其他类型忽略它。 */
 static double ideal_wave(waveform_type_t type, double phase, double duty)
 {
     switch (type) {
@@ -53,6 +69,11 @@ static double ideal_wave(waveform_type_t type, double phase, double duty)
     }
 }
 
+/* 生成一帧带噪 ADC 样本。
+ *
+ * vpp_counts 和 center_counts 已在 ADC 码域；先生成理想波形，再选择有限
+ * 高斯记录或五个高频正弦之和作为噪声，最后四舍五入并钳到 0~4095。
+ * gaussian_noise 为非零时走高斯分支，为零时走多正弦分支。 */
 static void generate_signal(uint16_t *samples, waveform_type_t type,
                             double frequency_hz, double vpp_counts,
                             double center_counts, double duty,
@@ -64,11 +85,14 @@ static void generate_signal(uint16_t *samples, waveform_type_t type,
     double noise_ratio[5];
     unsigned k;
 
+    /* 每个多正弦噪声分量具有固定于本用例的随机相位和频率比例。 */
     for (k = 0U; k < 5U; ++k) {
         noise_phase[k] = random_unit() * 2.0 * M_PI;
         noise_ratio[k] = 5.0 + (3.0 * k) + random_unit();
     }
     if (gaussian_noise) {
+        /* Box-Muller 变换把两个均匀随机数变成近似标准高斯数。随后按这段
+         * 4096 点记录实际观测到的最小/最大值，精确缩放到请求的噪声 Vpp。 */
         double minimum = 1.0e30;
         double maximum = -1.0e30;
         double midpoint;
@@ -94,6 +118,7 @@ static void generate_signal(uint16_t *samples, waveform_type_t type,
             g_noise[i] = (g_noise[i] - midpoint) * scale;
         }
     }
+    /* 逐点把相位推进 frequency/sample_rate 周并生成最终 ADC 码。 */
     for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
         double time = (double)i / (double)WAVEFORM_SAMPLE_RATE_HZ;
         double phase = start_phase + (frequency_hz * time);
@@ -107,7 +132,8 @@ static void generate_signal(uint16_t *samples, waveform_type_t type,
                 noise += sin((2.0 * M_PI * frequency_hz * noise_ratio[k] * time) +
                              noise_phase[k]);
             }
-            /* Sum is bounded to the requested peak-to-peak envelope. */
+            /* 五个 [-1,+1] 正弦之和范围为 [-5,+5]，峰峰范围 10；因此
+             * 乘 noise_pp_ratio*vpp/10 后不会超过请求的噪声包络。 */
             noise *= (noise_pp_ratio * vpp_counts) / 10.0;
         }
         value = center_counts + (0.5 * vpp_counts * ideal_wave(type, phase, duty)) + noise;
@@ -120,11 +146,13 @@ static void generate_signal(uint16_t *samples, waveform_type_t type,
     }
 }
 
+/* 测试代码自己的 double 绝对值，避免依赖实现细节；等价于 fabs。 */
 static double absolute(double value)
 {
     return (value < 0.0) ? -value : value;
 }
 
+/* 执行随机回归和错误契约测试。返回 0 表示全部通过，非零让 shell/CI 失败。 */
 int main(void)
 {
     static uint16_t samples[WAVEFORM_SAMPLE_COUNT];
@@ -137,6 +165,8 @@ int main(void)
     double worst_duty_percent = 0.0;
     waveform_type_t type;
 
+    /* 每类 600 例，共 2400 例。除了随机值，还周期性强制注入频率、幅度和
+     * 占空比边界，避免纯随机抽样很少碰到恰好 100/400 Hz 等关键位置。 */
     for (type = WAVEFORM_TYPE_SINE; type <= WAVEFORM_TYPE_SAWTOOTH;
          type = (waveform_type_t)(type + 1)) {
         unsigned case_index;
@@ -164,12 +194,14 @@ int main(void)
                 static const double edge_duties[] = {0.20, 0.21, 0.50, 0.79, 0.80};
                 duty = edge_duties[(case_index / 15U) % 5U];
             }
+            /* 直流中心的可选范围确保“信号半幅 + 噪声半幅”不碰 ADC 两端。 */
             occupied_half_span = 0.5 * vpp * (1.0 + noise_ratio);
             center = (occupied_half_span + 8.0) +
                      ((4079.0 - (2.0 * occupied_half_span)) * random_unit());
             generate_signal(samples, type, frequency, vpp, center, duty,
                             noise_ratio, random_unit(), (case_index & 1U) != 0U);
             ++total;
+            /* 先验证 API 成功且类别正确；失败例只打印前 12 个，防止日志爆炸。 */
             if (!waveform_analyze(samples, &result) || (result.type != type)) {
                 ++classification_failures;
                 if (classification_failures <= 12U) {
@@ -182,6 +214,8 @@ int main(void)
                 }
                 continue;
             }
+            /* 频率/Vpp 用相对百分比；方波占空比用“百分点”绝对差。例如
+             * 30% 测成 31% 是 1 个百分点，而不是约 3.33% 相对误差。 */
             frequency_error = absolute(((double)result.frequency_millihz / 1000.0) - frequency) /
                               frequency * 100.0;
             vpp_error = absolute((double)result.vpp_millivolts -
@@ -216,9 +250,12 @@ int main(void)
         }
     }
 
+    /* 下面不测精度，而测算法能否对坏输入给出正确失败状态。这些状态是
+     * 采集层定位接线、幅度和数据格式问题的重要契约。 */
     {
         waveform_result_t result;
         uint32_t i;
+        /* 常数信号没有可用幅度。 */
         for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
             samples[i] = 2048U;
         }
@@ -227,6 +264,7 @@ int main(void)
             ++contract_failures;
         }
 
+        /* 接近全量程的方波会大量碰到高端，必须报高端削顶。 */
         generate_signal(samples, WAVEFORM_TYPE_SQUARE, 200.0, 3995.0,
                         2097.5, 0.50, 0.0, 0.0, 0);
         if (waveform_analyze(samples, &result) ||
@@ -234,6 +272,7 @@ int main(void)
             ++contract_failures;
         }
 
+        /* 60 Hz 明显低于比赛范围，周期可找到但最终必须报频率越界。 */
         generate_signal(samples, WAVEFORM_TYPE_SINE, 60.0, 1200.0,
                         2000.0, 0.50, 0.0, 0.13, 0);
         if (waveform_analyze(samples, &result) ||
@@ -241,6 +280,7 @@ int main(void)
             ++contract_failures;
         }
 
+        /* 5000 大于 12 位满量程 4095，应计数并拒绝为非法样本。 */
         for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
             samples[i] = (i & 1U) ? 2048U : 5000U;
         }
@@ -250,6 +290,7 @@ int main(void)
             ++contract_failures;
         }
 
+        /* 一半样本钉在 0，模拟严重低端削顶。 */
         for (i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
             samples[i] = (i & 1U) ? 2000U : 0U;
         }
@@ -265,6 +306,7 @@ int main(void)
            total, classification_failures, measurement_failures, contract_failures,
            worst_frequency_percent, worst_vpp_percent, worst_duty_percent);
 
+    /* shell 约定退出码 0=成功；任一计数非零都让测试命令返回失败。 */
     return ((classification_failures == 0U) && (measurement_failures == 0U) &&
             (contract_failures == 0U)) ? 0 : 1;
 }
