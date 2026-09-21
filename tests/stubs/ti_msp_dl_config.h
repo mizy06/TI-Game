@@ -27,6 +27,7 @@ static DMA_Regs g_stub_dma;
 #define DMA                       (&g_stub_dma)
 #define DMA_CH0_CHAN_ID           (0U)
 #define DL_ADC12_INTERRUPT_DMA_DONE           (1U)
+#define DL_ADC12_INTERRUPT_UNDERFLOW          (2U)
 #define DL_ADC12_IIDX_DMA_DONE                (1U)
 #define DL_ADC12_IIDX_UNDERFLOW                (2U)
 #define DL_ADC12_DMA_MEM0_RESULT_LOADED       (1U)
@@ -92,6 +93,9 @@ static inline void DL_ADC12_disableDMA(ADC12_Regs *adc) { (void)adc; }
 static inline void DL_ADC12_enableDMATrigger(ADC12_Regs *adc, uint32_t mask)
 { (void)adc; (void)mask; }
 static inline void DL_ADC12_disableDMATrigger(ADC12_Regs *adc, uint32_t mask)
+{ (void)adc; (void)mask; }
+static inline void DL_ADC12_clearDMATriggerStatus(ADC12_Regs *adc,
+                                                  uint32_t mask)
 { (void)adc; (void)mask; }
 static inline void DL_DMA_disableChannel(DMA_Regs *dma, uint8_t channel)
 { (void)dma; (void)channel; }

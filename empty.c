@@ -268,10 +268,14 @@ static void configure_adc_dma_capture(void)
                                      DL_DMA_INTERRUPT_DATA_ERROR);
 
     /* DMA_DONE is reported by ADC0 when the configured DMA block completes.
-     * Keep the completion path on the already-used ADC IRQ; this avoids a
-     * second application ISR and leaves the DMA channel interrupt disabled. */
+     * Clear both terminal and fault status before re-arming.  Otherwise an
+     * underflow from the previous frame can make the next frame fail before
+     * its first conversion. */
     DL_ADC12_clearInterruptStatus(ADC12_0_INST,
-                                  DL_ADC12_INTERRUPT_DMA_DONE);
+                                  DL_ADC12_INTERRUPT_DMA_DONE |
+                                      DL_ADC12_INTERRUPT_UNDERFLOW);
+    DL_ADC12_clearDMATriggerStatus(ADC12_0_INST,
+                                   DL_ADC12_DMA_MEM0_RESULT_LOADED);
     DL_ADC12_enableDMA(ADC12_0_INST);
     DL_ADC12_enableDMATrigger(ADC12_0_INST,
                               DL_ADC12_DMA_MEM0_RESULT_LOADED);
