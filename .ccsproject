@@ -12,7 +12,7 @@
 	<templateProperties value="id=empty_LP_MSPM0G3507_nortos_ticlang.projectspec.TI-game,buildProfile=release,isHybrid=true"/>
 	<activeTargetConfiguration value="targetConfigs/MSPM0G3507.ccxml"/>
 	<isTargetConfigurationManual value="false"/>
-	<sourceLookupPath value="${COM_TI_MSPM0_SDK_INSTALL_DIR}/source/ti/driverlib"/>
+	<sourceLookupPath value="D:/github/mspm0_sdk_2_11_00_07/source/ti/driverlib"/>
 	<origin value="C:\ti\mspm0_sdk_2_11_00_07\examples\nortos\LP_MSPM0G3507\driverlib\empty\ticlang\empty_LP_MSPM0G3507_nortos_ticlang.projectspec"/>
 	<filesToOpen value="README.md,empty.syscfg"/>
 </projectOptions>
