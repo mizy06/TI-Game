@@ -22,6 +22,7 @@
 
 #include "ti_msp_dl_config.h"
 #include "waveform_analyzer.h"
+#include "rt_question_set.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -478,35 +479,9 @@ static void print_result(const waveform_result_t *result, bool valid)
  * 的 R 路径完全不受影响。
  */
 
-/* 一个用例的标称参数。cycles 是"一帧 4096 点内的整数周期数"，
- * duty_permille 只对方波有意义，vpp_millivolts 是希望出现在 ADC 引脚
- * 上的峰峰值。 */
-typedef struct {
-    uint8_t  type;
-    uint16_t cycles;
-    uint16_t duty_permille;
-    uint16_t vpp_millivolts;
-} rt_case_t;
-
-/* 12 个用例覆盖四类波形、100~400 Hz 全频段、20/30/50/80% 占空比和
- * 1.0/2.0 Vpp。频率写成整数周期数，例如 41 周期 ->
- * 41 * 20000 / 4096 = 200.195 Hz。所有频率都落在算法允许的 100~400 Hz
- * 内，因此每个用例都应当被判为"识别成功"。 */
-static const rt_case_t g_rt_cases[] = {
-    { WAVEFORM_TYPE_SINE,     41U,   0U, 2000U }, /* 200.195 Hz, 2.0 Vpp */
-    { WAVEFORM_TYPE_SINE,     21U,   0U, 1000U }, /* 102.539 Hz, 1.0 Vpp */
-    { WAVEFORM_TYPE_SINE,     81U,   0U, 2000U }, /* 395.508 Hz, 2.0 Vpp */
-    { WAVEFORM_TYPE_TRIANGLE, 31U,   0U, 2000U }, /* 151.367 Hz, 2.0 Vpp */
-    { WAVEFORM_TYPE_TRIANGLE, 41U,   0U, 1000U }, /* 200.195 Hz, 1.0 Vpp */
-    { WAVEFORM_TYPE_TRIANGLE, 61U,   0U, 2000U }, /* 297.852 Hz, 2.0 Vpp */
-    { WAVEFORM_TYPE_SAWTOOTH, 41U,   0U, 2000U }, /* 200.195 Hz, 2.0 Vpp */
-    { WAVEFORM_TYPE_SAWTOOTH, 61U,   0U, 1000U }, /* 297.852 Hz, 1.0 Vpp */
-    { WAVEFORM_TYPE_SQUARE,   51U, 500U, 2000U }, /* 249.023 Hz, 50%, 2.0 V */
-    { WAVEFORM_TYPE_SQUARE,   51U, 200U, 2000U }, /* 249.023 Hz, 20%, 2.0 V */
-    { WAVEFORM_TYPE_SQUARE,   51U, 800U, 2000U }, /* 249.023 Hz, 80%, 2.0 V */
-    { WAVEFORM_TYPE_SQUARE,   41U, 300U, 1000U }, /* 200.195 Hz, 30%, 1.0 V */
-};
-#define RT_CASE_COUNT ((uint8_t)(sizeof(g_rt_cases) / sizeof(g_rt_cases[0])))
+/* 题集定义在 rt_question_set.h：前 200 题是自编门禁，后 96 题是
+ * challenge。参数由原 competition_stress_suite.py 固定 seed 题库映射而来；
+ * 硬件采样率固定为 20 kHz，所以频率量化到一帧内的整数周期。 */
 
 /* 256 点整周期正弦表，幅值 ±2047（约等于 12 位满量程的一半）。
  * 放在 flash 里（const），不占 SRAM。相位取高 8 位直接查表，相位量化
@@ -553,8 +528,17 @@ static volatile bool     g_dac_playing;   /* 中断据此决定是否驱动 DAC�
 static volatile uint16_t g_dac_phase;     /* 中断内推进的 16 位相位。 */
 static uint16_t g_rt_phase_inc;           /* 每个采样点的相位增量。 */
 static uint16_t g_rt_duty_thresh;         /* 方波高电平的相位门限。 */
+static uint16_t g_rt_rise_width;          /* 方波上升沿宽度，16 位相位单位。 */
+static uint16_t g_rt_fall_width;          /* 方波下降沿宽度，16 位相位单位。 */
+static uint16_t g_rt_center;              /* DAC 直流中心码。 */
 static uint8_t  g_rt_type;                /* 当前用例的波形类别。 */
+static uint8_t  g_rt_impairment;          /* challenge 失真/干扰类型。 */
+static uint8_t  g_rt_noise_permille;      /* 噪声 Vpp / 信号 Vpp，千分数。 */
+static uint8_t  g_rt_noise_mode;          /* 白噪声、低通噪声或高频噪声。 */
 static int32_t  g_rt_half;                /* 半峰峰值，单位 ADC 码。 */
+static int32_t  g_rt_noise_state;         /* 一阶噪声滤波器状态。 */
+static uint32_t g_rt_rng;                 /* 固定种子伪随机噪声。 */
+static uint16_t g_rt_am_phase;            /* 13 Hz 慢调幅相位。 */
 
 /* 用例的标称频率，单位 mHz：f = cycles * fs / N。
  * 用整数运算保留到 mHz，避免为了打印一个频率引入浮点。 */
@@ -567,17 +551,38 @@ static uint32_t rt_case_frequency_millihz(const rt_case_t *item)
 /* 由 16 位相位算出当前点应写进 DAC 的 12 位码值。
  * 先算以 0 为中心、幅值约 ±2047 的"单位波形"，再按用例幅度缩放并叠加
  * 直流中心。全程只有整数乘法和移位，在 20 kHz 中断里也足够快。 */
-static uint16_t rt_wave_code(uint16_t phase)
+static int32_t rt_square_unit(uint16_t phase)
+{
+    int32_t rise_distance = (int32_t)(int16_t)phase;
+    int32_t fall_distance = (int32_t)(int16_t)(phase - g_rt_duty_thresh);
+    int32_t rise_half = (int32_t)g_rt_rise_width / 2;
+    int32_t fall_half = (int32_t)g_rt_fall_width / 2;
+
+    if ((g_rt_rise_width > 0U) &&
+        (rise_distance >= -rise_half) && (rise_distance <= rise_half)) {
+        return (rise_distance * 4094) / (int32_t)g_rt_rise_width;
+    }
+    if ((g_rt_fall_width > 0U) &&
+        (fall_distance >= -fall_half) && (fall_distance <= fall_half)) {
+        return -(fall_distance * 4094) / (int32_t)g_rt_fall_width;
+    }
+    if ((phase > (uint16_t)rise_half) &&
+        (phase < (uint16_t)(g_rt_duty_thresh - (uint16_t)fall_half))) {
+        return 2047;
+    }
+    return -2047;
+}
+
+static int32_t rt_base_unit(uint8_t type, uint16_t phase)
 {
     int32_t unit;
 
-    switch (g_rt_type) {
+    switch (type) {
     case WAVEFORM_TYPE_SINE:
         unit = (int32_t)g_rt_sine_table[phase >> 8];
         break;
     case WAVEFORM_TYPE_SQUARE:
-        /* 一周内相位小于门限的部分为高，其余为低。 */
-        unit = (phase < g_rt_duty_thresh) ? 2047 : -2047;
+        unit = rt_square_unit(phase);
         break;
     case WAVEFORM_TYPE_TRIANGLE:
         /* 两段线性：前半周从 -2047 升到 +2047，后半周再降回来。
@@ -594,11 +599,85 @@ static uint16_t rt_wave_code(uint16_t phase)
         unit = 2047 - (((int32_t)phase * 4094) >> 16);
         break;
     }
+    return unit;
+}
+
+static int32_t rt_noise_unit(void)
+{
+    int32_t white;
+    int32_t selected;
+
+    g_rt_rng = (1664525U * g_rt_rng) + 1013904223U;
+    white = (int32_t)((g_rt_rng >> 20) & 0x0FFFU) - 2048;
+    g_rt_noise_state += (white - g_rt_noise_state) >> 2;
+    if (g_rt_noise_mode == RT_NOISE_LOWPASS) {
+        selected = g_rt_noise_state;
+    } else if (g_rt_noise_mode == RT_NOISE_HIGHBAND) {
+        selected = (white - g_rt_noise_state) / 2;
+    } else {
+        selected = white;
+    }
+    return (selected * (int32_t)g_rt_noise_permille) / 1000;
+}
+
+/* 由 16 位相位算出当前点应写进 DAC 的 12 位码值。除基础四类波形外，
+ * challenge 还在这里加入削顶、交越、谐波、慢调幅和相干干扰。全程使用
+ * 整数运算，保证 20 kHz 定时器中断内可以完成。 */
+static uint16_t rt_wave_code(uint16_t phase)
+{
+    int32_t unit = rt_base_unit(g_rt_type, phase);
+    int32_t limit;
+
+    switch (g_rt_impairment) {
+    case RT_IMPAIRMENT_TOP_CLIP:
+        limit = (2047 * 92) / 100;
+        if (unit > limit) unit = limit;
+        break;
+    case RT_IMPAIRMENT_BOTTOM_CLIP:
+        limit = (2047 * 92) / 100;
+        if (unit < -limit) unit = -limit;
+        break;
+    case RT_IMPAIRMENT_TWO_SIDED_CLIP:
+        limit = (2047 * 94) / 100;
+        if (unit > limit) unit = limit;
+        if (unit < -limit) unit = -limit;
+        break;
+    case RT_IMPAIRMENT_CROSSOVER:
+        limit = (2047 * 5) / 100;
+        if ((unit >= -limit) && (unit <= limit)) {
+            unit = 0;
+        } else if (unit > 0) {
+            unit = ((unit - limit) * 100) / 95;
+        } else {
+            unit = ((unit + limit) * 100) / 95;
+        }
+        break;
+    case RT_IMPAIRMENT_HARMONIC_2_3:
+        unit += ((int32_t)g_rt_sine_table[((uint16_t)(phase * 2U)) >> 8] * 4) / 100;
+        unit += ((int32_t)g_rt_sine_table[((uint16_t)(phase * 3U)) >> 8] * 6) / 100;
+        break;
+    case RT_IMPAIRMENT_SLOW_AM:
+        unit = (unit * (1000 +
+                ((int32_t)g_rt_sine_table[g_rt_am_phase >> 8] * 60) / 2047)) / 1000;
+        g_rt_am_phase = (uint16_t)(g_rt_am_phase + 43U); /* 约 13.1 Hz。 */
+        break;
+    case RT_IMPAIRMENT_COHERENT_INTERFERER:
+        unit += ((int32_t)g_rt_sine_table[
+                    ((uint16_t)(((uint32_t)phase * 173U) / 100U)) >> 8] * 8) / 100;
+        break;
+    case RT_IMPAIRMENT_FIFTH_HARMONIC:
+        unit += ((int32_t)g_rt_sine_table[((uint16_t)(phase * 5U)) >> 8] * 8) / 100;
+        break;
+    default:
+        break;
+    }
+
+    unit += rt_noise_unit();
 
     /* >>11 相当于除以 2048，于是 unit 的满幅 2047 正好对应半个峰峰值。
      * 极端值夹到 ADC/DAC 合法的 0~4095，模拟真实器件的边界行为。 */
     {
-        int32_t code = 2048 + ((unit * g_rt_half) >> 11);
+        int32_t code = (int32_t)g_rt_center + ((unit * g_rt_half) >> 11);
         if (code < 0) {
             code = 0;
         } else if (code > (int32_t)WAVEFORM_ADC_FULL_SCALE) {
@@ -609,10 +688,10 @@ static uint16_t rt_wave_code(uint16_t phase)
 }
 
 /* 装载第 index 个用例的所有回放参数。必须在开始播放之前调用。 */
-static void rt_load_case(uint8_t index)
+static void rt_load_case(const rt_case_t *item, uint16_t index)
 {
-    const rt_case_t *item = &g_rt_cases[index];
     uint32_t vpp_counts;
+    uint32_t occupied_half;
 
     g_rt_type = item->type;
     /* 一帧 4096 点正好对应 65536 个相位单位，所以每点相位增量是
@@ -621,11 +700,34 @@ static void rt_load_case(uint8_t index)
     /* 占空比千分数换算成相位门限：permille/1000 * 65536。 */
     g_rt_duty_thresh =
         (uint16_t)(((uint32_t)item->duty_permille * 65536U) / 1000U);
+    g_rt_rise_width =
+        (uint16_t)(((uint32_t)item->rise_permille * 65536U) / 1000U);
+    g_rt_fall_width =
+        (uint16_t)(((uint32_t)item->fall_permille * 65536U) / 1000U);
     /* 峰峰值按 ADC/DAC 共同的 12 位满量程换算成码值。 */
     vpp_counts = ((uint32_t)item->vpp_millivolts * WAVEFORM_ADC_FULL_SCALE) /
                  WAVEFORM_ADC_VDDA_MV;
     g_rt_half = (int32_t)(vpp_counts / 2U);
-    g_dac_phase = 0U;
+    occupied_half = ((uint32_t)g_rt_half *
+                    (1000U + (uint32_t)item->noise_permille)) / 1000U + 16U;
+    if (item->center_mode == 0U) {
+        g_rt_center = (uint16_t)occupied_half;
+    } else if (item->center_mode == 2U) {
+        g_rt_center = (uint16_t)(WAVEFORM_ADC_FULL_SCALE - occupied_half);
+    } else if (item->center_mode == 3U) {
+        uint32_t span = WAVEFORM_ADC_FULL_SCALE - (2U * occupied_half);
+        g_rt_center = (uint16_t)(occupied_half +
+            (((uint32_t)index * 2654435761UL) % (span + 1U)));
+    } else {
+        g_rt_center = 2048U;
+    }
+    g_rt_impairment = item->impairment;
+    g_rt_noise_permille = item->noise_permille;
+    g_rt_noise_mode = item->noise_mode;
+    g_rt_noise_state = 0;
+    g_rt_rng = 0x6D2B79F5U ^ ((uint32_t)index * 7919U);
+    g_rt_am_phase = (uint16_t)(index * 977U);
+    g_dac_phase = (uint16_t)(index * 40503U);
 }
 
 /* 播放当前用例并同步采回一帧。返回后 g_adc_samples 里就是这一帧。 */
@@ -633,8 +735,9 @@ static void rt_capture_case(void)
 {
     /* 先把第 0 点写进 DAC。这样第一个节拍上 ADC 采到的就是第 0 点，而
      * 中断随后写入第 1 点，依此类推，第 k 个采样点恒等于第 k 个 DAC 码。 */
-    DL_DAC12_output12(DAC0, rt_wave_code(0U));
-    g_dac_phase = g_rt_phase_inc;
+    uint16_t first_phase = g_dac_phase;
+    DL_DAC12_output12(DAC0, rt_wave_code(first_phase));
+    g_dac_phase = (uint16_t)(first_phase + g_rt_phase_inc);
     g_dac_playing = true;
 
     /* TIMA0 的 ZERO 中断平时不挂到 NVIC 上，只有自激播放期间才打开：
@@ -765,11 +868,8 @@ static void rt_drain_rx(void)
     }
 }
 
-/* 判定容差，按赛题口径放宽：频率 0.5%、Vpp 5%、方波占空比 2 个百分点。
- * 容差写成分母为 1000 的整数比较，全程 32 位，不需要 64 位乘除。 */
-#define RT_FREQ_TOLERANCE_PERMILLE (5UL)
-#define RT_VPP_TOLERANCE_PERMILLE  (50UL)
-#define RT_DUTY_TOLERANCE_PPM      (20000UL)
+/* 自编题沿用软件题集门限：频率 0.5%、Vpp 8%、占空比 2 个百分点；
+ * challenge 为 1%、12%、3 个百分点。 */
 
 /* 把"标准答案"和算法测出来的值逐项比较，输出一行 RT-CHECK。
  * 返回 true 表示该用例通过。失败时仍然打印各项误差，便于现场定位是
@@ -788,24 +888,28 @@ static bool rt_check_case(const rt_case_t *item,
     uint32_t freq_err = 0U;
     uint32_t vpp_err = 0U;
     uint32_t duty_err = 0U;
+    uint32_t freq_tolerance = (item->group == RT_GROUP_CHALLENGE) ? 10U : 5U;
+    uint32_t vpp_tolerance = (item->group == RT_GROUP_CHALLENGE) ? 120U : 80U;
+    uint32_t duty_tolerance =
+        (item->group == RT_GROUP_CHALLENGE) ? 30000U : 20000U;
 
     /* 类型判错时后面的数值没有意义，直接保留 0 误差并置 FAIL。 */
     if (type_ok) {
         freq_err = (result->frequency_millihz > nominal_millihz)
                        ? (result->frequency_millihz - nominal_millihz)
                        : (nominal_millihz - result->frequency_millihz);
-        freq_ok = (freq_err * 1000U) <= (nominal_millihz * RT_FREQ_TOLERANCE_PERMILLE);
+        freq_ok = (freq_err * 1000U) <= (nominal_millihz * freq_tolerance);
 
         vpp_err = (result->vpp_microvolts > nominal_uv)
                       ? (result->vpp_microvolts - nominal_uv)
                       : (nominal_uv - result->vpp_microvolts);
-        vpp_ok = (vpp_err * 1000U) <= (nominal_uv * RT_VPP_TOLERANCE_PERMILLE);
+        vpp_ok = (vpp_err * 1000U) <= (nominal_uv * vpp_tolerance);
 
         if (item->type == WAVEFORM_TYPE_SQUARE) {
             duty_err = (result->duty_ppm > nominal_duty_ppm)
                            ? (result->duty_ppm - nominal_duty_ppm)
                            : (nominal_duty_ppm - result->duty_ppm);
-            duty_ok = duty_err <= RT_DUTY_TOLERANCE_PPM;
+            duty_ok = duty_err <= duty_tolerance;
         }
     }
 
@@ -836,7 +940,18 @@ static bool rt_check_case(const rt_case_t *item,
 
 /* 跑完一个用例：报标称值 -> 播放并采样 -> 分析 -> 报结果 -> 报对比 ->
  * 回传原始样点。返回 true 表示这个用例通过。 */
-static bool rt_measure_case(uint8_t index)
+static const char *rt_impairment_name(uint8_t impairment)
+{
+    static const char *const names[] = {
+        "boundary", "top_clip", "bottom_clip", "two_sided_clip",
+        "crossover", "harmonic_2_3", "slow_am", "coherent_interferer",
+        "fifth_harmonic"
+    };
+    return (impairment < (sizeof(names) / sizeof(names[0]))) ?
+           names[impairment] : "unknown";
+}
+
+static bool rt_measure_case(uint16_t index)
 {
     const rt_case_t *item = &g_rt_cases[index];
     waveform_frame_t frame;
@@ -844,12 +959,16 @@ static bool rt_measure_case(uint8_t index)
     bool valid;
     bool passed;
 
-    rt_load_case(index);
+    rt_load_case(item, index);
 
     uart_put_string("RT-CASE,index=");
     uart_put_u32((uint32_t)index + 1U);
     uart_put_string("/");
     uart_put_u32(RT_CASE_COUNT);
+    uart_put_string(",group=");
+    uart_put_string((item->group == RT_GROUP_CHALLENGE) ? "challenge" : "custom");
+    uart_put_string(",profile=");
+    uart_put_string(rt_impairment_name(item->impairment));
     uart_put_string(",type=");
     uart_put_string(waveform_type_name((waveform_type_t)item->type));
     uart_put_string(",freq_millihz=");
@@ -864,6 +983,12 @@ static bool rt_measure_case(uint8_t index)
     }
     uart_put_string(",cycles=");
     uart_put_u32(item->cycles);
+    uart_put_string(",noise_permille=");
+    uart_put_u32(item->noise_permille);
+    uart_put_string(",edge_permille=");
+    uart_put_u32(item->rise_permille);
+    uart_put_char('/');
+    uart_put_u32(item->fall_permille);
     uart_put_string("\r\n");
 
     uart_put_string("CAPTURING\r\n");
@@ -884,30 +1009,34 @@ static bool rt_measure_case(uint8_t index)
 
     passed = rt_check_case(item, &result, valid);
 
-    /* 把这一帧的 4096 个采样点也发给电脑，格式与 D 命令一致，
-     * 上位机可以复用同一套校验与离线回放代码画出实际波形。 */
-    dump_samples();
+    /* 296 题默认只回传文本，避免向普通串口终端倾倒约 2.4 MiB 二进制。
+     * 如需检查某一帧，矩阵中止后发送 D 可导出最近一帧。 */
     return passed;
 }
 
-/* 依次跑完整个自激矩阵。每条用例都走"产生 -> 采样 -> 分析 -> 对比 ->
- * 上行样点"，因此一条命令就能得到一张覆盖全量程的通过/失败表。 */
+/* 依次跑完整个 200+96 自激矩阵。 */
 static void rt_run_matrix(void)
 {
-    uint8_t index;
-    uint8_t passed = 0U;
-    uint8_t failed = 0U;
+    uint16_t index;
+    uint16_t custom_passed = 0U;
+    uint16_t custom_failed = 0U;
+    uint16_t challenge_passed = 0U;
+    uint16_t challenge_failed = 0U;
 
     /* 先吃掉命令行尾的回车，否则它会被当成中止请求。 */
     rt_drain_rx();
 
     uart_put_string("RT-START,cases=");
     uart_put_u32(RT_CASE_COUNT);
+    uart_put_string(",custom=");
+    uart_put_u32(RT_CUSTOM_CASE_COUNT);
+    uart_put_string(",challenge=");
+    uart_put_u32(RT_CHALLENGE_CASE_COUNT);
     uart_put_string(",fs_hz=");
     uart_put_u32(WAVEFORM_SAMPLE_RATE_HZ);
     uart_put_string(",n=");
     uart_put_u32(WAVEFORM_SAMPLE_COUNT);
-    uart_put_string(",dac=PA15,adc=PA25\r\n");
+    uart_put_string(",dac=PA15,adc=PA25,dump=0\r\n");
 
     /* Explicitly enable the DAC module, output pin and amplifier before testing. */
     DL_DAC12_enable(DAC0);
@@ -925,9 +1054,17 @@ static void rt_run_matrix(void)
             break;
         }
         if (rt_measure_case(index)) {
-            ++passed;
+            if (g_rt_cases[index].group == RT_GROUP_CHALLENGE) {
+                ++challenge_passed;
+            } else {
+                ++custom_passed;
+            }
         } else {
-            ++failed;
+            if (g_rt_cases[index].group == RT_GROUP_CHALLENGE) {
+                ++challenge_failed;
+            } else {
+                ++custom_failed;
+            }
         }
     }
 
@@ -936,9 +1073,17 @@ static void rt_run_matrix(void)
     DL_DAC12_setAmplifier(DAC0, DL_DAC12_AMP_OFF_TRISTATE);
 
     uart_put_string("RT-DONE,pass=");
-    uart_put_u32(passed);
+    uart_put_u32((uint32_t)custom_passed + challenge_passed);
     uart_put_string(",fail=");
-    uart_put_u32(failed);
+    uart_put_u32((uint32_t)custom_failed + challenge_failed);
+    uart_put_string(",custom_pass=");
+    uart_put_u32(custom_passed);
+    uart_put_string(",custom_fail=");
+    uart_put_u32(custom_failed);
+    uart_put_string(",challenge_pass=");
+    uart_put_u32(challenge_passed);
+    uart_put_string(",challenge_fail=");
+    uart_put_u32(challenge_failed);
     uart_put_string("\r\n");
     uart_put_string("READY\r\n");
 }

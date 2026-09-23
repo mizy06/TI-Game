@@ -574,7 +574,7 @@ def main() -> int:
     parser.add_argument("--json", type=Path,
                         default=Path("tests/results/competition_stress_report.json"))
     parser.add_argument("--seed", type=int, default=20260919)
-    parser.add_argument("--gate-cases-per-kind", type=int, default=96)
+    parser.add_argument("--gate-cases-per-kind", type=int, default=50)
     parser.add_argument("--challenge-cases-per-profile", type=int, default=12)
     parser.add_argument("--require-challenge", action="store_true")
     args = parser.parse_args()

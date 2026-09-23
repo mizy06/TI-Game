@@ -7,20 +7,18 @@
 
 固件侧协议（一条 `RT` 命令触发一整轮）：
 
-    RT-START,cases=12,fs_hz=20000,n=4096,dac=PA15,adc=PA25
-    RT-CASE,index=1/12,type=sine,freq_millihz=...,vpp_millivolts=...,...
+    RT-START,cases=296,custom=200,challenge=96,...,dump=0
+    RT-CASE,index=1/296,group=custom,profile=boundary,type=sine,...
     CAPTURING
     PROCESSING
     RESULT,status=OK,type=sine,...              （与 R 路径完全同格式）
     RT-CHECK,verdict=PASS,type_ok=1,...          （标称值 vs 测量值）
-    SAMPLES,bytes=8192,fnv1a=...                 （本帧 4096 点，与 D 同格式）
-    <8192 字节小端 uint16>
     ... 共 cases 条 ...
-    RT-DONE,pass=12,fail=0
+    RT-DONE,pass=...,fail=...,custom_pass=...,challenge_pass=...
     READY
 
-每帧样点都会落盘，便于用 tools/analyze_rejection.py 或
-tools/sample_forensics.py 继续做离线归因。
+296 题默认只回传文本，普通串口终端可以直接查看；需要原始样点时中止矩阵
+后发送 ``D``，导出最近一帧。
 """
 
 import argparse
@@ -36,6 +34,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLE_COUNT = 4096
 PAYLOAD_BYTES = SAMPLE_COUNT * 2
+EXPECTED_CASES = 296
+EXPECTED_CUSTOM_CASES = 200
+EXPECTED_CHALLENGE_CASES = 96
 
 
 def load_recorder():
@@ -94,6 +95,43 @@ def parse_case_index(fields):
     return index
 
 
+def validate_matrix_contract(start, cases, summary, abort):
+    """拒绝旧 12 题固件、截断会话和分组数量错误的伪成功。"""
+    if abort is not None:
+        return None
+    if start is None:
+        return 'MISSING_RT_START'
+    try:
+        declared = (
+            int(start['cases']), int(start['custom']), int(start['challenge']))
+    except (KeyError, TypeError, ValueError):
+        return 'BAD_RT_START_COUNTS'
+    expected = (
+        EXPECTED_CASES, EXPECTED_CUSTOM_CASES, EXPECTED_CHALLENGE_CASES)
+    if declared != expected:
+        return f'WRONG_MATRIX{declared}'
+    if len(cases) != EXPECTED_CASES:
+        return f'CASE_COUNT({len(cases)}/{EXPECTED_CASES})'
+    custom = sum(record.get('group') == 'custom' for record in cases)
+    challenge = sum(record.get('group') == 'challenge' for record in cases)
+    if (custom, challenge) != (
+            EXPECTED_CUSTOM_CASES, EXPECTED_CHALLENGE_CASES):
+        return f'GROUP_COUNT(custom={custom},challenge={challenge})'
+    if summary is None:
+        return 'MISSING_RT_DONE'
+    try:
+        total = int(summary['pass']) + int(summary['fail'])
+        custom_total = int(summary['custom_pass']) + int(summary['custom_fail'])
+        challenge_total = (
+            int(summary['challenge_pass']) + int(summary['challenge_fail']))
+    except (KeyError, TypeError, ValueError):
+        return 'BAD_RT_DONE_COUNTS'
+    if (total, custom_total, challenge_total) != expected:
+        return ('BAD_RT_DONE_TOTALS'
+                f'(all={total},custom={custom_total},challenge={challenge_total})')
+    return None
+
+
 def main():
     import serial
     import serial.tools.list_ports
@@ -102,13 +140,13 @@ def main():
         description='跑一遍固件 RT 自激矩阵并汇总通过情况')
     parser.add_argument('--port', default='COM15',
                         help='XDS110 Application/User UART，默认 COM15')
-    parser.add_argument('--timeout', type=float, default=180.0,
-                        help='整轮矩阵的期限秒（12 条用例，含 8192B/帧上行）')
+    parser.add_argument('--timeout', type=float, default=600.0,
+                        help='整轮 296 题矩阵的期限秒，默认 600')
     parser.add_argument('--acquire-timeout', type=float, default=15.0,
                         help='抢占同一串口的等待上限秒')
     parser.add_argument('--output', default=None, help='会话目录；默认自动命名')
     parser.add_argument('--csv', action='store_true',
-                        help='额外为每帧写一份 序号,ADC码值 的 CSV')
+                        help='兼容旧固件：仅在固件回传 SAMPLES 时额外写 CSV')
     args = parser.parse_args()
 
     recorder = load_recorder()
@@ -162,7 +200,7 @@ def main():
         'sample_rate_hz': 20000,
         'sample_count': SAMPLE_COUNT,
         'frame_duration_ms': 204.8,
-        'format': 'little-endian uint16 x 4096, header SAMPLES,bytes,fnv1a',
+        'format': '296-case text matrix; D command dumps latest LE16 frame',
         'driver_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
     }
     firmware = ROOT / 'Debug' / 'TI-game.out'
@@ -222,14 +260,20 @@ def main():
                 continue
 
             if line.startswith('RT-CASE,'):
+                if current is not None:
+                    cases.append(current)
                 fields = parse_kv('RT-CASE', line)
                 current = {
                     'index': parse_case_index(fields),
+                    'group': fields.get('group'),
+                    'profile': fields.get('profile'),
                     'declared_type': fields.get('type'),
                     'declared_freq_millihz': as_int(fields, 'freq_millihz'),
                     'declared_vpp_millivolts': as_int(fields, 'vpp_millivolts'),
                     'declared_duty_ppm': as_int(fields, 'duty_ppm'),
                     'declared_cycles': as_int(fields, 'cycles'),
+                    'noise_permille': as_int(fields, 'noise_permille'),
+                    'edge_permille': fields.get('edge_permille'),
                 }
                 continue
 
@@ -291,6 +335,9 @@ def main():
                 continue
 
             if line.startswith('RT-DONE,'):
+                if current is not None:
+                    cases.append(current)
+                    current = None
                 summary = parse_kv('RT-DONE', line)
                 continue
 
@@ -312,6 +359,10 @@ def main():
 
     port.close()
 
+    if protocol_error is None:
+        protocol_error = validate_matrix_contract(
+            metadata.get('start_declared'), cases, summary, abort_line)
+
     # 逐条打印：类型是否正确、频率/Vpp/占空比是否落在容差内。
     print(f'{"#":>3} {"类型":<9} {"判定":<5} {"标称Hz":>9} {"实测Hz":>9} '
           f'{"标称mVpp":>9} {"实测mVpp":>9} {"码范围":>12} {"校验":>4}')
@@ -332,7 +383,8 @@ def main():
                         else round(int(result['vpp_microvolts']) / 1000.0, 2))
         code_range = (f'{record["min_code"]}-{record["max_code"]}'
                       if 'min_code' in record else 'NA')
-        integrity = 'OK' if record.get('integrity_ok') else 'BAD'
+        integrity = ('OK' if record.get('integrity_ok') else
+                     ('BAD' if 'integrity_ok' in record else 'NA'))
         print(f'{record["index"]:>3} {str(record["declared_type"]):<9} '
               f'{verdict:<5} '
               f'{(declared_freq or 0) / 1000.0:>9.3f} '

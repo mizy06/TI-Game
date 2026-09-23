@@ -1,24 +1,18 @@
-# 分支提交说明
+# 源码包提交说明
 
-交付分支：algorithm/precision-waveform-analysis
+本压缩包是不含 `.git`、旧 Debug 产物和历史测试结果的干净源码包。
 
 解压后检查：
 
-    git status
-    git branch --show-current
-    git log --oneline --decorate -3
+    bash tests/run_all_checks.sh
 
-预期工作区干净，当前分支为 algorithm/precision-waveform-analysis。
+若需要提交到你们的仓库，可在解压目录初始化并推送：
 
-添加你们的远端并推送：
-
+    git init
+    git add .
+    git commit -m "RT self-test: 200 custom plus 96 challenge cases"
     git remote add origin <你们的仓库地址>
-    git push -u origin algorithm/precision-waveform-analysis
-
-如果 origin 已存在：
-
-    git remote set-url origin <你们的仓库地址>
-    git push -u origin algorithm/precision-waveform-analysis
+    git push -u origin main
 
 合并前建议在有 CCS/MSPM0 SDK 的电脑上执行：
 
@@ -26,8 +20,9 @@
 2. Release/O2 构建；
 3. 检查 map 文件的 SRAM 和 Flash；
 4. 烧录并确认启动横幅含 FW=algorithm-v2、API=0x00020000；
-5. 按 docs/ACQUISITION_ALGORITHM_INTERFACE.md 完成真实信号源校准和扫参；
-6. 测量新版算法的板上最坏处理时间。
+5. PA15 短接 PA25，串口发送 RT，确认 `RT-START,cases=296`；
+6. 按 docs/ACQUISITION_ALGORITHM_INTERFACE.md 完成真实信号源校准和扫参；
+7. 测量新版算法的板上最坏处理时间。
 
 主机回归：
 

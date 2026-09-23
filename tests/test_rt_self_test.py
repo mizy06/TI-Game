@@ -14,17 +14,34 @@ SPEC.loader.exec_module(rt_self_test)
 
 class RTSelfTestProtocolTests(unittest.TestCase):
     def test_case_index_accepts_fractional_and_integer_forms(self):
-        self.assertEqual(rt_self_test.parse_case_index({'index': '1/12'}), 1)
-        self.assertEqual(rt_self_test.parse_case_index({'index': '12/12'}), 12)
+        self.assertEqual(rt_self_test.parse_case_index({'index': '1/296'}), 1)
+        self.assertEqual(rt_self_test.parse_case_index({'index': '296/296'}), 296)
         self.assertEqual(rt_self_test.parse_case_index({'index': '7'}), 7)
 
     def test_case_index_rejects_out_of_range_values(self):
         with self.assertRaises(ValueError):
-            rt_self_test.parse_case_index({'index': '13/12'})
+            rt_self_test.parse_case_index({'index': '297/296'})
 
     def test_na_optional_integer_uses_default(self):
         self.assertIsNone(rt_self_test.as_int({'duty_ppm': 'NA'}, 'duty_ppm'))
         self.assertEqual(rt_self_test.as_int({'cycles': '41'}, 'cycles'), 41)
+
+    def test_matrix_contract_rejects_old_twelve_case_firmware(self):
+        start = {'cases': '12', 'custom': '12', 'challenge': '0'}
+        error = rt_self_test.validate_matrix_contract(start, [], {}, None)
+        self.assertTrue(error.startswith('WRONG_MATRIX'))
+
+    def test_matrix_contract_accepts_exact_200_plus_96(self):
+        start = {'cases': '296', 'custom': '200', 'challenge': '96'}
+        cases = ([{'group': 'custom'}] * 200
+                 + [{'group': 'challenge'}] * 96)
+        summary = {
+            'pass': '295', 'fail': '1',
+            'custom_pass': '200', 'custom_fail': '0',
+            'challenge_pass': '95', 'challenge_fail': '1',
+        }
+        self.assertIsNone(
+            rt_self_test.validate_matrix_contract(start, cases, summary, None))
 
 
 if __name__ == '__main__':

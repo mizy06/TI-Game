@@ -19,6 +19,9 @@ typedef struct { uint32_t unused; } GPIO_Regs;
 typedef struct { uint32_t unused; } GPTIMER_Regs;
 typedef struct { uint32_t unused; } ADC12_Regs;
 typedef struct { uint32_t unused; } DAC12_Regs;
+typedef struct {
+    struct { uint32_t PINCM[64]; } SECCFG;
+} IOMUX_Regs;
 
 /* 给实例宏一个类型正确且非空的地址。 */
 static UART_Regs g_stub_uart;
@@ -26,6 +29,7 @@ static GPIO_Regs g_stub_gpio;
 static GPTIMER_Regs g_stub_timer;
 static ADC12_Regs g_stub_adc;
 static DAC12_Regs g_stub_dac;
+static IOMUX_Regs g_stub_iomux;
 
 /* 名称与 SysConfig 生成的 ti_msp_dl_config.h 保持一致，具体数值只需让
  * empty.c 编译，绝不代表真实寄存器地址或引脚复用编码。 */
@@ -36,6 +40,13 @@ static DAC12_Regs g_stub_dac;
 #define TIMER_0_INST              (&g_stub_timer)
 #define ADC12_0_INST              (&g_stub_adc)
 #define DAC0                      (&g_stub_dac)
+#define IOMUX                     (&g_stub_iomux)
+#define GPIO_DAC12_IOMUX_OUT      (15U)
+#define GPIO_ADC12_0_IOMUX_C2     (25U)
+#define GPIO_DAC12_OUT_PORT       (&g_stub_gpio)
+#define GPIO_DAC12_OUT_PIN        (1U << 15U)
+#define GPIO_ADC12_0_C2_PORT      (&g_stub_gpio)
+#define GPIO_ADC12_0_C2_PIN       (1U << 25U)
 #define ADC12_0_ADCMEM_0          (0U)
 #define ADC12_0_INST_INT_IRQN     (0U)
 #define TIMER_0_INST_INT_IRQN     (1U)
@@ -43,7 +54,9 @@ static DAC12_Regs g_stub_dac;
 #define DL_ADC12_IIDX_MEM0_RESULT_LOADED      (1U)
 #define DL_GPIO_INVERSION_DISABLE             (0U)
 #define DL_GPIO_RESISTOR_PULL_UP               (1U)
+#define DL_GPIO_RESISTOR_NONE                  (0U)
 #define DL_GPIO_HYSTERESIS_ENABLE              (1U)
+#define DL_GPIO_HYSTERESIS_DISABLE             (0U)
 #define DL_GPIO_WAKEUP_DISABLE                 (0U)
 #define IOMUX_PINCM21                          (21U)
 #define IOMUX_PINCM22                          (22U)
@@ -85,6 +98,16 @@ static inline void DL_GPIO_initDigitalInputFeatures(uint32_t iomux,
                                                     uint32_t hysteresis,
                                                     uint32_t wakeup)
 { (void)iomux; (void)inversion; (void)resistor; (void)hysteresis; (void)wakeup; }
+static inline void DL_GPIO_initDigitalOutput(uint32_t iomux)
+{ (void)iomux; }
+static inline void DL_GPIO_clearPins(GPIO_Regs *gpio, uint32_t pins)
+{ (void)gpio; (void)pins; }
+static inline void DL_GPIO_setPins(GPIO_Regs *gpio, uint32_t pins)
+{ (void)gpio; (void)pins; }
+static inline void DL_GPIO_enableOutput(GPIO_Regs *gpio, uint32_t pins)
+{ (void)gpio; (void)pins; }
+static inline void DL_GPIO_disableOutput(GPIO_Regs *gpio, uint32_t pins)
+{ (void)gpio; (void)pins; }
 static inline void DL_GPIO_initPeripheralOutputFunction(uint32_t iomux,
                                                         uint32_t function)
 { (void)iomux; (void)function; }
@@ -105,6 +128,18 @@ static inline void DL_DAC12_output12(DAC12_Regs *dac, uint32_t value)
 { (void)dac; (void)value; }
 static inline void DL_DAC12_setAmplifier(DAC12_Regs *dac, DL_DAC12_AMP amp)
 { (void)dac; (void)amp; }
+static inline void DL_DAC12_enable(DAC12_Regs *dac)
+{ (void)dac; }
+static inline bool DL_DAC12_isEnabled(DAC12_Regs *dac)
+{ (void)dac; return true; }
+static inline void DL_DAC12_enableOutputPin(DAC12_Regs *dac)
+{ (void)dac; }
+static inline void DL_DAC12_disableOutputPin(DAC12_Regs *dac)
+{ (void)dac; }
+static inline bool DL_DAC12_isOutputPinEnabled(DAC12_Regs *dac)
+{ (void)dac; return true; }
+static inline DL_DAC12_AMP DL_DAC12_getAmplifier(DAC12_Regs *dac)
+{ (void)dac; return DL_DAC12_AMP_ON; }
 static inline DL_TIMER_IIDX DL_Timer_getPendingInterrupt(GPTIMER_Regs *timer)
 { (void)timer; return DL_TIMER_IIDX_ZERO; }
 static inline void NVIC_ClearPendingIRQ(uint32_t irq) { (void)irq; }

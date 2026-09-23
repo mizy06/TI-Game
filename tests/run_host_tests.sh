@@ -50,6 +50,7 @@ cc -std=c99 -O2 -Wall -Wextra -Werror -fPIC -shared \
   -lm -o "$script_dir/waveform_analyzer_host.so"
 
 # -B 禁止产生 __pycache__；JSON 参数保存完整可审计报告。
+mkdir -p "$script_dir/results"
 python3 -B "$project_dir/tools/competition_stress_suite.py" \
   --library "$script_dir/waveform_analyzer_host.so" \
   --json "$script_dir/results/competition_stress_report.json"
