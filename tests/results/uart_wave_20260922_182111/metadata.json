@@ -1,0 +1,19 @@
+{
+  "started_local": "2026-09-22T18:21:11",
+  "port": "COM15",
+  "port_hwid": "USB VID:PID=0451:BEF3 SER=MG350001 LOCATION=1-5:x.0",
+  "port_description": "XDS110 Class Application/User UART (COM15)",
+  "baud": 115200,
+  "port_acquire_attempts": 1,
+  "source": "R",
+  "planned_frames": 10,
+  "frame_budget_s": 10.0,
+  "sample_rate_hz": 20000,
+  "sample_count": 4096,
+  "adc_full_scale": 4095,
+  "reference_uv": 3300000,
+  "note_failure_path": "固件拒识行不含 score_pct/margin_pct/cycles；需用 tools/analyze_rejection.py 离线回放补全",
+  "note_R_no_samples": "R 触发不回传采样点，样点仅存在于 MCU 内部，因此 source=R 的记录无法离线回放波形",
+  "recorder_sha256": "478cec56742dc52457b09bb2fba29278f41abce060b5ac87ed211090b7776322",
+  "firmware_sha256": "c2d16ebecf72bfa6d3df523e5c28346ac596642728ee0a38eaa6e40c835fbf36"
+}

@@ -1,0 +1,27 @@
+DSLite version 21.0.0.4166
+Configuring Debugger (may take a few minutes on first launch)...
+	Initializing Register Database...
+	Initializing: CS_DAP_0
+	Executing Startup Scripts: CS_DAP_0
+	Initializing: CORTEX_M0P
+	Executing Startup Scripts: CORTEX_M0P
+	Initializing: SEC_AP
+	Executing Startup Scripts: SEC_AP
+Connecting...
+CORTEX_M0P: GEL Output: Memory Map Initialization Complete
+Loading Program: Debug/TI-game.out
+	Preparing ... 
+	PT_LOAD[0]: 0 of 22560 at 0x0
+	PT_LOAD[1]: 0 of 8 at 0x5820: 99%
+	Finished: 99%
+	Setting PC to entry point.: 99%
+Verifying Program: Debug/TI-game.out
+	Preparing ... 
+	PT_LOAD[0]: 0 of 22560 at 0x0
+	PT_LOAD[1]: 0 of 8 at 0x5820: 99%
+	Finished: 99%
+info: CORTEX_M0P: Program verification successful for Debug/TI-game.out
+
+Resetting...
+System Reset is issued.
+Success

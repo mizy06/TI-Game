@@ -1,0 +1,16 @@
+{
+  "started_local": "2026-09-22T18:36:15",
+  "port": "COM15",
+  "port_hwid": "USB VID:PID=0451:BEF3 SER=MG350001 LOCATION=1-5:x.0",
+  "port_description": "XDS110 Class Application/User UART (COM15)",
+  "baud": 115200,
+  "source": "R + D（采集后立即导出样点）",
+  "expected_waveform": null,
+  "sample_count": 4096,
+  "format": "little-endian uint16 x 4096, header SAMPLES,bytes,fnv1a",
+  "sample_rate_hz": 20000,
+  "adc_full_scale": 4095,
+  "receiver_sha256": "586c4430bb1ce6dfe00c7944c4d8a1fcd374f26c1321edace09bcc8745893ccb",
+  "requires_firmware": "empty.c 含 D=Dump samples 命令（2026-09-22 新增）",
+  "firmware_sha256": "db411b14298ad738e3811fa5e509da785e006efd118ca43d03268f5cf8154947"
+}

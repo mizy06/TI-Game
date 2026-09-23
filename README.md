@@ -42,9 +42,45 @@
 | ADC 格式 | 12 bit unsigned，右对齐 |
 | 缓冲大小 | 8192 B |
 | 串口 | 115200, 8-N-1 |
-| 触发 | R=ADC，W=数字注入，T=片上自测 |
+| 触发 | R=ADC 对外测量，RT=自激环路自检，W=数字注入，T=片上自测，D=导出样点 |
+| 板载波形输出 | DAC12 / PA15（自激时用杜邦线短接到 PA25） |
 
 输入必须全程位于 ADC 合法范围。赛事只保证无负电压，并未保证不会超过 VDDA；接线前要用示波器确认，建议至少串联 1 kΩ 限流。
+
+## 自激环路（RT）
+
+没有信号发生器时，板子自己产生测试波形：DAC12 在 **PA15** 上按 20 kHz
+回放 4096 点的已知波形，用一根杜邦线短接到 ADC 输入 **PA25**，同一帧再走
+完整的采集 + 识别链路。发一条 `RT` 就会依次跑完 12 个用例（4 类波形 ×
+100–400 Hz × 20/30/50/80% 占空比 × 1.0/2.0 Vpp），每个用例上报：
+
+```text
+RT-CASE,index=1/12,type=sine,freq_millihz=200195,vpp_millivolts=2000,duty_ppm=NA,cycles=41
+CAPTURING
+PROCESSING
+RESULT,status=OK,type=sine,freq_hz=200.195,vpp_v=1.997,...
+RT-CHECK,verdict=PASS,type_ok=1,freq_ok=1,vpp_ok=1,duty_ok=1,freq_err_millihz=8,...
+SAMPLES,bytes=8192,fnv1a=...   + 8192 字节小端 uint16 × 4096
+...
+RT-DONE,pass=12,fail=0
+READY
+```
+
+设计要点：
+
+- 产生和采集共用 TIMER_0 的同一个 20 kHz 节拍，第 k 个 ADC 点恒等于第 k 个
+  DAC 码，帧内不需要任何对齐；
+- 用例频率取 `f = cycles × 20000 / 4096`（cycles 为整数），一帧内正好放下
+  整数个周期，换帧无毛刺；
+- DAC 与 ADC 都以 VDDA 为参考，参考误差在码域两端抵消，Vpp 对比可以卡到 5%；
+- 非自激状态下 DAC 输出缓冲置为高阻，自检杜邦线可以一直挂着，不影响对外测量。
+
+主机侧可用 `tools/rt_self_test.py` 自动跑一遍并汇总成表（每帧样点同时落盘）。
+
+PA15 是 DAC 模拟输出，PA25 是 ADC 输入；UART0（板载 USB-UART 使用
+PA10/TX、PA11/RX）负责收命令并向电脑回传识别结果和采样点，不要把 PA15
+接到 UART 引脚。要在电脑画采样波形，可运行 `python tools/rt_self_test.py --csv`
+并绘制生成的 CSV；外部实时观察则用示波器探测 PA15。
 
 ## 推荐调用
 

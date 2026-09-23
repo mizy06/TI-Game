@@ -7,6 +7,22 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 project_dir="$(cd "$script_dir/.." && pwd)"
 
+# 路径形式适配：MSYS/Git-Bash 的 pwd 给出 /c/xxx，而 MSYS2 自带的 gcc 只认
+# C:/xxx，直接传 /c/... 会报 "No such file or directory"。这里在 Windows 的
+# MSYS/Cygwin 环境下把盘符路径转成原生形式；真正的 Linux 上原样返回。
+to_native() {
+  case "${OSTYPE:-}" in
+    msys* | cygwin* | mingw*)
+      case "$1" in
+        /[a-zA-Z]/*) printf '%s:/%s' "${1:1:1}" "${1:3}"; return 0 ;;
+      esac
+      ;;
+  esac
+  printf '%s' "$1"
+}
+script_dir="$(to_native "$script_dir")"
+project_dir="$(to_native "$project_dir")"
+
 # 常规随机/边界回归。测试源后缀是 .c.txt，所以用“-x c”强制按 C 解析；
 # -lm 链接测试数据生成所需的 sin/log/sqrt 等数学函数。
 cc -std=c99 -O2 -Wall -Wextra -Werror \

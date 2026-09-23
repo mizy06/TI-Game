@@ -16,7 +16,8 @@
  * 零基础说明：SysConfig 是 TI 的外设配置生成器。这里的 JavaScript 风格
  * 语句不会在 MCU 上运行，而是让工具生成 ti_msp_dl_config.c/.h。ADC12
  * 负责采样，TIMER 周期触发 ADC，UART 与电脑通信，GPIO 是用户按键，
- * SYSCTL 管理系统时钟。addInstance() 表示创建该外设的一个具体实例。
+ * DAC12 负责自己产生测试波形，SYSCTL 管理系统时钟。addInstance() 表示
+ * 创建该外设的一个具体实例。
  */
 const ADC12  = scripting.addModule("/ti/driverlib/ADC12", {}, false);
 const ADC121 = ADC12.addInstance();
@@ -27,6 +28,8 @@ const TIMER  = scripting.addModule("/ti/driverlib/TIMER", {}, false);
 const TIMER1 = TIMER.addInstance();
 const UART   = scripting.addModule("/ti/driverlib/UART", {}, false);
 const UART1  = UART.addInstance();
+/* DAC12 是单实例模块，没有 addInstance()，直接配置模块本身即可。 */
+const DAC12  = scripting.addModule("/ti/driverlib/DAC12");
 
 /**
  * Write custom configuration values to the imported modules.
@@ -45,6 +48,24 @@ ADC121.subChanID           = 1;
 ADC121.enabledInterrupts   = ["DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED"];
 ADC121.adcPin2Config.$name = "ti_driverlib_gpio_GPIOPinGeneric2";
 
+/* DAC12_0：板载测试波形发生器，输出固定落在 PA15（LQFP-64 的 PINCM37，
+ * 这也是该封装上 DAC0 唯一可用的模拟输出脚）。
+ * - dacOutputPinEn=true 打开输出脚；dacAmplifier="ON" 打开输出缓冲，
+ *   这样一根杜邦线直接短接到 PA25 就能被 ADC 采到，不需要外接运放；
+ * - dacFIFOEn=false 表示不使用 FIFO：固件在定时器中断里直接写 DATA0，
+ *   每写一次输出立刻更新，实现 20 kHz 的任意波形回放；
+ * - dacSampleTimerEn=false 关闭 DAC 自带的采样率发生器，因为节拍由
+ *   TIMER_0 的 ZERO 事件统一提供，保证"产生"和"采集"严格同源。
+ * 参考电压沿用默认的 VDDA/VSSA：与 ADC 的参考完全一致，于是 DAC 码值
+ * 经过模拟链路再被 ADC 采回时，VDDA 的绝对误差会在两端相互抵消。 */
+DAC12.dacFIFOEn        = false;
+DAC12.dacOutputPinEn   = true;
+DAC12.dacAmplifier     = "ON";
+DAC12.dacSampleTimerEn = false;
+/* 输出脚的自动命名会与 UART 的 TX 脚撞名（都叫 GPIOPinGeneric0），
+ * 因此显式指定一个未被占用的编号。 */
+DAC12.OutPinConfig.$name = "ti_driverlib_gpio_GPIOPinGeneric3";
+
 /* Board 模块保留调试系统 SWD 引脚，供 XDS110 下载和单步调试。 */
 const Board = scripting.addModule("/ti/driverlib/Board", {}, false);
 
@@ -55,9 +76,20 @@ GPIO1.associatedPins[0].direction = "INPUT";
 
 /* 使用 SDK 默认系统时钟方案；CPUCLK_FREQ 由生成头文件提供给延时计算。 */
 SYSCTL.forceDefaultClkConfig = true;
+/* DAC12 的模拟部分需要一个中间频率外设时钟（MFPCLK）才能工作：SysConfig
+ * 会对"MFPCLK 未使能却添加了 DAC12"直接报错。MFPCLK 只供模拟外设使用，
+ * 取 SYSOSC，不影响 CPUCLK=32 MHz，因此 TIMER_0 的 20 kHz 采样率不变。
+ * 这里刻意不打开 clockTreeEn：一旦打开，SysConfig 会接管整棵时钟树，
+ * 从而不再生成原有的 ULPCLK/MCLK 分频语句。保持默认时钟方案可以让
+ * 这次改动只增加 MFPCLK 和 DAC12，其余寄存器序列与改动前逐字节一致。 */
+SYSCTL.MFPCLKEn     = true;
+SYSCTL.MFPCLKSource = "SYSOSC";
 
 /* TIMER_0 周期为 0.05 ms，即每秒 1/0.00005=20000 次。ZERO 事件发布到
- * 通道 1，ADC 订阅这个事件，因此无需 CPU 软件启动每次转换。 */
+ * 通道 1，ADC 订阅这个事件，因此无需 CPU 软件启动每次转换。
+ * 自激（RT）时同一个 ZERO 中断还负责把下一个 DAC 码写进 DATA0，于是
+ * "产生波形"和"采集波形"共用同一个 20 kHz 节拍，第 k 个 ADC 点恒等于
+ * 第 k 个 DAC 码，帧内不需要任何对齐。 */
 TIMER1.$name                       = "TIMER_0";
 TIMER1.interrupts                  = ["ZERO"];
 TIMER1.timerPeriod                 = "0.05 ms";
@@ -86,6 +118,8 @@ ADC121.peripheral.adcPin2.$suggestSolution   = "PA25";
 Board.peripheral.$suggestSolution            = "DEBUGSS";
 Board.peripheral.swclkPin.$suggestSolution   = "PA20";
 Board.peripheral.swdioPin.$suggestSolution   = "PA19";
+DAC12.peripheral.$suggestSolution            = "DAC0";
+DAC12.peripheral.OutPin.$suggestSolution     = "PA15";
 GPIO1.associatedPins[0].pin.$suggestSolution = "PB13";
 SYSCTL.peripheral.$suggestSolution           = "SYSCTL";
 TIMER1.peripheral.$suggestSolution           = "TIMA0";

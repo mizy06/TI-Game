@@ -1,0 +1,14 @@
+{
+  "started_local": "2026-09-22T18:22:59",
+  "port": "COM15",
+  "port_hwid": "USB VID:PID=0451:BEF3 SER=MG350001 LOCATION=1-5:x.0",
+  "port_description": "XDS110 Class Application/User UART (COM15)",
+  "baud": 115200,
+  "source": "R",
+  "mode": "round-robin reference collection; round label = dominant recognised class",
+  "max_rounds": 40,
+  "frames_per_round": 8,
+  "target_per_class": 10,
+  "recorder_sha256": "b5f3918951df4e8c8c22618b81c67300183a68130bf0450fdc4d30c07b98abf3",
+  "firmware_sha256": "c2d16ebecf72bfa6d3df523e5c28346ac596642728ee0a38eaa6e40c835fbf36"
+}

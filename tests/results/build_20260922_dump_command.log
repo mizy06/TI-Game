@@ -1,0 +1,12 @@
+'GNU Compiler - building file: "../empty.c"'
+"C:/ti/gcc_arm_none_eabi_9_2_1/bin/arm-none-eabi-gcc-9.2.1.exe" -c @"device.opt"  -mcpu=cortex-m0plus -march=armv6-m -mthumb -mfloat-abi=soft -I"C:/Users/L/workspace_ccstheia/TI-game" -I"C:/Users/L/workspace_ccstheia/TI-game/Debug" -I"C:/ti/mspm0_sdk_2_11_00_07/source/third_party/CMSIS/Core/Include" -I"C:/ti/mspm0_sdk_2_11_00_07/source" -I"C:/ti/gcc_arm_none_eabi_9_2_1/arm-none-eabi/include/newlib-nano" -I"C:/ti/gcc_arm_none_eabi_9_2_1/arm-none-eabi/include" -O2 -ffunction-sections -fdata-sections -g -gdwarf-3 -gstrict-dwarf -Wall -MMD -MP -MF"empty.d_raw" -MT"empty.o" -std=c99 @"./device.opt"  -o"empty.o" "../empty.c"
+'GNU Compiler - building file: "../waveform_analyzer.c"'
+"C:/ti/gcc_arm_none_eabi_9_2_1/bin/arm-none-eabi-gcc-9.2.1.exe" -c @"device.opt"  -mcpu=cortex-m0plus -march=armv6-m -mthumb -mfloat-abi=soft -I"C:/Users/L/workspace_ccstheia/TI-game" -I"C:/Users/L/workspace_ccstheia/TI-game/Debug" -I"C:/ti/mspm0_sdk_2_11_00_07/source/third_party/CMSIS/Core/Include" -I"C:/ti/mspm0_sdk_2_11_00_07/source" -I"C:/ti/gcc_arm_none_eabi_9_2_1/arm-none-eabi/include/newlib-nano" -I"C:/ti/gcc_arm_none_eabi_9_2_1/arm-none-eabi/include" -O2 -ffunction-sections -fdata-sections -g -gdwarf-3 -gstrict-dwarf -Wall -MMD -MP -MF"waveform_analyzer.d_raw" -MT"waveform_analyzer.o" -std=c99 @"./device.opt"  -o"waveform_analyzer.o" "../waveform_analyzer.c"
+'Finished building: "../waveform_analyzer.c"'
+' '
+'Finished building: "../empty.c"'
+' '
+'GNU Linker - building target: "TI-game.out"'
+"C:/ti/gcc_arm_none_eabi_9_2_1/bin/arm-none-eabi-gcc-9.2.1.exe" @"device.opt"  -O2 -ffunction-sections -fdata-sections -g -gdwarf-3 -gstrict-dwarf -Wall -mthumb -mfloat-abi=soft -Wl,-Map,"TI-game.map" -nostartfiles -static -Wl,--gc-sections -L"C:/ti/mspm0_sdk_2_11_00_07/source/ti/driverlib/lib/gcc/m0p/mspm0g1x0x_g3x0x" -L"C:/ti/mspm0_sdk_2_11_00_07/source" -L"C:/Users/L/workspace_ccstheia/TI-game" -L"C:/Users/L/workspace_ccstheia/TI-game/Debug/syscfg" -L"C:/ti/gcc_arm_none_eabi_9_2_1/arm-none-eabi/lib/thumb/v6-m/nofp" -march=armv6-m -mthumb --specs=nosys.specs -o"TI-game.out" "./empty.o" "./ti_msp_dl_config.o" "./startup_mspm0g350x_gcc.o" "./waveform_analyzer.o" -Wl,-T"./device_linker.lds"  -Wl,-Tdevice.lds.genlibs -l:driverlib.a -lgcc -lc -lm 
+'Finished building target: "TI-game.out"'
+' '

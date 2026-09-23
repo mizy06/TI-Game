@@ -1,0 +1,15 @@
+{
+  "started_local": "2026-09-23T18:16:03",
+  "port": "COM15",
+  "port_hwid": "USB VID:PID=0451:BEF3 SER=MG350001 LOCATION=1-5:x.0",
+  "port_description": "XDS110 Class Application/User UART (COM15)",
+  "baud": 115200,
+  "command": "RT",
+  "wiring": "PA15 (DAC out) --jumper-- PA25 (ADC in), GND 共地",
+  "sample_rate_hz": 20000,
+  "sample_count": 4096,
+  "frame_duration_ms": 204.8,
+  "format": "little-endian uint16 x 4096, header SAMPLES,bytes,fnv1a",
+  "driver_sha256": "7a55707ca490595ab6c0b6344e4b3630e6b0a98ecfdfef44dee23bd221d534e7",
+  "firmware_sha256": "eba044cfbef2dc8f7ea9fed85388a65475d1716dc3e540bca4577a37a1a0b2b3"
+}

@@ -1,0 +1,31 @@
+{
+  "session": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\tests\\results\\rt_selftest_20260923_185713",
+  "cases_recorded": 12,
+  "passed": 12,
+  "failed": 0,
+  "firmware_summary": {
+    "pass": "12",
+    "fail": "0"
+  },
+  "gpio_preflight": {
+    "low_adc": "0",
+    "high_adc": "4093",
+    "delta": "4093",
+    "low_gpio_in": "0",
+    "high_gpio_in": "1"
+  },
+  "dac_preflight": {
+    "low_code": "1024",
+    "low_adc": "1022",
+    "high_code": "3072",
+    "high_adc": "3074",
+    "delta": "2052",
+    "dac_enabled": "1",
+    "pin_enabled": "1",
+    "amplifier": "1"
+  },
+  "abort": null,
+  "protocol_error": null,
+  "integrity_mismatches": 0,
+  "elapsed_s": 79.72
+}

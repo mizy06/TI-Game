@@ -7,6 +7,23 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 project_dir="$(cd "$script_dir/.." && pwd)"
 
+# 路径形式适配：MSYS/Git-Bash 的 pwd 给出 /c/xxx，而 MSYS2 自带的 gcc 只认
+# C:/xxx，直接传 /c/... 会报 "No such file or directory"。这里在 Windows 的
+# MSYS/Cygwin 环境下把盘符路径转成原生形式；真正的 Linux 上原样返回，
+# 不做任何转换，避免误改形如 /a/b 的合法路径。
+to_native() {
+  case "${OSTYPE:-}" in
+    msys* | cygwin* | mingw*)
+      case "$1" in
+        /[a-zA-Z]/*) printf '%s:/%s' "${1:1:1}" "${1:3}"; return 0 ;;
+      esac
+      ;;
+  esac
+  printf '%s' "$1"
+}
+script_dir="$(to_native "$script_dir")"
+project_dir="$(to_native "$project_dir")"
+
 # 只编译 empty.c、不链接也不运行。tests/stubs 中的假 DriverLib 头文件让
 # 普通电脑编译器也能检查板端应用的 C99 语法、类型和警告。
 cc -std=c99 -O2 -Wall -Wextra -Werror \

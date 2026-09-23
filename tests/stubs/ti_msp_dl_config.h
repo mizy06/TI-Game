@@ -18,12 +18,14 @@ typedef struct { uint32_t unused; } UART_Regs;
 typedef struct { uint32_t unused; } GPIO_Regs;
 typedef struct { uint32_t unused; } GPTIMER_Regs;
 typedef struct { uint32_t unused; } ADC12_Regs;
+typedef struct { uint32_t unused; } DAC12_Regs;
 
 /* 给实例宏一个类型正确且非空的地址。 */
 static UART_Regs g_stub_uart;
 static GPIO_Regs g_stub_gpio;
 static GPTIMER_Regs g_stub_timer;
 static ADC12_Regs g_stub_adc;
+static DAC12_Regs g_stub_dac;
 
 /* 名称与 SysConfig 生成的 ti_msp_dl_config.h 保持一致，具体数值只需让
  * empty.c 编译，绝不代表真实寄存器地址或引脚复用编码。 */
@@ -33,8 +35,10 @@ static ADC12_Regs g_stub_adc;
 #define GPIO_GRP_0_PIN_0_IOMUX    (30U)
 #define TIMER_0_INST              (&g_stub_timer)
 #define ADC12_0_INST              (&g_stub_adc)
+#define DAC0                      (&g_stub_dac)
 #define ADC12_0_ADCMEM_0          (0U)
 #define ADC12_0_INST_INT_IRQN     (0U)
+#define TIMER_0_INST_INT_IRQN     (1U)
 #define DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED (1U)
 #define DL_ADC12_IIDX_MEM0_RESULT_LOADED      (1U)
 #define DL_GPIO_INVERSION_DISABLE             (0U)
@@ -49,6 +53,15 @@ static ADC12_Regs g_stub_adc;
 
 /* 模拟生成头文件对中断函数名的别名，避免 empty.c 重复定义实际向量名。 */
 #define ADC12_0_INST_IRQHandler ADC0_IRQHandler
+#define TIMER_0_INST_IRQHandler TIMA0_IRQHandler
+
+/* DAC12 与定时器中断在真实 SDK 里是枚举类型；主机语法检查只需要能编译
+ * 通过的整数常量，取值本身没有硬件含义。 */
+typedef uint32_t DL_DAC12_AMP;
+#define DL_DAC12_AMP_ON           (1U)
+#define DL_DAC12_AMP_OFF_TRISTATE (2U)
+typedef uint32_t DL_TIMER_IIDX;
+#define DL_TIMER_IIDX_ZERO        (1U)
 
 /* 以下 inline 函数有与 DriverLib 调用相容的签名。把未使用参数显式转为
  * void 可在 -Wextra -Werror 下消除告警。返回值只选择能让语法测试终止或
@@ -88,6 +101,12 @@ static inline uint32_t DL_ADC12_getPendingInterrupt(ADC12_Regs *adc)
 { (void)adc; return DL_ADC12_IIDX_MEM0_RESULT_LOADED; }
 static inline uint16_t DL_ADC12_getMemResult(ADC12_Regs *adc, uint32_t index)
 { (void)adc; (void)index; return 0U; }
+static inline void DL_DAC12_output12(DAC12_Regs *dac, uint32_t value)
+{ (void)dac; (void)value; }
+static inline void DL_DAC12_setAmplifier(DAC12_Regs *dac, DL_DAC12_AMP amp)
+{ (void)dac; (void)amp; }
+static inline DL_TIMER_IIDX DL_Timer_getPendingInterrupt(GPTIMER_Regs *timer)
+{ (void)timer; return DL_TIMER_IIDX_ZERO; }
 static inline void NVIC_ClearPendingIRQ(uint32_t irq) { (void)irq; }
 static inline void NVIC_EnableIRQ(uint32_t irq) { (void)irq; }
 static inline void NVIC_DisableIRQ(uint32_t irq) { (void)irq; }

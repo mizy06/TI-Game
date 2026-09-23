@@ -1,0 +1,1 @@
+{"index": 1, "timestamp": "2026-09-22 18:27:07", "result": {"status": "FREQUENCY_OUT_OF_RANGE", "type": "unknown", "high_clip_samples": "0", "low_clip_samples": "7", "invalid_samples": "0"}, "reason": "频率不在 100~400 Hz 允许区间", "elapsed_s": 0.25, "dump_error": "TimeoutError: 未收到 SAMPLES 回执"}

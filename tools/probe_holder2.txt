@@ -1,0 +1,11 @@
+candidate_processes=4
+  SerialDebug.exe pid=17572
+  node.exe pid=17648
+  node.exe pid=21576
+  python.exe pid=31404
+  [cmdline] (empty)
+  [cmdline] node.exe :: C:\Users\L\.workbuddy\binaries\node\versions\22.22.2-3\node.EXE C:\Users\L\.workbuddy\plugins\cache\workbuddy-builtin\sheetagent\5.5.6-wb.38337834.g5f969292.h4ea5ac6d3218/mcp/start.mjs
+  [cmdline] node.exe :: "C:\Users\L\.workbuddy\binaries\node\versions\22.22.2-3\node.exe"  C:\Users\L\.workbuddy\plugins\cache\workbuddy-builtin\weixinpay\1.6.109/dist/mcp-server.mjs
+  [cmdline] python.exe :: C:\Users\L\AppData\Local\Programs\Python\Python311\python.exe tools/probe_holder2.py
+open_attempt=SUCCESS (COM15 现在可独占打开)
+checked_at=2026-09-22 18:15:37

@@ -1,0 +1,226 @@
+[
+  {
+    "file": "adc_001.bin",
+    "n": 4096,
+    "min": 0.0,
+    "max": 2270.0,
+    "mean_code": 641.2,
+    "pp_mv": 1829.3,
+    "dc_mv": 516.7,
+    "at_zero": 2,
+    "at_top": 0,
+    "f0_hz": 395.51,
+    "h2_h1": 0.8681,
+    "h3_h1": 0.9355,
+    "h5_h1": 0.5781,
+    "shape_best": "sawtooth",
+    "shape_best_dist": 0.8007,
+    "shape_second": "square",
+    "shape_second_dist": 1.1222,
+    "shape_distance": {
+      "sine": 1.4011,
+      "triangle": 1.3126,
+      "square": 1.1222,
+      "sawtooth": 0.8007
+    },
+    "notes": [
+      "偏置 517mV 偏离中点 1650mV"
+    ]
+  },
+  {
+    "file": "adc_002.bin",
+    "n": 4096,
+    "min": 0.0,
+    "max": 2487.0,
+    "mean_code": 645.9,
+    "pp_mv": 2004.2,
+    "dc_mv": 520.5,
+    "at_zero": 5,
+    "at_top": 0,
+    "f0_hz": 195.31,
+    "h2_h1": 0.9539,
+    "h3_h1": 0.9911,
+    "h5_h1": 0.9144,
+    "shape_best": "sawtooth",
+    "shape_best_dist": 1.0719,
+    "shape_second": "square",
+    "shape_second_dist": 1.3612,
+    "shape_distance": {
+      "sine": 1.6517,
+      "triangle": 1.5649,
+      "square": 1.3612,
+      "sawtooth": 1.0719
+    },
+    "notes": [
+      "偏置 521mV 偏离中点 1650mV"
+    ]
+  },
+  {
+    "file": "adc_003.bin",
+    "n": 4096,
+    "min": 0.0,
+    "max": 2612.0,
+    "mean_code": 639.4,
+    "pp_mv": 2104.9,
+    "dc_mv": 515.3,
+    "at_zero": 3,
+    "at_top": 0,
+    "f0_hz": 395.51,
+    "h2_h1": 0.9405,
+    "h3_h1": 0.8681,
+    "h5_h1": 0.6932,
+    "shape_best": "sawtooth",
+    "shape_best_dist": 0.8505,
+    "shape_second": "square",
+    "shape_second_dist": 1.189,
+    "shape_distance": {
+      "sine": 1.4556,
+      "triangle": 1.3727,
+      "square": 1.189,
+      "sawtooth": 0.8505
+    },
+    "notes": [
+      "偏置 515mV 偏离中点 1650mV"
+    ]
+  },
+  {
+    "file": "adc_004.bin",
+    "n": 4096,
+    "min": 0.0,
+    "max": 2400.0,
+    "mean_code": 640.5,
+    "pp_mv": 1934.1,
+    "dc_mv": 516.2,
+    "at_zero": 2,
+    "at_top": 0,
+    "f0_hz": 395.51,
+    "h2_h1": 0.9119,
+    "h3_h1": 0.8815,
+    "h5_h1": 0.7303,
+    "shape_best": "sawtooth",
+    "shape_best_dist": 0.8669,
+    "shape_second": "square",
+    "shape_second_dist": 1.1889,
+    "shape_distance": {
+      "sine": 1.4636,
+      "triangle": 1.379,
+      "square": 1.1889,
+      "sawtooth": 0.8669
+    },
+    "notes": [
+      "偏置 516mV 偏离中点 1650mV"
+    ]
+  },
+  {
+    "file": "adc_005.bin",
+    "n": 4096,
+    "min": 0.0,
+    "max": 2262.0,
+    "mean_code": 636.7,
+    "pp_mv": 1822.9,
+    "dc_mv": 513.1,
+    "at_zero": 1,
+    "at_top": 0,
+    "f0_hz": 395.51,
+    "h2_h1": 0.9661,
+    "h3_h1": 0.9096,
+    "h5_h1": 0.6423,
+    "shape_best": "sawtooth",
+    "shape_best_dist": 0.8632,
+    "shape_second": "square",
+    "shape_second_dist": 1.2088,
+    "shape_distance": {
+      "sine": 1.4742,
+      "triangle": 1.3906,
+      "square": 1.2088,
+      "sawtooth": 0.8632
+    },
+    "notes": [
+      "偏置 513mV 偏离中点 1650mV"
+    ]
+  },
+  {
+    "file": "adc_006.bin",
+    "n": 4096,
+    "min": 0.0,
+    "max": 2300.0,
+    "mean_code": 639.9,
+    "pp_mv": 1853.5,
+    "dc_mv": 515.6,
+    "at_zero": 3,
+    "at_top": 0,
+    "f0_hz": 395.51,
+    "h2_h1": 1.0669,
+    "h3_h1": 0.9431,
+    "h5_h1": 0.7209,
+    "shape_best": "sawtooth",
+    "shape_best_dist": 0.9821,
+    "shape_second": "square",
+    "shape_second_dist": 1.3347,
+    "shape_distance": {
+      "sine": 1.596,
+      "triangle": 1.5146,
+      "square": 1.3347,
+      "sawtooth": 0.9821
+    },
+    "notes": [
+      "偏置 516mV 偏离中点 1650mV"
+    ]
+  },
+  {
+    "file": "adc_007.bin",
+    "n": 4096,
+    "min": 0.0,
+    "max": 2324.0,
+    "mean_code": 641.0,
+    "pp_mv": 1872.8,
+    "dc_mv": 516.5,
+    "at_zero": 7,
+    "at_top": 0,
+    "f0_hz": 395.51,
+    "h2_h1": 0.921,
+    "h3_h1": 0.8683,
+    "h5_h1": 0.7512,
+    "shape_best": "sawtooth",
+    "shape_best_dist": 0.8759,
+    "shape_second": "square",
+    "shape_second_dist": 1.1993,
+    "shape_distance": {
+      "sine": 1.4719,
+      "triangle": 1.3883,
+      "square": 1.1993,
+      "sawtooth": 0.8759
+    },
+    "notes": [
+      "偏置 517mV 偏离中点 1650mV"
+    ]
+  },
+  {
+    "file": "adc_008.bin",
+    "n": 4096,
+    "min": 0.0,
+    "max": 2333.0,
+    "mean_code": 640.5,
+    "pp_mv": 1880.1,
+    "dc_mv": 516.2,
+    "at_zero": 2,
+    "at_top": 0,
+    "f0_hz": 395.51,
+    "h2_h1": 0.9165,
+    "h3_h1": 0.7543,
+    "h5_h1": 0.6405,
+    "shape_best": "sawtooth",
+    "shape_best_dist": 0.7381,
+    "shape_second": "square",
+    "shape_second_dist": 1.1006,
+    "shape_distance": {
+      "sine": 1.3488,
+      "triangle": 1.2706,
+      "square": 1.1006,
+      "sawtooth": 0.7381
+    },
+    "notes": [
+      "偏置 516mV 偏离中点 1650mV"
+    ]
+  }
+]

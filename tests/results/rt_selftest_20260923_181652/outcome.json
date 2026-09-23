@@ -1,0 +1,14 @@
+{
+  "session": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\tests\\results\\rt_selftest_20260923_181652",
+  "cases_recorded": 12,
+  "passed": 0,
+  "failed": 12,
+  "firmware_summary": {
+    "pass": "0",
+    "fail": "12"
+  },
+  "abort": null,
+  "protocol_error": null,
+  "integrity_mismatches": 0,
+  "elapsed_s": 11.92
+}

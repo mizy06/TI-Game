@@ -1,0 +1,15 @@
+round=1 A_probe FAILED SerialException: could not open port 'COM15': FileNotFoundError(2, '系统找不到指定的文件。', None, 2)
+round=1 B_recorder FAILED SerialException: could not open port 'COM15': FileNotFoundError(2, '系统找不到指定的文件。', None, 2)
+---
+round=2 A_probe FAILED SerialException: could not open port 'COM15': FileNotFoundError(2, '系统找不到指定的文件。', None, 2)
+round=2 B_recorder FAILED SerialException: could not open port 'COM15': FileNotFoundError(2, '系统找不到指定的文件。', None, 2)
+---
+round=3 A_probe FAILED SerialException: could not open port 'COM15': FileNotFoundError(2, '系统找不到指定的文件。', None, 2)
+round=3 B_recorder FAILED SerialException: could not open port 'COM15': FileNotFoundError(2, '系统找不到指定的文件。', None, 2)
+---
+round=4 A_probe FAILED SerialException: could not open port 'COM15': FileNotFoundError(2, '系统找不到指定的文件。', None, 2)
+round=4 B_recorder OK in_waiting=0
+---
+round=5 A_probe OK in_waiting=0
+round=5 B_recorder OK in_waiting=0
+---
