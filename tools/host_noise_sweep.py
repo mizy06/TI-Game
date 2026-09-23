@@ -17,7 +17,7 @@ FS = 20_000.0  # 采样率 Hz；下划线只是 Python 的数字可读分隔符�
 N = 4096       # 每帧采样点数，必须与 C 兼容入口一致。
 ADC_MAX = 4095.0
 VDDA = 3.3
-ALGORITHM_VERSION = 0x00020000
+ALGORITHM_VERSION = 0x00020100
 
 
 class WaveformResult(ctypes.Structure):

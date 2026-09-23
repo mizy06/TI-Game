@@ -26,7 +26,11 @@ from typing import Iterable
 
 SAMPLE_COUNT = 4096      # 每帧点数，与 C 静态工作区和默认工程一致。
 ADC_FULL_SCALE = 4095    # 12 位无符号 ADC 的最大码值 2^12-1。
-ALGORITHM_VERSION = 0x00020000
+ALGORITHM_VERSION = 0x00020100
+ALGORITHM_NAME = {
+    1: "legacy_amdf_crossing",
+    2: "global_harmonic_model",
+}
 
 # C 枚举的双向可读映射；列表顺序必须与 waveform_analyzer.h 一致。
 TYPE_ID = {"sine": 0, "square": 1, "triangle": 2, "sawtooth": 3}
@@ -437,11 +441,16 @@ def load_library(path: Path):
         ctypes.POINTER(WaveformFrame), ctypes.POINTER(WaveformResult)
     ]
     library.waveform_analyze_frame.restype = ctypes.c_bool
+    library.waveform_analyze_frame_with_algorithm.argtypes = [
+        ctypes.POINTER(WaveformFrame), ctypes.POINTER(WaveformResult),
+        ctypes.c_int,
+    ]
+    library.waveform_analyze_frame_with_algorithm.restype = ctypes.c_bool
     return library
 
 
 def analyze_case(library, case: Case, sequence: int, seed: int,
-                 thresholds: dict[str, float]) -> dict[str, object]:
+                 thresholds: dict[str, float], algorithm: int) -> dict[str, object]:
     """生成、分析并判定单个用例，返回可 JSON 序列化的完整记录。
 
     expected Vpp 会结合该用例自己的参考电压和前端增益换算到源端 uV。
@@ -462,7 +471,8 @@ def analyze_case(library, case: Case, sequence: int, seed: int,
         flags=(FRAME_CONTIGUOUS | FRAME_CLOCK_CALIBRATED | FRAME_VREF_CALIBRATED),
     )
     result = WaveformResult()
-    valid = bool(library.waveform_analyze_frame(ctypes.byref(frame), ctypes.byref(result)))
+    valid = bool(library.waveform_analyze_frame_with_algorithm(
+        ctypes.byref(frame), ctypes.byref(result), algorithm))
     if result.algorithm_version != ALGORITHM_VERSION:
         raise RuntimeError(
             f"algorithm version {result.algorithm_version:#010x} != "
@@ -577,6 +587,9 @@ def main() -> int:
     parser.add_argument("--gate-cases-per-kind", type=int, default=50)
     parser.add_argument("--challenge-cases-per-profile", type=int, default=12)
     parser.add_argument("--require-challenge", action="store_true")
+    parser.add_argument("--algorithm", type=int, choices=sorted(ALGORITHM_NAME),
+                        default=2,
+                        help="1=legacy_amdf_crossing, 2=global_harmonic_model")
     args = parser.parse_args()
 
     # 门禁和挑战的阈值分开定义；挑战含超纲失真，因此容忍度略宽。
@@ -597,12 +610,13 @@ def main() -> int:
     # 乘较大的质数派生逐例 seed，减少相邻序号产生相似随机序列的机会。
     gate_rows = [
         analyze_case(library, case, index + 1, args.seed + index * 7919,
-                     gate_thresholds)
+                     gate_thresholds, args.algorithm)
         for index, case in enumerate(gate)
     ]
     challenge_rows = [
         analyze_case(library, case, len(gate) + index + 1,
-                     args.seed ^ (index * 104729), challenge_thresholds)
+                     args.seed ^ (index * 104729), challenge_thresholds,
+                     args.algorithm)
         for index, case in enumerate(challenge)
     ]
     gate_summary = summarize(gate_rows)
@@ -615,6 +629,8 @@ def main() -> int:
         "schema_version": 1,
         "seed": args.seed,
         "algorithm_version": ALGORITHM_VERSION,
+        "algorithm": args.algorithm,
+        "algorithm_name": ALGORITHM_NAME[args.algorithm],
         "sources": {
             "local_2026_preliminary": "docs/2026TI杯赛道一赛事手册.pdf",
             "nuedc_2020_e_2021_a": [

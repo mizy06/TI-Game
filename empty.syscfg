@@ -74,14 +74,21 @@ GPIO1.$name                       = "GPIO_GRP_0";
 GPIO1.associatedPins[0].$name     = "PIN_0";
 GPIO1.associatedPins[0].direction = "INPUT";
 
-/* 使用 SDK 默认系统时钟方案；CPUCLK_FREQ 由生成头文件提供给延时计算。 */
-SYSCTL.forceDefaultClkConfig = true;
-/* DAC12 的模拟部分需要一个中间频率外设时钟（MFPCLK）才能工作：SysConfig
- * 会对"MFPCLK 未使能却添加了 DAC12"直接报错。MFPCLK 只供模拟外设使用，
- * 取 SYSOSC，不影响 CPUCLK=32 MHz，因此 TIMER_0 的 20 kHz 采样率不变。
- * 这里刻意不打开 clockTreeEn：一旦打开，SysConfig 会接管整棵时钟树，
- * 从而不再生成原有的 ULPCLK/MCLK 分频语句。保持默认时钟方案可以让
- * 这次改动只增加 MFPCLK 和 DAC12，其余寄存器序列与改动前逐字节一致。 */
+/* MSPM0G3507 的额定最高 CPU 频率是 80 MHz。使用 TI SDK 的 SYSPLL 160 MHz
+ * VCO / 2 输出方案，并让 SysConfig 生成 2 个 Flash wait-state、PLL 启动和
+ * SYSPLL_ERR_01 的 FCC 频率校验。ULPCLK 必须除以 2 保持在 40 MHz 额定上限；
+ * TIMER/UART 的装载值会由 SysConfig 根据新的时钟树重新计算。 */
+SYSCTL.forceDefaultClkConfig = false;
+SYSCTL.SYSPLL_CLK2XEn        = true;
+SYSCTL.SYSPLL_Pdiv           = 1;
+SYSCTL.SYSPLL_Qdiv           = 5;
+SYSCTL.SYSPLL_CLK2XDiv       = 3;
+SYSCTL.MCLKSource            = "HSCLK";
+SYSCTL.HSCLKSource           = "SYSPLLCLK2X";
+SYSCTL.UDIV                  = "2";
+SYSCTL.validateClkStatus     = true;
+/* DAC12 的模拟部分需要 MFPCLK。继续直接取 32 MHz SYSOSC，使 DAC 模拟时钟
+ * 不随 CPU 超频方案改变；ADC、DAC 与 20 kS/s 采样节拍仍由各自生成配置约束。 */
 SYSCTL.MFPCLKEn     = true;
 SYSCTL.MFPCLKSource = "SYSOSC";
 
@@ -102,6 +109,7 @@ UART1.$name             = "UART_0";
 /* UART profile 包含波特率等通信参数。SysConfig 当前建议 PA0/PA1；empty.c
  * 还在运行时把 UART0 映射到 PA10/PA11，以适配 LaunchPad XDS110 回传串口。 */
 UART1.profile           = "CONFIG_PROFILE_1";
+UART1.targetBaudRate    = 115200;
 UART1.txPinConfig.$name = "ti_driverlib_gpio_GPIOPinGeneric0";
 UART1.rxPinConfig.$name = "ti_driverlib_gpio_GPIOPinGeneric1";
 

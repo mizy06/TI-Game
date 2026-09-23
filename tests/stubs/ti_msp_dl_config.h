@@ -62,7 +62,7 @@ static IOMUX_Regs g_stub_iomux;
 #define IOMUX_PINCM22                          (22U)
 #define IOMUX_PINCM21_PF_UART0_TX              (1U)
 #define IOMUX_PINCM22_PF_UART0_RX              (1U)
-#define CPUCLK_FREQ                            (32000000U)
+#define CPUCLK_FREQ                            (80000000U)
 
 /* 模拟生成头文件对中断函数名的别名，避免 empty.c 重复定义实际向量名。 */
 #define ADC12_0_INST_IRQHandler ADC0_IRQHandler

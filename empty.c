@@ -10,9 +10,9 @@
  * 3. 主循环把这帧数据交给 waveform_analyze_frame；
  * 4. 结果经 UART 打印给电脑。
  *
- * R/W/T/D/RT 串口命令分别选择真实 ADC、电脑注入、片上模拟、样点导出和
- * 自激环路。算法本身不关心数据来自哪里，只要最终形成符合接口约定的
- * waveform_frame_t。
+ * R/W/T/D 串口命令分别选择真实 ADC、电脑注入、片上模拟和样点导出；
+ * RT1/RT2 分别用算法 1/2 跑完整自激题集，RT 一键依次跑两种算法。算法
+ * 本身不关心数据来自哪里，只要最终形成符合接口约定的 waveform_frame_t。
  *
  * 自激（RT）让板子不再依赖外部信号源：DAC 在 PA15 上产生已知波形，用
  * 一根杜邦线短接到 ADC 输入 PA25，同一帧数据再走完整的采集+识别链路，
@@ -102,7 +102,9 @@ typedef enum {
     TRIGGER_SAMPLE_DUMP,
     /* 自激环路：板载 DAC 自己产生已知波形，经杜邦线回到 ADC 输入，跑完
      * 整个模拟测量矩阵。它走的是真实模拟链路，只是激励来自板子自己。 */
-    TRIGGER_DAC_LOOPBACK
+    TRIGGER_DAC_LOOPBACK_BOTH,
+    TRIGGER_DAC_LOOPBACK_ALGORITHM1,
+    TRIGGER_DAC_LOOPBACK_ALGORITHM2
 } trigger_mode_t;
 /* 片上自测使用的线性同余伪随机数状态。固定初值意味着每次上电产生同一
  * 噪声序列，便于复现实验。它不是密码学随机数，只用于测试。 */
@@ -267,6 +269,30 @@ static int uart_try_get_char(void)
  * 等待窗口取 120 ms：手打或脚本一次写出的 "RT" 间隔远小于它，而单发 R
  * 只多花 120 ms，相对比赛 10 s 的单帧限值完全可以忽略。 */
 #define RT_PREFIX_WAIT_US (120000U)
+#define RT_SUFFIX_WAIT_US (20000U)
+
+/* 收到完整的 RT 前缀后再短暂等待可选后缀：1/2 明确选择算法，没有后缀
+ * （或直接收到回车换行）则按一键双算法处理。 */
+static trigger_mode_t resolve_rt_command(void)
+{
+    uint32_t waited_us = 0U;
+
+    while (waited_us < RT_SUFFIX_WAIT_US) {
+        int suffix = uart_try_get_char();
+        if (suffix >= 0) {
+            if (suffix == '1') {
+                return TRIGGER_DAC_LOOPBACK_ALGORITHM1;
+            }
+            if (suffix == '2') {
+                return TRIGGER_DAC_LOOPBACK_ALGORITHM2;
+            }
+            return TRIGGER_DAC_LOOPBACK_BOTH;
+        }
+        delay_cycles(CPUCLK_FREQ / 1000000U);
+        ++waited_us;
+    }
+    return TRIGGER_DAC_LOOPBACK_BOTH;
+}
 
 static trigger_mode_t resolve_r_command(void)
 {
@@ -276,7 +302,7 @@ static trigger_mode_t resolve_r_command(void)
         int next = uart_try_get_char();
         if (next >= 0) {
             if ((next == 't') || (next == 'T')) {
-                return TRIGGER_DAC_LOOPBACK;
+                return resolve_rt_command();
             }
             return TRIGGER_ADC_CAPTURE;
         }
@@ -951,7 +977,7 @@ static const char *rt_impairment_name(uint8_t impairment)
            names[impairment] : "unknown";
 }
 
-static bool rt_measure_case(uint16_t index)
+static bool rt_measure_case(uint16_t index, waveform_algorithm_t algorithm)
 {
     const rt_case_t *item = &g_rt_cases[index];
     waveform_frame_t frame;
@@ -1004,7 +1030,7 @@ static bool rt_measure_case(uint16_t index)
     frame.frontend_gain_ppm = WAVEFORM_ACQUISITION_FRONTEND_GAIN_PPM;
     frame.sequence = ++g_frame_sequence;
     frame.flags = WAVEFORM_ACQUISITION_FLAGS;
-    valid = waveform_analyze_frame(&frame, &result);
+    valid = waveform_analyze_frame_with_algorithm(&frame, &result, algorithm);
     print_result(&result, valid);
 
     passed = rt_check_case(item, &result, valid);
@@ -1015,18 +1041,20 @@ static bool rt_measure_case(uint16_t index)
 }
 
 /* 依次跑完整个 200+96 自激矩阵。 */
-static void rt_run_matrix(void)
+static bool rt_run_matrix(waveform_algorithm_t algorithm, bool print_ready)
 {
     uint16_t index;
     uint16_t custom_passed = 0U;
     uint16_t custom_failed = 0U;
     uint16_t challenge_passed = 0U;
     uint16_t challenge_failed = 0U;
+    bool aborted = false;
 
-    /* 先吃掉命令行尾的回车，否则它会被当成中止请求。 */
-    rt_drain_rx();
-
-    uart_put_string("RT-START,cases=");
+    uart_put_string("RT-START,algorithm=");
+    uart_put_u32((uint32_t)algorithm);
+    uart_put_string(",name=");
+    uart_put_string(waveform_algorithm_name(algorithm));
+    uart_put_string(",cases=");
     uart_put_u32(RT_CASE_COUNT);
     uart_put_string(",custom=");
     uart_put_u32(RT_CUSTOM_CASE_COUNT);
@@ -1048,12 +1076,13 @@ static void rt_run_matrix(void)
 
     for (index = 0U; index < RT_CASE_COUNT; ++index) {
         if (rt_abort_requested()) {
+            aborted = true;
             uart_put_string("RT-ABORT,index=");
             uart_put_u32((uint32_t)index + 1U);
             uart_put_string("\r\n");
             break;
         }
-        if (rt_measure_case(index)) {
+        if (rt_measure_case(index, algorithm)) {
             if (g_rt_cases[index].group == RT_GROUP_CHALLENGE) {
                 ++challenge_passed;
             } else {
@@ -1072,7 +1101,11 @@ static void rt_run_matrix(void)
      * 直流而污染后续的对外测量。 */
     DL_DAC12_setAmplifier(DAC0, DL_DAC12_AMP_OFF_TRISTATE);
 
-    uart_put_string("RT-DONE,pass=");
+    uart_put_string("RT-DONE,algorithm=");
+    uart_put_u32((uint32_t)algorithm);
+    uart_put_string(",name=");
+    uart_put_string(waveform_algorithm_name(algorithm));
+    uart_put_string(",pass=");
     uart_put_u32((uint32_t)custom_passed + challenge_passed);
     uart_put_string(",fail=");
     uart_put_u32((uint32_t)custom_failed + challenge_failed);
@@ -1085,6 +1118,41 @@ static void rt_run_matrix(void)
     uart_put_string(",challenge_fail=");
     uart_put_u32(challenge_failed);
     uart_put_string("\r\n");
+    if (print_ready) {
+        uart_put_string("READY\r\n");
+    }
+    return !aborted;
+}
+
+static void rt_run_command(trigger_mode_t mode)
+{
+    /* 先吃掉命令行尾的回车，否则它会被当成中止请求。 */
+    rt_drain_rx();
+
+    if (mode == TRIGGER_DAC_LOOPBACK_ALGORITHM1) {
+        (void)rt_run_matrix(WAVEFORM_ALGORITHM_LEGACY_AMDF_CROSSING, true);
+        return;
+    }
+    if (mode == TRIGGER_DAC_LOOPBACK_ALGORITHM2) {
+        (void)rt_run_matrix(WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL, true);
+        return;
+    }
+
+    uart_put_string("RT-SUITE-START,algorithms=2,cases_per_algorithm=");
+    uart_put_u32(RT_CASE_COUNT);
+    uart_put_string(",total_runs=");
+    uart_put_u32(2U * RT_CASE_COUNT);
+    uart_put_string("\r\n");
+    if (rt_run_matrix(WAVEFORM_ALGORITHM_LEGACY_AMDF_CROSSING, false)) {
+        if (rt_run_matrix(WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL, false)) {
+            uart_put_string("RT-SUITE-DONE,completed_algorithms=2,aborted=0\r\n");
+            uart_put_string("READY\r\n");
+            return;
+        }
+        uart_put_string("RT-SUITE-DONE,completed_algorithms=1,aborted=1\r\n");
+    } else {
+        uart_put_string("RT-SUITE-DONE,completed_algorithms=0,aborted=1\r\n");
+    }
     uart_put_string("READY\r\n");
 }
 
@@ -1115,7 +1183,9 @@ int main(void)
     DL_DAC12_setAmplifier(DAC0, DL_DAC12_AMP_OFF_TRISTATE);
 
     uart_put_string("\r\nTI-CUP WAVEFORM CLASSIFIER\r\n");
-    uart_put_string("FW=algorithm-v2,API=0x00020000,INJECT=LE16-4096-FNV1A\r\n");
+    uart_put_string("FW=algorithm-v2.1,API=0x00020100,CPU_HZ=");
+    uart_put_u32(CPUCLK_FREQ);
+    uart_put_string(",DEFAULT_ALGORITHM=2,INJECT=LE16-4096-FNV1A\r\n");
     uart_put_string("ADC=PA25, FS_HZ=");
     uart_put_milli(WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ);
     uart_put_string(", N=");
@@ -1124,7 +1194,7 @@ int main(void)
     /* 自激接线提示随横幅一起打印：现场最常犯的错就是忘了把 PA15 接到
      * PA25，或者接到了别的脚上，导致 RT 全是 SIGNAL_TOO_SMALL。 */
     uart_put_string("DAC=PA15 -> jumper to PA25 (ADC in) for RT self-test\r\n");
-    uart_put_string("READY: R=ADC, RT=Self-test, W=Inject, T=Simulate, D=Dump\r\n");
+    uart_put_string("READY: R=ADC(alg2), RT1=alg1, RT2=alg2, RT=both, W=Inject, T=Simulate, D=Dump\r\n");
 
     /* 每轮循环只处理一帧：等待触发 -> 准备数据 -> 分析 -> 输出 -> READY。 */
     for (;;) {
@@ -1135,8 +1205,10 @@ int main(void)
 
         /* 自激环路自带完整的"播放-采集-分析-对比-上行"流程，并且会自己
          * 打印 READY，因此这里直接继续，不再走下面单帧分析的公共路径。 */
-        if (mode == TRIGGER_DAC_LOOPBACK) {
-            rt_run_matrix();
+        if ((mode == TRIGGER_DAC_LOOPBACK_BOTH) ||
+            (mode == TRIGGER_DAC_LOOPBACK_ALGORITHM1) ||
+            (mode == TRIGGER_DAC_LOOPBACK_ALGORITHM2)) {
+            rt_run_command(mode);
             wait_for_button_release();
             continue;
         }
@@ -1177,7 +1249,8 @@ int main(void)
         /* 前置 ++ 使第一帧编号为 1。帧号会原样出现在结果中。 */
         frame.sequence = ++g_frame_sequence;
         frame.flags = WAVEFORM_ACQUISITION_FLAGS;
-        valid = waveform_analyze_frame(&frame, &result);
+        valid = waveform_analyze_frame_with_algorithm(
+            &frame, &result, WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL);
         print_result(&result, valid);
         wait_for_button_release();
         uart_put_string("READY\r\n");

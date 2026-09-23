@@ -19,10 +19,11 @@
 1. 导入工程并 Clean；
 2. Release/O2 构建；
 3. 检查 map 文件的 SRAM 和 Flash；
-4. 烧录并确认启动横幅含 FW=algorithm-v2、API=0x00020000；
-5. PA15 短接 PA25，串口发送 RT，确认 `RT-START,cases=296`；
+4. 烧录并确认启动横幅含 `FW=algorithm-v2.1`、`API=0x00020100`、
+   `CPU_HZ=80000000`；
+5. PA15 短接 PA25，分别发送 `RT1`、`RT2`，或发送 `RT` 一键跑两套；
 6. 按 docs/ACQUISITION_ALGORITHM_INTERFACE.md 完成真实信号源校准和扫参；
-7. 测量新版算法的板上最坏处理时间。
+7. 分别测量两种算法的板上最坏处理时间。
 
 主机回归：
 

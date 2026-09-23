@@ -1016,6 +1016,127 @@ static classification_t classify_fold(uint32_t duty_ppm)
     return classification;
 }
 
+/* 把分类结果压成一个只用于“周期候选之间比较”的排序值。绝对相关分数是
+ * 主证据，最佳与次佳之差作为同分时的消歧证据。 */
+static uint64_t classification_rank(const classification_t *classification)
+{
+    uint32_t margin = classification->best_score_ppm -
+                      classification->second_score_ppm;
+    return ((uint64_t)classification->best_score_ppm * 1000000ULL) + margin;
+}
+
+static bool period_candidate_is_valid(const waveform_frame_t *frame,
+                                      uint32_t period_q12)
+{
+    uint32_t frequency_millihz;
+
+    if (period_q12 < (2U * PHASE_SCALE)) {
+        return false;
+    }
+    frequency_millihz =
+        (uint32_t)(((uint64_t)frame->sample_rate_millihz * PHASE_SCALE +
+                    (period_q12 / 2U)) / period_q12);
+    return (frequency_millihz >= MIN_FREQUENCY_MILLIHZ) &&
+           (frequency_millihz <= MAX_FREQUENCY_MILLIHZ);
+}
+
+static void append_period_candidate(uint32_t *candidates,
+                                    uint16_t *candidate_count,
+                                    uint32_t candidate,
+                                    const waveform_frame_t *frame)
+{
+    uint16_t index;
+
+    if (!period_candidate_is_valid(frame, candidate)) {
+        return;
+    }
+    for (index = 0U; index < *candidate_count; ++index) {
+        /* 相差不到约 0.4% 的候选视为同一个周期，避免重复跑完整模板搜索。 */
+        if (absolute_difference_u32(candidates[index], candidate) <=
+            (candidate / 256U + 1U)) {
+            return;
+        }
+    }
+    if (*candidate_count < 12U) {
+        candidates[(*candidate_count)++] = candidate;
+    }
+}
+
+/* 第二种算法的倍频消歧层。
+ *
+ * AMDF 在 P、2P、3P... 都可能出现谷底；相干干扰还会让错误倍周期比真周期
+ * 更深。正常帧沿用快速路径，只有初始模型证据偏弱或 AMDF/穿越明显冲突时，
+ * 才把当前周期及其 1/2、1/3、1/4、2 倍候选和穿越候选逐一折叠，并用四类
+ * 全局模板证据选出最可信的基波。这使算法 2 与原算法 1 有真实可测的行为
+ * 差异，同时不让普通 200 题为极端情况付出额外计算量。 */
+static uint32_t select_global_harmonic_period(
+    const waveform_frame_t *frame,
+    uint32_t current_period_q12,
+    uint32_t crossing_period_q12,
+    const classification_t *current_classification)
+{
+    uint32_t candidates[12];
+    uint16_t candidate_count = 0U;
+    uint16_t index;
+    uint32_t selected_period = current_period_q12;
+    uint64_t selected_rank = classification_rank(current_classification);
+    uint32_t current_margin = current_classification->best_score_ppm -
+                              current_classification->second_score_ppm;
+    bool weak_model =
+        (current_classification->best_score_ppm < MIN_MODEL_SCORE_PPM) ||
+        (current_margin < MIN_MODEL_MARGIN_PPM);
+
+    /* 已经能通过原有硬门限的帧保持 2.0 路径不变；全局搜索只救援原本会
+     * 安全拒识的倍频歧义帧，避免噪声穿越偶发偏差改变一个本来可靠的结果。 */
+    if (!weak_model) {
+        return current_period_q12;
+    }
+
+    append_period_candidate(candidates, &candidate_count,
+                            current_period_q12, frame);
+    append_period_candidate(candidates, &candidate_count,
+                            current_period_q12 / 2U, frame);
+    append_period_candidate(candidates, &candidate_count,
+                            current_period_q12 / 3U, frame);
+    append_period_candidate(candidates, &candidate_count,
+                            current_period_q12 / 4U, frame);
+    if (current_period_q12 <= (UINT32_MAX / 2U)) {
+        append_period_candidate(candidates, &candidate_count,
+                                current_period_q12 * 2U, frame);
+    }
+    if (crossing_period_q12 != 0U) {
+        append_period_candidate(candidates, &candidate_count,
+                                crossing_period_q12, frame);
+        append_period_candidate(candidates, &candidate_count,
+                                crossing_period_q12 / 2U, frame);
+        if (crossing_period_q12 <= (UINT32_MAX / 2U)) {
+            append_period_candidate(candidates, &candidate_count,
+                                    crossing_period_q12 * 2U, frame);
+        }
+    }
+
+    for (index = 0U; index < candidate_count; ++index) {
+        uint32_t duty_ppm;
+        classification_t candidate_classification;
+        uint64_t rank;
+
+        if (candidates[index] == current_period_q12) {
+            continue;
+        }
+        if (fold_cycles(frame, candidates[index]) < MIN_VALID_CYCLES) {
+            continue;
+        }
+        duty_ppm = estimate_duty_ppm();
+        candidate_classification = classify_fold(duty_ppm);
+        rank = classification_rank(&candidate_classification);
+        if (rank > selected_rank) {
+            selected_rank = rank;
+            selected_period = candidates[index];
+        }
+    }
+    return selected_period;
+}
+
 /* 在最佳模板已确定后，用一元最小二乘求输入波形的峰峰 ADC 码，Q16。
  *
  * 模型是 y ≈ offset + scale*t。去均值后最佳 scale=cov(y,t)/energy(t)。
@@ -1093,8 +1214,9 @@ static bool validate_frame(const waveform_frame_t *frame,
 
 /* 算法主入口。建议第一次阅读本文件时先只看本函数，再按调用顺序回看上方
  * 各辅助函数。每个失败分支都会设置明确 status 并立即返回 false。 */
-bool waveform_analyze_frame(const waveform_frame_t *frame,
-                            waveform_result_t *result)
+bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
+                                           waveform_result_t *result,
+                                           waveform_algorithm_t algorithm)
 {
     uint16_t low_quantile;
     uint16_t high_quantile;
@@ -1125,6 +1247,10 @@ bool waveform_analyze_frame(const waveform_frame_t *frame,
     result->algorithm_version = WAVEFORM_ALGORITHM_VERSION;
     if (frame != NULL) {
         result->sequence = frame->sequence;
+    }
+    if ((algorithm != WAVEFORM_ALGORITHM_LEGACY_AMDF_CROSSING) &&
+        (algorithm != WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL)) {
+        return false;
     }
     if (!validate_frame(frame, result)) {
         return false;
@@ -1265,6 +1391,23 @@ bool waveform_analyze_frame(const waveform_frame_t *frame,
      * 会产生一个临时占空比，最终输出时会清零。 */
     result->duty_ppm = estimate_duty_ppm();
     classification = classify_fold(result->duty_ppm);
+    if (algorithm == WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL) {
+        uint32_t selected_period_q12 = select_global_harmonic_period(
+            frame, period_q12, crossing_period_q12, &classification);
+        if (selected_period_q12 != period_q12) {
+            period_q12 = selected_period_q12;
+            result->frequency_millihz =
+                (uint32_t)((((uint64_t)frame->sample_rate_millihz *
+                              PHASE_SCALE) + (period_q12 / 2U)) /
+                           period_q12);
+            result->period_q16_samples = period_q12 << 4U;
+        }
+        /* 候选比较会覆盖折叠工作区和模板；无论周期是否改变，都把最终选择
+         * 重新折叠一次，保证后续 Vpp 拟合使用的正是最终模型。 */
+        result->accepted_cycles = fold_cycles(frame, period_q12);
+        result->duty_ppm = estimate_duty_ppm();
+        classification = classify_fold(result->duty_ppm);
+    }
     /* 内部 ppm 分数转换为对外较紧凑的 permille，并四舍五入。 */
     result->best_score_permille =
         (uint16_t)((classification.best_score_ppm + 500U) / 1000U);
@@ -1327,6 +1470,14 @@ bool waveform_analyze_frame(const waveform_frame_t *frame,
     return true;
 }
 
+/* 默认入口固定选择算法 2；需要算法 1 时必须显式调用上面的带选择入口。 */
+bool waveform_analyze_frame(const waveform_frame_t *frame,
+                            waveform_result_t *result)
+{
+    return waveform_analyze_frame_with_algorithm(
+        frame, result, WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL);
+}
+
 /* 旧接口包装器：把固定默认参数装成一帧，再调用唯一的新版实现。
  * 这样旧代码无需立刻迁移，同时避免维护两套算法。 */
 bool waveform_analyze(const uint16_t *samples, waveform_result_t *result)
@@ -1378,4 +1529,16 @@ const char *waveform_status_name(waveform_status_t status)
         return "UNKNOWN_STATUS";
     }
     return names[status];
+}
+
+const char *waveform_algorithm_name(waveform_algorithm_t algorithm)
+{
+    switch (algorithm) {
+    case WAVEFORM_ALGORITHM_LEGACY_AMDF_CROSSING:
+        return "legacy_amdf_crossing";
+    case WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL:
+        return "global_harmonic_model";
+    default:
+        return "unknown_algorithm";
+    }
 }

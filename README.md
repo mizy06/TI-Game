@@ -1,7 +1,7 @@
 # 2026 TI 杯赛道一：高精度波形识别算法分支
 
-交付内容：RT 自激 200 道自编题 + 96 道 challenge 题集
-算法接口版本：2.0（0x00020000）
+交付内容：双算法一键切换 + RT 自激 200 道自编题 + 96 道 challenge 题集
+算法接口版本：2.1（0x00020100）
 
 本工程面向 MSPM0G3507，处理采集侧交付的无符号 ADC 数组，识别正弦波、方波、三角波和下降锯齿波，并输出频率、Vpp；方波额外输出占空比。
 
@@ -18,6 +18,9 @@
 - 按最佳类别模型做仿射最小二乘 Vpp；
 - 频率、参考电压和前端增益均由采集元数据传入；
 - 保留旧 waveform_analyze 兼容入口；
+- 新增 `waveform_analyze_frame_with_algorithm()`，运行时选择两条算法路径；
+- 算法 2 在原 AMDF/穿越路径拒识时增加倍频全局模型消歧；
+- MSPM0G3507 调至额定最高 80 MHz，并同步重算外设时序；
 - 串口 RESULT 增加高精度整数结果、算法版本、帧号和质量标志；
 - 培训 PDF、算法研读和对接协议已归档在 docs。
 
@@ -37,12 +40,14 @@
 | 项目 | 默认值 |
 | --- | ---: |
 | ADC | ADC0.CH2 / PA25 |
+| CPU / MCLK | 80 MHz（SYSPLL，器件额定最高频率） |
+| ULPCLK | 40 MHz（MCLK÷2） |
 | 采样率 | 20 kS/s |
 | 样本数 | 4096 |
 | ADC 格式 | 12 bit unsigned，右对齐 |
 | 缓冲大小 | 8192 B |
 | 串口 | 115200, 8-N-1 |
-| 触发 | R=ADC 对外测量，RT=自激环路自检，W=数字注入，T=片上自测，D=导出样点 |
+| 触发 | R=ADC（默认算法2），RT1=算法1，RT2=算法2，RT=两算法，W=数字注入，T=片上自测，D=导出样点 |
 | 板载波形输出 | DAC12 / PA15（自激时用杜邦线短接到 PA25） |
 
 输入必须全程位于 ADC 合法范围。赛事只保证无负电压，并未保证不会超过 VDDA；接线前要用示波器确认，建议至少串联 1 kΩ 限流。
@@ -51,20 +56,21 @@
 
 没有信号发生器时，板子自己产生测试波形：DAC12 在 **PA15** 上按 20 kHz
 回放 4096 点的已知波形，用一根杜邦线短接到 ADC 输入 **PA25**，同一帧再走
-完整的采集 + 识别链路。烧录后在串口发送一条 `RT`，固件会自动跑完
-**200 道自编题 + 96 道 challenge，共 296 题**。题集覆盖四类波形、
+完整的采集 + 识别链路。`RT1`/`RT2` 分别让算法 1/2 跑一套
+**200 道自编题 + 96 道 challenge，共 296 题**；发送 `RT` 会一键先后跑
+两种算法，共 592 次测试。题集覆盖四类波形、
 100–400 Hz、幅度/直流位置/噪声/方波占空比和边沿；challenge 额外加入
 削顶、交越、谐波、慢调幅和相干干扰。每个用例上报：
 
 ```text
-RT-START,cases=296,custom=200,challenge=96,fs_hz=20000,n=4096,dac=PA15,adc=PA25,dump=0
+RT-START,algorithm=2,name=global_harmonic_model,cases=296,custom=200,challenge=96,fs_hz=20000,n=4096,dac=PA15,adc=PA25,dump=0
 RT-CASE,index=1/296,group=custom,profile=boundary,type=sine,freq_millihz=...,vpp_millivolts=...,...
 CAPTURING
 PROCESSING
 RESULT,status=OK,type=sine,freq_hz=200.195,vpp_v=1.997,...
 RT-CHECK,verdict=PASS,type_ok=1,freq_ok=1,vpp_ok=1,duty_ok=1,freq_err_millihz=8,...
 ...
-RT-DONE,pass=...,fail=...,custom_pass=...,custom_fail=...,challenge_pass=...,challenge_fail=...
+RT-DONE,algorithm=2,name=global_harmonic_model,pass=...,fail=...,custom_pass=...,custom_fail=...,challenge_pass=...,challenge_fail=...
 READY
 ```
 
@@ -79,7 +85,14 @@ READY
 
 296 题默认只输出文本，不向串口终端倾倒二进制样点；需要查看失败帧时可中止
 矩阵后发送 `D`，导出最近一帧。主机侧也可用 `tools/rt_self_test.py` 自动保存
-逐题汇总。整轮通常需要约 1–3 分钟，取决于板上处理时间和串口终端。
+逐题汇总。双算法一键测试的完整协议见 [TESTING_RT.md](TESTING_RT.md)。
+
+两种算法：
+
+| 编号 | 名称 | 说明 |
+| ---: | --- | --- |
+| 1 | `legacy_amdf_crossing` | 原 AMDF 粗周期 + 中心穿越回归路径，保留作基线对照 |
+| 2 | `global_harmonic_model` | 默认路径；在基线会拒识时比较倍频候选的全局形状证据 |
 
 PA15 是 DAC 模拟输出，PA25 是 ADC 输入；UART0（板载 USB-UART 使用
 PA10/TX、PA11/RX）负责收命令并向电脑回传识别结果和采样点，不要把 PA15
@@ -99,7 +112,9 @@ PA10/TX、PA11/RX）负责收命令并向电脑回传识别结果和采样点，
     frame.sequence = next_sequence;
     frame.flags = WAVEFORM_FRAME_FLAG_CONTIGUOUS;
 
-    if (waveform_analyze_frame(&frame, &result)) {
+    if (waveform_analyze_frame_with_algorithm(
+            &frame, &result,
+            WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL)) {
         /* 仅在 status == OK 时使用测量值。 */
     }
 
@@ -109,7 +124,7 @@ PA10/TX、PA11/RX）负责收命令并向电脑回传识别结果和采样点，
 
 成功示例：
 
-    RESULT,status=OK,type=square,freq_hz=250.000,vpp_v=2.000,duty_pct=30.0,score_pct=99.9,margin_pct=20.1,cycles=51,freq_millihz=250000,vpp_microvolts=2000123,duty_ppm=300042,sequence=7,algorithm_version=131072,quality_flags=3
+    RESULT,status=OK,type=square,freq_hz=250.000,vpp_v=2.000,duty_pct=30.0,score_pct=99.9,margin_pct=20.1,cycles=51,freq_millihz=250000,vpp_microvolts=2000123,duty_ppm=300042,sequence=7,algorithm_version=131328,quality_flags=3
 
 quality_flags=3 表示默认采样时钟和参考电压仍使用标称值；完成校准并正确置标志后应消失。
 
@@ -125,9 +140,12 @@ quality_flags=3 表示默认采样时钟和参考电压仍使用标称值；完�
 | --- | ---: | ---: | ---: | ---: |
 | 初赛强度 2400 例 | 2400/2400 | 0.0678% | 4.233% | 1.666 pp |
 | 强干扰 2400 例 | 2400/2400 | 0.2317% | 5.217% | 0.524 pp |
-| 自编初赛门禁 200 例 | 200/200 | 0.0310% | 4.196% | 0.522 pp |
+| 算法1：自编初赛门禁 200 例 | 200/200 | 0.0310% | 4.196% | 0.522 pp |
+| 算法2：自编初赛门禁 200 例 | 200/200 | 0.0310% | 4.196% | 0.522 pp |
 
-同时运行 96 个赛事迁移挑战例（当前 95/96，非初赛门禁）、29 个协议/题集解析单元测试和 empty.c 主机语法检查。唯一挑战失败包含初赛未承诺的额外相干窄带干扰，算法安全拒识而非误报；详见压力测试设计文档。
+两套算法还分别运行 96 个赛事迁移挑战例：算法 1 为 95/96，算法 2 为
+96/96。算法 1 唯一失败是额外相干窄带干扰下的安全拒识；算法 2 的倍频
+全局消歧恢复了该例。以上仍是确定性数字模型，不代表真实模拟链路结果。
 
 这些结果验证的是软件算法模型，不代表新版固件已完成真实 ADC 模拟链路校准。提交前仍需在板上完成真实信号源扫参、处理时间测量、VDDA/采样时钟校准和 Release 构建。
 
@@ -137,6 +155,10 @@ quality_flags=3 表示默认采样时钟和参考电压仍使用标称值；完�
 2. 导入本目录；
 3. Project > Clean；
 4. Build Project；
-5. 烧录后确认启动横幅包含 FW=algorithm-v2 和 API=0x00020000。
+5. 烧录后确认启动横幅包含 `FW=algorithm-v2.1`、`API=0x00020100` 和
+   `CPU_HZ=80000000`；
+6. 分别发送 `RT1`、`RT2`，或发送 `RT` 一键跑两种算法。
 
-empty.syscfg 仍保持原工程不变；当前环境没有 SysConfig 图形配置与完整 MSPM0 工具链，因此没有伪造板级构建成功。算法和应用主机侧已用 C99、O2、Wall、Wextra、Werror 检查。
+`empty.syscfg` 已配置 80 MHz SYSPLL、ULPCLK÷2、PLL/FCC 校验、20 kS/s
+定时器和 115200 UART。目标板构建仍应以 CCS/SysConfig 2.11 工程重新生成的
+文件为准；不要复用旧 Debug 目录。

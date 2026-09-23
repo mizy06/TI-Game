@@ -1,20 +1,20 @@
-"""驱动固件 `RT` 自激环路，并把整张模拟测量矩阵的结论汇总成一张表。
+"""驱动固件 `RT1`/`RT2` 自激环路，并汇总一套 296 题矩阵。
 
 背景：`RT` 让板子自己用 DAC（PA15）产生已知波形，经杜邦线回到 ADC
 输入（PA25），走完整的采集 + 识别链路，最后把"标称值"和"测量值"一起
 上报。因此不需要信号发生器，也能验证"模拟输出 -> 引脚 -> 连线 -> ADC
 -> 算法 -> 串口"整条通路。
 
-固件侧协议（一条 `RT` 命令触发一整轮）：
+固件侧协议（一条 `RT1` 或 `RT2` 命令触发一整轮）：
 
-    RT-START,cases=296,custom=200,challenge=96,...,dump=0
+    RT-START,algorithm=2,name=global_harmonic_model,cases=296,...,dump=0
     RT-CASE,index=1/296,group=custom,profile=boundary,type=sine,...
     CAPTURING
     PROCESSING
     RESULT,status=OK,type=sine,...              （与 R 路径完全同格式）
     RT-CHECK,verdict=PASS,type_ok=1,...          （标称值 vs 测量值）
     ... 共 cases 条 ...
-    RT-DONE,pass=...,fail=...,custom_pass=...,challenge_pass=...
+    RT-DONE,algorithm=2,name=global_harmonic_model,pass=...,fail=...,...
     READY
 
 296 题默认只回传文本，普通串口终端可以直接查看；需要原始样点时中止矩阵
@@ -37,6 +37,13 @@ PAYLOAD_BYTES = SAMPLE_COUNT * 2
 EXPECTED_CASES = 296
 EXPECTED_CUSTOM_CASES = 200
 EXPECTED_CHALLENGE_CASES = 96
+
+
+def command_for_algorithm(algorithm):
+    """把命令行选择映射成固件命令，集中避免 RT1/RT2 写反。"""
+    if algorithm not in ('1', '2'):
+        raise ValueError(f'不支持的算法: {algorithm!r}')
+    return f'RT{algorithm}'
 
 
 def load_recorder():
@@ -95,7 +102,8 @@ def parse_case_index(fields):
     return index
 
 
-def validate_matrix_contract(start, cases, summary, abort):
+def validate_matrix_contract(start, cases, summary, abort,
+                             expected_algorithm=None):
     """拒绝旧 12 题固件、截断会话和分组数量错误的伪成功。"""
     if abort is not None:
         return None
@@ -110,6 +118,9 @@ def validate_matrix_contract(start, cases, summary, abort):
         EXPECTED_CASES, EXPECTED_CUSTOM_CASES, EXPECTED_CHALLENGE_CASES)
     if declared != expected:
         return f'WRONG_MATRIX{declared}'
+    if (expected_algorithm is not None and
+            start.get('algorithm') != str(expected_algorithm)):
+        return f'WRONG_ALGORITHM({start.get("algorithm")})'
     if len(cases) != EXPECTED_CASES:
         return f'CASE_COUNT({len(cases)}/{EXPECTED_CASES})'
     custom = sum(record.get('group') == 'custom' for record in cases)
@@ -145,6 +156,8 @@ def main():
     parser.add_argument('--acquire-timeout', type=float, default=15.0,
                         help='抢占同一串口的等待上限秒')
     parser.add_argument('--output', default=None, help='会话目录；默认自动命名')
+    parser.add_argument('--algorithm', choices=('1', '2'), default='2',
+                        help='1=legacy_amdf_crossing，2=global_harmonic_model（默认）')
     parser.add_argument('--csv', action='store_true',
                         help='兼容旧固件：仅在固件回传 SAMPLES 时额外写 CSV')
     args = parser.parse_args()
@@ -189,13 +202,15 @@ def main():
         print(f'[拒绝自检] 无法创建会话目录 {session}：{error}')
         return 2
 
+    command = command_for_algorithm(args.algorithm)
     metadata = {
         'started_local': datetime.now().isoformat(timespec='seconds'),
         'port': selected.device,
         'port_hwid': selected.hwid,
         'port_description': selected.description,
         'baud': 115200,
-        'command': 'RT',
+        'command': command,
+        'algorithm': int(args.algorithm),
         'wiring': 'PA15 (DAC out) --jumper-- PA25 (ADC in), GND 共地',
         'sample_rate_hz': 20000,
         'sample_count': SAMPLE_COUNT,
@@ -228,7 +243,8 @@ def main():
             port.read(port.in_waiting or 1)
 
     flush_initial()
-    if port.write(b'RT') != 2:
+    command_bytes = command.encode('ascii')
+    if port.write(command_bytes) != len(command_bytes):
         port.close()
         print('[拒绝自检] 命令写入不完整')
         return 2
@@ -361,7 +377,8 @@ def main():
 
     if protocol_error is None:
         protocol_error = validate_matrix_contract(
-            metadata.get('start_declared'), cases, summary, abort_line)
+            metadata.get('start_declared'), cases, summary, abort_line,
+            expected_algorithm=args.algorithm)
 
     # 逐条打印：类型是否正确、频率/Vpp/占空比是否落在容差内。
     print(f'{"#":>3} {"类型":<9} {"判定":<5} {"标称Hz":>9} {"实测Hz":>9} '

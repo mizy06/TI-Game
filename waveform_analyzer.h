@@ -18,9 +18,9 @@
 extern "C" {
 #endif
 
-/* 算法接口版本 2.0.0。高 16 位可理解为主版本；主机工具会检查这个值，
+/* 算法接口版本 2.1.0。高 16 位可理解为主版本；主机工具会检查这个值，
  * 防止“Python 按新版结构体读，但 DLL 仍是旧版”造成静默错位。 */
-#define WAVEFORM_ALGORITHM_VERSION       (0x00020000UL)
+#define WAVEFORM_ALGORITHM_VERSION       (0x00020100UL)
 
 /* 默认采集参数。WAVEFORM_SAMPLE_RATE_HZ=20000 表示每秒取 20000 点；
  * 4096 点覆盖 204.8 ms；12 位 ADC 的最大合法码为 2^12-1=4095。 */
@@ -87,6 +87,17 @@ typedef enum {
     WAVEFORM_TYPE_SAWTOOTH,
     WAVEFORM_TYPE_UNKNOWN
 } waveform_type_t;
+
+/* 两条可在运行时切换的识别路径。
+ *
+ * LEGACY_AMDF_CROSSING 保留原 2.0 的 AMDF + 中心穿越周期选择；
+ * GLOBAL_HARMONIC_MODEL 在同一基线之上，对存在倍频歧义的帧额外比较
+ * 1/2、1/3、1/4 周期候选的全局形状证据，避免相干干扰把基波拉到倍周期。
+ * 数值从 1 开始，便于串口命令 RT1/RT2 与枚举直接对应。 */
+typedef enum {
+    WAVEFORM_ALGORITHM_LEGACY_AMDF_CROSSING = 1,
+    WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL = 2
+} waveform_algorithm_t;
 
 /* 分析状态。只有 OK 才能把测得的频率、Vpp、占空比当作有效结果。
  *
@@ -188,6 +199,12 @@ typedef struct {
 bool waveform_analyze_frame(const waveform_frame_t *frame,
                             waveform_result_t *result);
 
+/* 显式选择算法。推荐需要 A/B 对比或板载 RT1/RT2 自测的调用方使用本入口；
+ * waveform_analyze_frame() 默认选择第二种 GLOBAL_HARMONIC_MODEL。 */
+bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
+                                           waveform_result_t *result,
+                                           waveform_algorithm_t algorithm);
+
 /* 旧版兼容入口：自动套用本头文件上方的默认参数。新代码优先使用 frame
  * 入口，以免真实采样率、参考电压或增益与默认值不同。 */
 bool waveform_analyze(const uint16_t *samples, waveform_result_t *result);
@@ -196,6 +213,7 @@ bool waveform_analyze(const uint16_t *samples, waveform_result_t *result);
  * 字符串，调用方不要修改或 free。 */
 const char *waveform_type_name(waveform_type_t type);
 const char *waveform_status_name(waveform_status_t status);
+const char *waveform_algorithm_name(waveform_algorithm_t algorithm);
 
 #ifdef __cplusplus
 }

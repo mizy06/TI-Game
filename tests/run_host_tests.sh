@@ -53,4 +53,10 @@ cc -std=c99 -O2 -Wall -Wextra -Werror -fPIC -shared \
 mkdir -p "$script_dir/results"
 python3 -B "$project_dir/tools/competition_stress_suite.py" \
   --library "$script_dir/waveform_analyzer_host.so" \
-  --json "$script_dir/results/competition_stress_report.json"
+  --algorithm 1 \
+  --json "$script_dir/results/competition_stress_algorithm1.json"
+
+python3 -B "$project_dir/tools/competition_stress_suite.py" \
+  --library "$script_dir/waveform_analyzer_host.so" \
+  --algorithm 2 \
+  --json "$script_dir/results/competition_stress_algorithm2.json"

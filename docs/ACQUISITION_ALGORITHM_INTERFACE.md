@@ -1,8 +1,8 @@
 # ADC 采集侧与算法侧对接协议
 
-协议版本：2.0  
+协议版本：2.1  
 对应头文件：waveform_analyzer.h  
-同步入口：waveform_analyze_frame
+同步入口：waveform_analyze_frame / waveform_analyze_frame_with_algorithm
 
 ## 1. 责任边界
 
@@ -108,7 +108,7 @@ V_{in,pp}=\frac{V_{ADC,pp}}{G}
 
 | 字段 | 单位 | 说明 |
 | --- | --- | --- |
-| algorithm_version | packed version | 当前为 0x00020000 |
+| algorithm_version | packed version | 当前为 0x00020100 |
 | sequence | 无 | 回传输入帧号 |
 | vpp_microvolts | µV | 推荐使用的 Vpp 结果 |
 | duty_ppm | ppm of period | 方波推荐使用的占空比结果 |

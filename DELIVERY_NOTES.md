@@ -1,32 +1,33 @@
 # 本次交付说明
 
-本源码包保留板端 `RT` 自激命令，并把旧的 12 题矩阵替换为：
+本源码包在原 200 道自编题 + 96 道 challenge 自激题集上完成了双算法与
+80 MHz 调频：
 
-- 前 200 题：自编初赛门禁题；
-- 后 96 题：challenge 压力题；
-- 合计 296 题，固定顺序、固定随机种子，可重复运行。
+- `RT1`：`legacy_amdf_crossing` 跑 296 题；
+- `RT2`：`global_harmonic_model` 跑 296 题；
+- `RT`：一键依次跑完两套，共 592 次“采集 + 分析 + 判定”；
+- MSPM0G3507 MCLK 使用额定最高 80 MHz；ULPCLK、Flash wait-state、UART、
+  TIMER、ADC/DAC 相关时钟由 SysConfig 同步配置；
+- 固件接口升级到 v2.1（`0x00020100`）。
 
-烧录后将 PA15（DAC）短接到 PA25（ADC），在 115200 8-N-1 串口一次发送
-`RT` 即可。启动行必须是：
+烧录后将 PA15（DAC）短接到 PA25（ADC），在 115200 8-N-1 串口发送上述
+命令。新固件启动横幅必须包含：
 
 ```text
-RT-START,cases=296,custom=200,challenge=96,...
+FW=algorithm-v2.1,API=0x00020100,CPU_HZ=80000000,DEFAULT_ALGORITHM=2
 ```
 
-若仍显示 `cases=12`，说明 CCS 烧录的是旧构建产物。请执行 **Project > Clean**、
-**Build Project** 后重新烧录。本包刻意不附带旧的 `Debug/`、`.out`、DLL/EXE、
-历史 RT 结果或串口日志，防止误用。
+本包不附带旧 `Debug/Release`、`.out`、DLL/EXE、历史 RT 结果或串口日志，
+必须在 CCS 中 Clean、Build 并烧录。完整步骤见 [TESTING_RT.md](TESTING_RT.md)。
 
-完整步骤见 [TESTING_RT.md](TESTING_RT.md)。
+## 离线验证
 
-## 已完成的离线验证
+- C99 严格编译：`-Wall -Wextra -Werror`；
+- 基础随机回归：2400/2400；
+- 强噪声回归：2400/2400；
+- 算法 1：自编 200/200，challenge 95/96；
+- 算法 2：自编 200/200，challenge 96/96；
+- 协议、题数、双算法命令与 80 MHz 静态契约单元测试全部通过。
 
-- `empty.c`：C99、`-Wall -Wextra -Werror` 主机语法检查通过；
-- 基础算法回归：2400/2400；
-- 强干扰算法回归：2400/2400；
-- 200 道自编门禁题：200/200；
-- 96 道 challenge：95/96（唯一失败为超出初赛承诺的相干窄带干扰安全拒识）；
-- Python 协议、题数、分组与索引检查：29/29。
-
-目标板 `.out` 必须在装有 MSPM0 SDK 2.11.00.07 的 CCS 中重新生成；当前环境
-没有替你伪造目标板构建结果。真实 PA15→PA25 模拟环路结果以你的开发板输出为准。
+这些是主机数字模型结果，不替代目标板构建、PA15→PA25 模拟环路实测、
+真实信号源校准和板上最坏处理时间测量。
