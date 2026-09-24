@@ -63,6 +63,7 @@ static uint16_t g_fold_minimum[PHASE_BINS];
 static uint16_t g_fold_maximum[PHASE_BINS];
 static int16_t g_folded[PHASE_BINS];
 static int16_t g_template[PHASE_BINS];
+static int32_t g_centered_fold[PHASE_BINS];
 static int16_t g_sort_buffer[PHASE_BINS];
 
 /* 预先计算的正弦模板：sin(2*pi*(bin+0.5)/128)，Q10 格式。
@@ -191,7 +192,8 @@ static void filter_and_histogram(const waveform_frame_t *frame,
                    (3U * (uint32_t)previous_one) + 2U) >> 2U);
 }
 
-static uint32_t period_cost_for_lag(uint16_t sample_count, uint16_t lag)
+static uint32_t period_cost_for_lag(uint16_t sample_count, uint16_t lag,
+                                    uint16_t stride)
 {
     /* AMDF（平均幅度差）在延迟 lag 处的代价：
      *     mean(|filtered[i] - filtered[i+lag]|)
@@ -201,7 +203,7 @@ static uint32_t period_cost_for_lag(uint16_t sample_count, uint16_t lag)
     uint32_t count = 0U;
     uint32_t i;
 
-    for (i = 0U; (i + lag) < sample_count; i += 2U) {
+    for (i = 0U; (i + lag) < sample_count; i += stride) {
         sum += absolute_difference_u32((uint16_t)g_filtered[i],
                                        (uint16_t)g_filtered[i + lag]);
         ++count;
@@ -218,6 +220,7 @@ static uint32_t period_cost_for_lag(uint16_t sample_count, uint16_t lag)
  * 还会用穿越点、频率范围和分类结果继续验证。 */
 static bool estimate_period_amdf(const waveform_frame_t *frame,
                                  uint16_t robust_span,
+                                 uint16_t stride,
                                  uint32_t *period_q12)
 {
     /* P=fs/f。最高频率给出最小周期，最低频率给出最大周期；整数除法边界
@@ -248,7 +251,7 @@ static bool estimate_period_amdf(const waveform_frame_t *frame,
     best_lag = min_lag;
     for (lag = min_lag; lag <= max_lag; ++lag) {
         g_period_cost[lag] =
-            period_cost_for_lag(frame->sample_count, (uint16_t)lag);
+            period_cost_for_lag(frame->sample_count, (uint16_t)lag, stride);
         if (g_period_cost[lag] < best_cost) {
             best_cost = g_period_cost[lag];
             best_lag = lag;
@@ -1016,6 +1019,133 @@ static classification_t classify_fold(uint32_t duty_ppm)
     return classification;
 }
 
+/* Fast path: template energy is invariant under circular shift. Build each
+ * shape once, find the largest positive covariance over its 128 rotations,
+ * and perform the expensive score division once per shape (28 total rather
+ * than 3584). All products retain the legacy 64-bit scoring scale. */
+static uint32_t fast_shape_score(uint64_t energy_y, uint16_t *best_shift)
+{
+    int32_t sum_t = 0;
+    uint64_t energy_t = 0U;
+    int64_t best_dot = 0;
+    uint16_t shift;
+    uint16_t bin;
+    uint64_t dot;
+    uint64_t numerator;
+    uint64_t denominator;
+    uint64_t divisor;
+
+    for (bin = 0U; bin < PHASE_BINS; ++bin) {
+        sum_t += g_template[bin];
+    }
+    for (bin = 0U; bin < PHASE_BINS; ++bin) {
+        int32_t t = (int32_t)PHASE_BINS * g_template[bin] - sum_t;
+        energy_t += (uint64_t)((int64_t)t * t);
+    }
+    *best_shift = 0U;
+    for (shift = 0U; shift < PHASE_BINS; ++shift) {
+        int64_t raw_dot = 0;
+        for (bin = 0U; bin < PHASE_BINS; ++bin) {
+            raw_dot += (int64_t)g_centered_fold[bin] *
+                       g_template[(bin + shift) & (PHASE_BINS - 1U)];
+        }
+        /* sum(g_centered_fold) is exactly zero: subtracting template's
+         * mean cancels, leaving one factor of PHASE_BINS. */
+        if (raw_dot > best_dot) {
+            best_dot = raw_dot;
+            *best_shift = shift;
+        }
+    }
+    if ((best_dot <= 0) || (energy_y == 0U) || (energy_t == 0U)) {
+        return 0U;
+    }
+    dot = (uint64_t)best_dot * PHASE_BINS;
+    while ((dot > 0x3FFFFFFFUL) ||
+           (energy_y > 0x3FFFFFFFUL) ||
+           (energy_t > 0x3FFFFFFFUL)) {
+        dot >>= 1U;
+        energy_y >>= 1U;
+        energy_t >>= 1U;
+    }
+    numerator = dot * dot;
+    denominator = energy_y * energy_t;
+    if (numerator >= denominator) {
+        return 1000000UL;
+    }
+    divisor = (denominator + 999999UL) / 1000000UL;
+    return divisor == 0U ? 0U : (uint32_t)(numerator / divisor);
+}
+
+static classification_t classify_fold_fast(uint32_t duty_ppm)
+{
+    static const uint32_t edges[] = {
+        0U, 25000U, 50000U, 75000U, MAX_EDGE_PPM
+    };
+    uint32_t scores[4] = {0U, 0U, 0U, 0U};
+    uint16_t shifts[4] = {0U, 0U, 0U, 0U};
+    uint32_t square_rise = 0U;
+    uint32_t square_fall = 0U;
+    int32_t sum_y = 0;
+    uint64_t energy_y = 0U;
+    waveform_type_t type;
+    classification_t answer = { WAVEFORM_TYPE_UNKNOWN, 0U, 0U,
+                                duty_ppm, 0U, 0U, 0U };
+    uint16_t bin;
+
+    for (bin = 0U; bin < PHASE_BINS; ++bin) {
+        sum_y += g_folded[bin];
+    }
+    for (bin = 0U; bin < PHASE_BINS; ++bin) {
+        int32_t y = (int32_t)PHASE_BINS * g_folded[bin] - sum_y;
+        g_centered_fold[bin] = y;
+        energy_y += (uint64_t)((int64_t)y * y);
+    }
+    for (type = WAVEFORM_TYPE_SINE; type <= WAVEFORM_TYPE_SAWTOOTH;
+         type = (waveform_type_t)(type + 1)) {
+        if (type == WAVEFORM_TYPE_SQUARE) {
+            uint16_t rise;
+            for (rise = 0U; rise < 5U; ++rise) {
+                uint16_t fall;
+                for (fall = 0U; fall < 5U; ++fall) {
+                    uint16_t shift;
+                    uint32_t score;
+                    make_template(type, duty_ppm, edges[rise], edges[fall], 0U);
+                    score = fast_shape_score(energy_y, &shift);
+                    if (score > scores[type]) {
+                        scores[type] = score;
+                        shifts[type] = shift;
+                        square_rise = edges[rise];
+                        square_fall = edges[fall];
+                    }
+                }
+            }
+        } else {
+            make_template(type, duty_ppm, 0U, 0U, 0U);
+            scores[type] = fast_shape_score(energy_y, &shifts[type]);
+        }
+    }
+    for (type = WAVEFORM_TYPE_SINE; type <= WAVEFORM_TYPE_SAWTOOTH;
+         type = (waveform_type_t)(type + 1)) {
+        if (scores[type] > answer.best_score_ppm) {
+            answer.second_score_ppm = answer.best_score_ppm;
+            answer.best_score_ppm = scores[type];
+            answer.type = type;
+        } else if (scores[type] > answer.second_score_ppm) {
+            answer.second_score_ppm = scores[type];
+        }
+    }
+    if (answer.type != WAVEFORM_TYPE_UNKNOWN) {
+        answer.shift = shifts[answer.type];
+        if (answer.type == WAVEFORM_TYPE_SQUARE) {
+            answer.rise_edge_ppm = square_rise;
+            answer.fall_edge_ppm = square_fall;
+        }
+        make_template(answer.type, duty_ppm, answer.rise_edge_ppm,
+                      answer.fall_edge_ppm, answer.shift);
+    }
+    return answer;
+}
+
 /* 把分类结果压成一个只用于“周期候选之间比较”的排序值。绝对相关分数是
  * 主证据，最佳与次佳之差作为同分时的消歧证据。 */
 static uint64_t classification_rank(const classification_t *classification)
@@ -1073,7 +1203,8 @@ static uint32_t select_global_harmonic_period(
     const waveform_frame_t *frame,
     uint32_t current_period_q12,
     uint32_t crossing_period_q12,
-    const classification_t *current_classification)
+    const classification_t *current_classification,
+    bool fast)
 {
     uint32_t candidates[12];
     uint16_t candidate_count = 0U;
@@ -1127,7 +1258,8 @@ static uint32_t select_global_harmonic_period(
             continue;
         }
         duty_ppm = estimate_duty_ppm();
-        candidate_classification = classify_fold(duty_ppm);
+        candidate_classification = fast ? classify_fold_fast(duty_ppm) :
+                                          classify_fold(duty_ppm);
         rank = classification_rank(&candidate_classification);
         if (rank > selected_rank) {
             selected_rank = rank;
@@ -1249,7 +1381,8 @@ bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
         result->sequence = frame->sequence;
     }
     if ((algorithm != WAVEFORM_ALGORITHM_LEGACY_AMDF_CROSSING) &&
-        (algorithm != WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL)) {
+        (algorithm != WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL) &&
+        (algorithm != WAVEFORM_ALGORITHM_FAST_PHASE_MODEL)) {
         return false;
     }
     if (!validate_frame(frame, result)) {
@@ -1305,7 +1438,9 @@ bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
     }
 
     /* 阶段 2：AMDF 给出对任意四类形状都适用的粗周期。 */
-    if (!estimate_period_amdf(frame, robust_span, &period_q12)) {
+    if (!estimate_period_amdf(frame, robust_span,
+                              algorithm == WAVEFORM_ALGORITHM_FAST_PHASE_MODEL
+                                  ? 8U : 2U, &period_q12)) {
         result->status = WAVEFORM_STATUS_PERIOD_NOT_FOUND;
         return false;
     }
@@ -1390,10 +1525,17 @@ bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
     /* 阶段 5：先估计潜在方波占空比，再让四类模板公平竞争。非方波虽然也
      * 会产生一个临时占空比，最终输出时会清零。 */
     result->duty_ppm = estimate_duty_ppm();
-    classification = classify_fold(result->duty_ppm);
-    if (algorithm == WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL) {
+    classification = algorithm == WAVEFORM_ALGORITHM_FAST_PHASE_MODEL ?
+                     classify_fold_fast(result->duty_ppm) :
+                     classify_fold(result->duty_ppm);
+    if ((algorithm == WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL) ||
+        (algorithm == WAVEFORM_ALGORITHM_FAST_PHASE_MODEL)) {
+        bool fast_rescue = (classification.best_score_ppm < MIN_MODEL_SCORE_PPM) ||
+            ((classification.best_score_ppm - classification.second_score_ppm)
+             < MIN_MODEL_MARGIN_PPM);
         uint32_t selected_period_q12 = select_global_harmonic_period(
-            frame, period_q12, crossing_period_q12, &classification);
+            frame, period_q12, crossing_period_q12, &classification,
+            algorithm == WAVEFORM_ALGORITHM_FAST_PHASE_MODEL);
         if (selected_period_q12 != period_q12) {
             period_q12 = selected_period_q12;
             result->frequency_millihz =
@@ -1402,11 +1544,16 @@ bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
                            period_q12);
             result->period_q16_samples = period_q12 << 4U;
         }
-        /* 候选比较会覆盖折叠工作区和模板；无论周期是否改变，都把最终选择
-         * 重新折叠一次，保证后续 Vpp 拟合使用的正是最终模型。 */
-        result->accepted_cycles = fold_cycles(frame, period_q12);
-        result->duty_ppm = estimate_duty_ppm();
-        classification = classify_fold(result->duty_ppm);
+        /* The fast path keeps the initial folded frame if the normal case
+         * needs no rescue. Legacy algorithm 2 retains its original flow. */
+        if ((algorithm != WAVEFORM_ALGORITHM_FAST_PHASE_MODEL) ||
+            fast_rescue) {
+            result->accepted_cycles = fold_cycles(frame, period_q12);
+            result->duty_ppm = estimate_duty_ppm();
+            classification = algorithm == WAVEFORM_ALGORITHM_FAST_PHASE_MODEL ?
+                             classify_fold_fast(result->duty_ppm) :
+                             classify_fold(result->duty_ppm);
+        }
     }
     /* 内部 ppm 分数转换为对外较紧凑的 permille，并四舍五入。 */
     result->best_score_permille =
@@ -1470,12 +1617,12 @@ bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
     return true;
 }
 
-/* 默认入口固定选择算法 2；需要算法 1 时必须显式调用上面的带选择入口。 */
+/* Default to the tested low-compute path; algorithms 1/2 remain callable. */
 bool waveform_analyze_frame(const waveform_frame_t *frame,
                             waveform_result_t *result)
 {
     return waveform_analyze_frame_with_algorithm(
-        frame, result, WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL);
+        frame, result, WAVEFORM_ALGORITHM_FAST_PHASE_MODEL);
 }
 
 /* 旧接口包装器：把固定默认参数装成一帧，再调用唯一的新版实现。
@@ -1538,6 +1685,8 @@ const char *waveform_algorithm_name(waveform_algorithm_t algorithm)
         return "legacy_amdf_crossing";
     case WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL:
         return "global_harmonic_model";
+    case WAVEFORM_ALGORITHM_FAST_PHASE_MODEL:
+        return "fast_phase_model";
     default:
         return "unknown_algorithm";
     }

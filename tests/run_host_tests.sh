@@ -60,3 +60,8 @@ python3 -B "$project_dir/tools/competition_stress_suite.py" \
   --library "$script_dir/waveform_analyzer_host.so" \
   --algorithm 2 \
   --json "$script_dir/results/competition_stress_algorithm2.json"
+
+python3 -B "$project_dir/tools/competition_stress_suite.py" \
+  --library "$script_dir/waveform_analyzer_host.so" \
+  --algorithm 3 --require-challenge \
+  --json "$script_dir/results/competition_stress_algorithm3.json"

@@ -11,7 +11,7 @@
  * 4. 结果经 UART 打印给电脑。
  *
  * R/W/T/D 串口命令分别选择真实 ADC、电脑注入、片上模拟和样点导出；
- * RT1/RT2 分别用算法 1/2 跑完整自激题集，RT 一键依次跑两种算法。算法
+ * RT1/RT2/RT3 分别跑完整自激题集，RT 一键依次跑原两种算法。算法
  * 本身不关心数据来自哪里，只要最终形成符合接口约定的 waveform_frame_t。
  *
  * 自激（RT）让板子不再依赖外部信号源：DAC 在 PA15 上产生已知波形，用
@@ -104,7 +104,8 @@ typedef enum {
      * 整个模拟测量矩阵。它走的是真实模拟链路，只是激励来自板子自己。 */
     TRIGGER_DAC_LOOPBACK_BOTH,
     TRIGGER_DAC_LOOPBACK_ALGORITHM1,
-    TRIGGER_DAC_LOOPBACK_ALGORITHM2
+    TRIGGER_DAC_LOOPBACK_ALGORITHM2,
+    TRIGGER_DAC_LOOPBACK_ALGORITHM3
 } trigger_mode_t;
 /* 片上自测使用的线性同余伪随机数状态。固定初值意味着每次上电产生同一
  * 噪声序列，便于复现实验。它不是密码学随机数，只用于测试。 */
@@ -285,6 +286,9 @@ static trigger_mode_t resolve_rt_command(void)
             }
             if (suffix == '2') {
                 return TRIGGER_DAC_LOOPBACK_ALGORITHM2;
+            }
+            if (suffix == '3') {
+                return TRIGGER_DAC_LOOPBACK_ALGORITHM3;
             }
             return TRIGGER_DAC_LOOPBACK_BOTH;
         }
@@ -1137,6 +1141,10 @@ static void rt_run_command(trigger_mode_t mode)
         (void)rt_run_matrix(WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL, true);
         return;
     }
+    if (mode == TRIGGER_DAC_LOOPBACK_ALGORITHM3) {
+        (void)rt_run_matrix(WAVEFORM_ALGORITHM_FAST_PHASE_MODEL, true);
+        return;
+    }
 
     uart_put_string("RT-SUITE-START,algorithms=2,cases_per_algorithm=");
     uart_put_u32(RT_CASE_COUNT);
@@ -1185,7 +1193,7 @@ int main(void)
     uart_put_string("\r\nTI-CUP WAVEFORM CLASSIFIER\r\n");
     uart_put_string("FW=algorithm-v2.1,API=0x00020100,CPU_HZ=");
     uart_put_u32(CPUCLK_FREQ);
-    uart_put_string(",DEFAULT_ALGORITHM=2,INJECT=LE16-4096-FNV1A\r\n");
+    uart_put_string(",DEFAULT_ALGORITHM=3,INJECT=LE16-4096-FNV1A\r\n");
     uart_put_string("ADC=PA25, FS_HZ=");
     uart_put_milli(WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ);
     uart_put_string(", N=");
@@ -1194,7 +1202,7 @@ int main(void)
     /* 自激接线提示随横幅一起打印：现场最常犯的错就是忘了把 PA15 接到
      * PA25，或者接到了别的脚上，导致 RT 全是 SIGNAL_TOO_SMALL。 */
     uart_put_string("DAC=PA15 -> jumper to PA25 (ADC in) for RT self-test\r\n");
-    uart_put_string("READY: R=ADC(alg2), RT1=alg1, RT2=alg2, RT=both, W=Inject, T=Simulate, D=Dump\r\n");
+    uart_put_string("READY: R=ADC(alg3), RT1=alg1, RT2=alg2, RT3=alg3, RT=both, W=Inject, T=Simulate, D=Dump\r\n");
 
     /* 每轮循环只处理一帧：等待触发 -> 准备数据 -> 分析 -> 输出 -> READY。 */
     for (;;) {
@@ -1207,7 +1215,8 @@ int main(void)
          * 打印 READY，因此这里直接继续，不再走下面单帧分析的公共路径。 */
         if ((mode == TRIGGER_DAC_LOOPBACK_BOTH) ||
             (mode == TRIGGER_DAC_LOOPBACK_ALGORITHM1) ||
-            (mode == TRIGGER_DAC_LOOPBACK_ALGORITHM2)) {
+            (mode == TRIGGER_DAC_LOOPBACK_ALGORITHM2) ||
+            (mode == TRIGGER_DAC_LOOPBACK_ALGORITHM3)) {
             rt_run_command(mode);
             wait_for_button_release();
             continue;
@@ -1250,7 +1259,7 @@ int main(void)
         frame.sequence = ++g_frame_sequence;
         frame.flags = WAVEFORM_ACQUISITION_FLAGS;
         valid = waveform_analyze_frame_with_algorithm(
-            &frame, &result, WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL);
+            &frame, &result, WAVEFORM_ALGORITHM_FAST_PHASE_MODEL);
         print_result(&result, valid);
         wait_for_button_release();
         uart_put_string("READY\r\n");

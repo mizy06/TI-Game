@@ -16,6 +16,7 @@ class RTSelfTestProtocolTests(unittest.TestCase):
     def test_algorithm_commands_are_explicit(self):
         self.assertEqual(rt_self_test.command_for_algorithm('1'), 'RT1')
         self.assertEqual(rt_self_test.command_for_algorithm('2'), 'RT2')
+        self.assertEqual(rt_self_test.command_for_algorithm('3'), 'RT3')
         with self.assertRaises(ValueError):
             rt_self_test.command_for_algorithm('both')
 

@@ -41,7 +41,7 @@ EXPECTED_CHALLENGE_CASES = 96
 
 def command_for_algorithm(algorithm):
     """把命令行选择映射成固件命令，集中避免 RT1/RT2 写反。"""
-    if algorithm not in ('1', '2'):
+    if algorithm not in ('1', '2', '3'):
         raise ValueError(f'不支持的算法: {algorithm!r}')
     return f'RT{algorithm}'
 
@@ -156,8 +156,8 @@ def main():
     parser.add_argument('--acquire-timeout', type=float, default=15.0,
                         help='抢占同一串口的等待上限秒')
     parser.add_argument('--output', default=None, help='会话目录；默认自动命名')
-    parser.add_argument('--algorithm', choices=('1', '2'), default='2',
-                        help='1=legacy_amdf_crossing，2=global_harmonic_model（默认）')
+    parser.add_argument('--algorithm', choices=('1', '2', '3'), default='3',
+                        help='1=legacy_amdf_crossing，2=global_harmonic_model，3=fast_phase_model（默认）')
     parser.add_argument('--csv', action='store_true',
                         help='兼容旧固件：仅在固件回传 SAMPLES 时额外写 CSV')
     args = parser.parse_args()

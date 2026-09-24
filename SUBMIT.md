@@ -1,6 +1,6 @@
 # 源码包提交说明
 
-本压缩包是不含 `.git`、旧 Debug 产物和历史测试结果的干净源码包。
+本压缩包含 CCS 工程、源码、文档、测试代码、新版主机结果及用于离线对照的采样二进制；不含 `.git`、旧 Debug 产物和串口日志。
 
 解压后检查：
 
@@ -21,12 +21,12 @@
 3. 检查 map 文件的 SRAM 和 Flash；
 4. 烧录并确认启动横幅含 `FW=algorithm-v2.1`、`API=0x00020100`、
    `CPU_HZ=80000000`；
-5. PA15 短接 PA25，分别发送 `RT1`、`RT2`，或发送 `RT` 一键跑两套；
+5. PA15 短接 PA25，分别发送 `RT1`、`RT2`、`RT3`；`RT` 仍一键跑原两套；
 6. 按 docs/ACQUISITION_ALGORITHM_INTERFACE.md 完成真实信号源校准和扫参；
-7. 分别测量两种算法的板上最坏处理时间。
+7. 分别测量三种算法的板上最坏处理时间，检查新版 map 的栈余量。
 
 主机回归：
 
     bash tests/run_all_checks.sh
 
-不要把旧的 tools/waveform_analyzer.dll 或历史 tests/results 当作新版算法证据；它们属于原工程审计留档。新版权威源是 waveform_analyzer.c/.h 和当前分支的测试输出。
+新版权威源是 waveform_analyzer.c/.h 和当前主机测试输出；录制的旧 ADC 二进制只用于路径对照，不能代替标定真值。

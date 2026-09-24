@@ -10,7 +10,7 @@
 自激连接不要串 1 kΩ，也不要在 PA25 对地加电容。上电横幅必须包含：
 
 ```text
-FW=algorithm-v2.1,API=0x00020100,CPU_HZ=80000000,DEFAULT_ALGORITHM=2,...
+FW=algorithm-v2.1,API=0x00020100,CPU_HZ=80000000,DEFAULT_ALGORITHM=3,...
 ```
 
 若仍显示 `algorithm-v2`、`0x00020000`、`CPU_HZ=32000000` 或 `cases=12`，
@@ -22,6 +22,7 @@ FW=algorithm-v2.1,API=0x00020100,CPU_HZ=80000000,DEFAULT_ALGORITHM=2,...
 | --- | --- | ---: |
 | `RT1` | 算法 1：`legacy_amdf_crossing` | 200+96 |
 | `RT2` | 算法 2：`global_harmonic_model` | 200+96 |
+| `RT3` | 算法 3：`fast_phase_model` | 200+96 |
 | `RT` | 一键先跑算法 1，再跑算法 2 | 296×2 |
 
 让串口工具一次发送整条命令，可带回车换行，不要缓慢逐字键入。单算法正常
@@ -65,6 +66,7 @@ READY
 python -m pip install pyserial
 python tools/rt_self_test.py --port COM15 --algorithm 1 --timeout 600
 python tools/rt_self_test.py --port COM15 --algorithm 2 --timeout 600
+python tools/rt_self_test.py --port COM15 --algorithm 3 --timeout 600
 ```
 
 把 `COM15` 换成实际端口。脚本故意一次只采一套矩阵，分别保存逐题 JSONL、

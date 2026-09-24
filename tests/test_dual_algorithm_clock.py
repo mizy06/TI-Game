@@ -16,6 +16,7 @@ class DualAlgorithmClockTests(unittest.TestCase):
                       header)
         self.assertIn('WAVEFORM_ALGORITHM_LEGACY_AMDF_CROSSING = 1', header)
         self.assertIn('WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL = 2', header)
+        self.assertIn('WAVEFORM_ALGORITHM_FAST_PHASE_MODEL = 3', header)
         self.assertIn('waveform_analyze_frame_with_algorithm', header)
         self.assertIn('select_global_harmonic_period', source)
 
@@ -23,6 +24,7 @@ class DualAlgorithmClockTests(unittest.TestCase):
         source = (ROOT / 'empty.c').read_text(encoding='utf-8')
         self.assertIn("suffix == '1'", source)
         self.assertIn("suffix == '2'", source)
+        self.assertIn("suffix == '3'", source)
         self.assertIn('RT-SUITE-START,algorithms=2', source)
         self.assertIn('FW=algorithm-v2.1,API=0x00020100,CPU_HZ=', source)
 

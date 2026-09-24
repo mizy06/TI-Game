@@ -1,0 +1,117 @@
+{
+  "frames": 156,
+  "status_counts": {
+    "2": {
+      "5": 1,
+      "7": 5,
+      "4": 3,
+      "0": 109,
+      "1": 38
+    },
+    "3": {
+      "5": 1,
+      "7": 5,
+      "4": 3,
+      "0": 109,
+      "1": 38
+    }
+  },
+  "different_outputs": 5,
+  "differences": [
+    {
+      "path": "tests/results/adc_samples_20260922_183726/adc_001.bin",
+      "old": [
+        false,
+        7,
+        4,
+        395460,
+        0,
+        0
+      ],
+      "fast": [
+        false,
+        7,
+        4,
+        394974,
+        0,
+        0
+      ]
+    },
+    {
+      "path": "tests/results/adc_samples_20260922_183726/adc_002.bin",
+      "old": [
+        false,
+        7,
+        4,
+        395373,
+        0,
+        0
+      ],
+      "fast": [
+        false,
+        7,
+        4,
+        394829,
+        0,
+        0
+      ]
+    },
+    {
+      "path": "tests/results/adc_samples_20260922_183726/adc_003.bin",
+      "old": [
+        false,
+        7,
+        4,
+        395485,
+        0,
+        0
+      ],
+      "fast": [
+        false,
+        7,
+        4,
+        395228,
+        0,
+        0
+      ]
+    },
+    {
+      "path": "tests/results/adc_samples_20260922_183726/adc_004.bin",
+      "old": [
+        false,
+        7,
+        4,
+        395346,
+        0,
+        0
+      ],
+      "fast": [
+        false,
+        7,
+        4,
+        394999,
+        0,
+        0
+      ]
+    },
+    {
+      "path": "tests/results/adc_samples_20260922_183726/adc_006.bin",
+      "old": [
+        false,
+        7,
+        4,
+        395203,
+        0,
+        0
+      ],
+      "fast": [
+        false,
+        7,
+        4,
+        394902,
+        0,
+        0
+      ]
+    }
+  ]
+}

@@ -88,15 +88,17 @@ typedef enum {
     WAVEFORM_TYPE_UNKNOWN
 } waveform_type_t;
 
-/* 两条可在运行时切换的识别路径。
+/* 三条可在运行时切换的识别路径。
  *
  * LEGACY_AMDF_CROSSING 保留原 2.0 的 AMDF + 中心穿越周期选择；
  * GLOBAL_HARMONIC_MODEL 在同一基线之上，对存在倍频歧义的帧额外比较
  * 1/2、1/3、1/4 周期候选的全局形状证据，避免相干干扰把基波拉到倍周期。
- * 数值从 1 开始，便于串口命令 RT1/RT2 与枚举直接对应。 */
+ * FAST_PHASE_MODEL 保留算法 2 的救援，减少 AMDF 与循环模板的重复运算。
+ * 数值从 1 开始，便于串口命令 RT1/RT2/RT3 与枚举直接对应。 */
 typedef enum {
     WAVEFORM_ALGORITHM_LEGACY_AMDF_CROSSING = 1,
-    WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL = 2
+    WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL = 2,
+    WAVEFORM_ALGORITHM_FAST_PHASE_MODEL = 3
 } waveform_algorithm_t;
 
 /* 分析状态。只有 OK 才能把测得的频率、Vpp、占空比当作有效结果。

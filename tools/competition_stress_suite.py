@@ -30,6 +30,7 @@ ALGORITHM_VERSION = 0x00020100
 ALGORITHM_NAME = {
     1: "legacy_amdf_crossing",
     2: "global_harmonic_model",
+    3: "fast_phase_model",
 }
 
 # C 枚举的双向可读映射；列表顺序必须与 waveform_analyzer.h 一致。
@@ -588,8 +589,8 @@ def main() -> int:
     parser.add_argument("--challenge-cases-per-profile", type=int, default=12)
     parser.add_argument("--require-challenge", action="store_true")
     parser.add_argument("--algorithm", type=int, choices=sorted(ALGORITHM_NAME),
-                        default=2,
-                        help="1=legacy_amdf_crossing, 2=global_harmonic_model")
+                        default=3,
+                        help="1=legacy_amdf_crossing, 2=global_harmonic_model, 3=fast_phase_model")
     args = parser.parse_args()
 
     # 门禁和挑战的阈值分开定义；挑战含超纲失真，因此容忍度略宽。
