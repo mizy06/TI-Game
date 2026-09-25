@@ -88,17 +88,18 @@ typedef enum {
     WAVEFORM_TYPE_UNKNOWN
 } waveform_type_t;
 
-/* 三条可在运行时切换的识别路径。
+/* 三条历史路径及正式三级级联入口。
  *
  * LEGACY_AMDF_CROSSING 保留原 2.0 的 AMDF + 中心穿越周期选择；
  * GLOBAL_HARMONIC_MODEL 在同一基线之上，对存在倍频歧义的帧额外比较
  * 1/2、1/3、1/4 周期候选的全局形状证据，避免相干干扰把基波拉到倍周期。
  * FAST_PHASE_MODEL 保留算法 2 的救援，减少 AMDF 与循环模板的重复运算。
- * 数值从 1 开始，便于串口命令 RT1/RT2/RT3 与枚举直接对应。 */
+ * 数值从 1 开始，便于串口命令 RT1/RT2/RT3/RT4 与枚举直接对应。 */
 typedef enum {
     WAVEFORM_ALGORITHM_LEGACY_AMDF_CROSSING = 1,
     WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL = 2,
-    WAVEFORM_ALGORITHM_FAST_PHASE_MODEL = 3
+    WAVEFORM_ALGORITHM_FAST_PHASE_MODEL = 3,
+    WAVEFORM_ALGORITHM_CASCADE = 4
 } waveform_algorithm_t;
 
 /* 分析状态。只有 OK 才能把测得的频率、Vpp、占空比当作有效结果。
@@ -201,11 +202,26 @@ typedef struct {
 bool waveform_analyze_frame(const waveform_frame_t *frame,
                             waveform_result_t *result);
 
-/* 显式选择算法。推荐需要 A/B 对比或板载 RT1/RT2 自测的调用方使用本入口；
- * waveform_analyze_frame() 默认选择第二种 GLOBAL_HARMONIC_MODEL。 */
+/* 显式选择算法。1/2/3 保留历史对照；4 为生产级联。
+ * waveform_analyze_frame() 默认运行级联。 */
 bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
                                            waveform_result_t *result,
                                            waveform_algorithm_t algorithm);
+
+/* Independent backstops and the production cascade. L1 is the established
+ * fast phase model, L2 is direct spectral harmonic regression, L3 is a
+ * normalized difference period search with robust time-domain shape fitting.
+ * Every call is synchronous and non-reentrant. */
+typedef struct {
+    waveform_status_t l1_status, l2_status, l3_status;
+    waveform_type_t l1_type, l2_type, l3_type;
+    uint8_t selected_level; /* 1 on agreement, 3 after arbitration */
+    bool l3_ran;
+} waveform_cascade_trace_t;
+bool waveform_analyze_frequency(const waveform_frame_t *, waveform_result_t *);
+bool waveform_analyze_robust(const waveform_frame_t *, waveform_result_t *);
+bool waveform_analyze_cascade(const waveform_frame_t *, waveform_result_t *,
+                              waveform_cascade_trace_t *);
 
 /* 旧版兼容入口：自动套用本头文件上方的默认参数。新代码优先使用 frame
  * 入口，以免真实采样率、参考电压或增益与默认值不同。 */

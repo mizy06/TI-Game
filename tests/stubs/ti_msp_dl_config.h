@@ -149,5 +149,7 @@ static inline void delay_cycles(uint32_t cycles) { (void)cycles; }
 static inline void __disable_irq(void) {}
 static inline void __enable_irq(void) {}
 static inline void __WFI(void) {}
+static inline uint32_t SysTick_Config(uint32_t ticks)
+{ (void)ticks; return 0U; }
 
 #endif /* TI_MSP_DL_CONFIG_HOST_STUB_H_ */

@@ -27,7 +27,7 @@ project_dir="$(to_native "$project_dir")"
 # -lm 链接测试数据生成所需的 sin/log/sqrt 等数学函数。
 cc -std=c99 -O2 -Wall -Wextra -Werror \
   -I"$project_dir" \
-  "$project_dir/waveform_analyzer.c" \
+  "$project_dir/waveform_analyzer.c" "$project_dir/waveform_cascade.c" \
   -x c "$script_dir/host_test.c.txt" \
   -lm -o "$script_dir/host_test"
 
@@ -36,7 +36,7 @@ cc -std=c99 -O2 -Wall -Wextra -Werror \
 # 高精度元数据回归：采样率、参考电压、前端增益和噪声带宽都会变化。
 cc -std=c99 -O2 -Wall -Wextra -Werror \
   -I"$project_dir" \
-  "$project_dir/waveform_analyzer.c" \
+  "$project_dir/waveform_analyzer.c" "$project_dir/waveform_cascade.c" \
   -x c "$script_dir/precision_validation.c.txt" \
   -lm -o "$script_dir/precision_validation"
 
@@ -46,7 +46,7 @@ cc -std=c99 -O2 -Wall -Wextra -Werror \
 # 这样 Python 压力套件测的是实际 C 核心，不是另写一套近似算法。
 cc -std=c99 -O2 -Wall -Wextra -Werror -fPIC -shared \
   -I"$project_dir" \
-  "$project_dir/waveform_analyzer.c" \
+  "$project_dir/waveform_analyzer.c" "$project_dir/waveform_cascade.c" \
   -lm -o "$script_dir/waveform_analyzer_host.so"
 
 # -B 禁止产生 __pycache__；JSON 参数保存完整可审计报告。

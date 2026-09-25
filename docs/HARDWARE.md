@@ -86,6 +86,7 @@ DAC 产生已知波形 -> 经杜邦线回到 PA25 -> ADC 采集 4096 点 -> 算�
 | SIGNAL_TOO_SMALL | 幅度太小、输入未接、地线断开 | 示波器检查 PA25 |
 | `RT` 全部 SIGNAL_TOO_SMALL | PA15 没接到 PA25，或接错脚，或未共地 | 万用表确认 PA15↔PA25 导通 |
 | `RT` 报 RT-CHECK FAIL 且 type_ok=0 | 波形被前端改形（串了电阻或对地电容） | 去掉 PA15 与 PA25 之间的额外元件 |
+| 小幅度题只有 `vpp_ok=0`，且测量值比标称值低约 10–15 mV | 固件仍把 DAC 波形贴近电源轨，输出缓冲进入非线性区 | 使用含 0.3 V DAC 线性余量修正的新固件；确认 `RT-CASE` 有 `linear_guard=1` |
 | 发 `RT` 无响应 | 固件不是含 RT 的新版本 | 重新 Build 并烧录 |
 | ADC_HIGH_CLIPPED / ADC_LOW_CLIPPED | 输入达到/超过 ADC 两端 | 立即降低幅度/调整偏置 |
 | ADC_SAMPLE_INVALID | 注入数据超过 12 位范围 | 检查串口端序和采样缓冲 |

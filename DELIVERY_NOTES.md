@@ -33,3 +33,16 @@ FW=algorithm-v2.1,API=0x00020100,CPU_HZ=80000000,DEFAULT_ALGORITHM=3
 
 这些是主机数字模型结果，不替代目标板构建、PA15→PA25 模拟环路实测、
 真实信号源校准和板上最坏处理时间测量。
+
+## 2026-09-25 级联增补
+
+正式 R/W/T 与 RT4 已采用三级级联；本文件前面的 RT3 默认路径与旧版横幅
+为历史交付说明。新横幅 `FW=cascade-v2.1,DEFAULT_ALGORITHM=4`。详见
+`docs/CASCADE_NOISE_VALIDATION_20260925.md`。
+
+## 第二轮级联修复
+
+正式构建横幅 `FW=cascade-v2.2,DEFAULT_ALGORITHM=4`。现在用
+`bash tests/run_all_checks_strict.sh` 严格验证所有 1296 道噪声题及另外两组
+独立随机种子；详见 `docs/CASCADE_NOISE_ITERATION_20260925.md`。
+本文件上文的 v2.1 横幅记录的是首次交付历史。

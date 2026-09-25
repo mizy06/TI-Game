@@ -1,0 +1,76 @@
+cases=2400 class_fail=0 measurement_fail=0 contract_fail=0 worst_freq=0.0678% worst_vpp=4.233% worst_duty=1.666 percentage-point
+strong_cases=2400 class_fail=0 measurement_fail=0 worst_freq=0.2317% worst_vpp=5.217% worst_duty=0.524 percentage-point
+preliminary_gate: pass=200/200 class=200/200 status_ok=200/200 worst(freq/vpp/duty)=0.0310%/4.196%/0.522pp
+competition_challenge(non-gating): pass=95/96 class=95/96 status_ok=95/96 worst(freq/vpp/duty)=100.0000%/100.000%/0.617pp
+  FAIL source=nuedc_2023_h impairment=coherent_interferer expected=square got=unknown status=CLASSIFICATION_AMBIGUOUS f=399.863Hz errors=100.000%/100.000%/0.000pp
+report=/workspace/scratch/700df73b4ebe/work/TI-game/tests/results/competition_stress_algorithm1.json
+preliminary_gate: pass=200/200 class=200/200 status_ok=200/200 worst(freq/vpp/duty)=0.0310%/4.196%/0.522pp
+competition_challenge(non-gating): pass=96/96 class=96/96 status_ok=96/96 worst(freq/vpp/duty)=0.0479%/9.972%/0.617pp
+report=/workspace/scratch/700df73b4ebe/work/TI-game/tests/results/competition_stress_algorithm2.json
+preliminary_gate: pass=200/200 class=200/200 status_ok=200/200 worst(freq/vpp/duty)=0.0310%/4.196%/0.522pp
+competition_challenge(non-gating): pass=96/96 class=96/96 status_ok=96/96 worst(freq/vpp/duty)=0.0479%/9.972%/0.617pp
+report=/workspace/scratch/700df73b4ebe/work/TI-game/tests/results/competition_stress_algorithm3.json
+test_corrupted_receipt_fails (test_audited_serial.AuditedTests.test_corrupted_receipt_fails)
+固件回执的 FNV 与本地负载不一致时必须中止。 ... ok
+test_failed_handshake_sends_no_payload (test_audited_serial.AuditedTests.test_failed_handshake_sends_no_payload)
+未收到 READY_FOR_DATA 时只能写出单个 W，绝不能发送二进制。 ... ok
+test_fnv_known_vectors (test_audited_serial.AuditedTests.test_fnv_known_vectors)
+用公开已知向量防止 FNV 实现被无意改坏。 ... ok
+test_generation (test_audited_serial.AuditedTests.test_generation)
+固定 seed 生成相同负载，且常规用例不碰 ADC 上下限。 ... ok
+test_invalid_fields (test_audited_serial.AuditedTests.test_invalid_fields)
+NaN、重复键和非正 Vpp 必须报 ValueError。 ... ok
+test_missing_fields (test_audited_serial.AuditedTests.test_missing_fields)
+OK 行缺任一关键测量字段都不能被接受。 ... ok
+test_missing_ready_fails (test_audited_serial.AuditedTests.test_missing_ready_fails)
+RESULT 后没有终态 READY 也算协议失败，不能静默成功。 ... ok
+test_transaction (test_audited_serial.AuditedTests.test_transaction)
+正常事务发送 1 字节命令+8192 字节负载，并解析数值。 ... ok
+test_host_stub_tracks_generated_cpu_frequency (test_dual_algorithm_clock.DualAlgorithmClockTests.test_host_stub_tracks_generated_cpu_frequency) ... ok
+test_public_api_exposes_two_real_algorithms (test_dual_algorithm_clock.DualAlgorithmClockTests.test_public_api_exposes_two_real_algorithms) ... ok
+test_sysconfig_requests_rated_80_mhz_and_retimes_peripherals (test_dual_algorithm_clock.DualAlgorithmClockTests.test_sysconfig_requests_rated_80_mhz_and_retimes_peripherals) ... ok
+test_uart_commands_select_each_algorithm_and_both (test_dual_algorithm_clock.DualAlgorithmClockTests.test_uart_commands_select_each_algorithm_and_both) ... ok
+test_exact_case_counts_and_order (test_rt_question_set.RtQuestionSetTests.test_exact_case_counts_and_order) ... ok
+test_public_count_macros (test_rt_question_set.RtQuestionSetTests.test_public_count_macros) ... ok
+test_algorithm_commands_are_explicit (test_rt_self_test.RTSelfTestProtocolTests.test_algorithm_commands_are_explicit) ... ok
+test_case_index_accepts_fractional_and_integer_forms (test_rt_self_test.RTSelfTestProtocolTests.test_case_index_accepts_fractional_and_integer_forms) ... ok
+test_case_index_rejects_out_of_range_values (test_rt_self_test.RTSelfTestProtocolTests.test_case_index_rejects_out_of_range_values) ... ok
+test_matrix_contract_accepts_exact_200_plus_96 (test_rt_self_test.RTSelfTestProtocolTests.test_matrix_contract_accepts_exact_200_plus_96) ... ok
+test_matrix_contract_rejects_old_twelve_case_firmware (test_rt_self_test.RTSelfTestProtocolTests.test_matrix_contract_rejects_old_twelve_case_firmware) ... ok
+test_matrix_contract_rejects_wrong_algorithm (test_rt_self_test.RTSelfTestProtocolTests.test_matrix_contract_rejects_wrong_algorithm) ... ok
+test_na_optional_integer_uses_default (test_rt_self_test.RTSelfTestProtocolTests.test_na_optional_integer_uses_default) ... ok
+test_csv_header_matches_legacy_log (test_uart_wave_recorder.RecorderContractTests.test_csv_header_matches_legacy_log)
+两套工具写同一个日志文件，列定义必须逐字一致。 ... ok
+test_status_families_cover_every_firmware_status (test_uart_wave_recorder.RecorderContractTests.test_status_families_cover_every_firmware_status)
+头文件里的每个状态都要有中文归因，避免出现未登记状态。 ... ok
+test_unknown_status_is_surfaced_not_hidden (test_uart_wave_recorder.RecorderContractTests.test_unknown_status_is_surfaced_not_hidden)
+固件新增状态时应当显式暴露，而不是静默归入某一类。 ... ok
+test_verify_port_rejects_non_xds110 (test_uart_wave_recorder.RecorderContractTests.test_verify_port_rejects_non_xds110)
+显式指定的端口若不是 XDS110 应用口，必须拒绝而不是将就使用。 ... ok
+test_verify_port_reports_missing_port_with_listing (test_uart_wave_recorder.RecorderContractTests.test_verify_port_reports_missing_port_with_listing)
+端口不存在时要列出实际枚举结果，方便定位是不是换了口。 ... ok
+test_handshake_failure_sends_no_payload (test_uart_wave_recorder.RecorderProtocolTests.test_handshake_failure_sends_no_payload)
+未收到 READY_FOR_DATA 时，一个二进制字节都不能发。 ... ok
+test_injection_flow_checks_receipt_integrity (test_uart_wave_recorder.RecorderProtocolTests.test_injection_flow_checks_receipt_integrity)
+回执的字节数与 FNV-1a 都必须匹配，错误回执立即终止。 ... ok
+test_ok_transaction_records_full_diagnostics (test_uart_wave_recorder.RecorderProtocolTests.test_ok_transaction_records_full_diagnostics)
+成功帧必须带出得分、余量和周期数。 ... ok
+test_rejection_frame_is_preserved_not_dropped (test_uart_wave_recorder.RecorderProtocolTests.test_rejection_frame_is_preserved_not_dropped)
+拒识帧是本工具存在的理由，绝不能被丢弃。 ... ok
+test_statusless_result_is_malformed (test_uart_wave_recorder.RecorderProtocolTests.test_statusless_result_is_malformed)
+缺少 status 的行不得被当成 unknown 状态掩盖过去。 ... ok
+test_evaluator_does_not_pass_missing_measurements (test_waveform_tool_validation.WaveformToolValidationTests.test_evaluator_does_not_pass_missing_measurements)
+缺频率/Vpp 必须得到 100% 占位误差和失败。 ... ok
+test_evaluator_requires_square_duty (test_waveform_tool_validation.WaveformToolValidationTests.test_evaluator_requires_square_duty)
+方波结果缺占空比时，即使类别/频率/Vpp 正确也必须失败。 ... ok
+test_legacy_parser_rejects_partial_success (test_waveform_tool_validation.WaveformToolValidationTests.test_legacy_parser_rejects_partial_success)
+status=OK 但缺 Vpp 的行不能算有效成功。 ... ok
+test_legacy_parser_rejects_trailing_text (test_waveform_tool_validation.WaveformToolValidationTests.test_legacy_parser_rejects_trailing_text)
+合法字段后的未知尾部文本必须被 fullmatch 拒绝。 ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 0.325s
+
+OK
+{"cases": 296, "counts": {"l1_pass": 296, "l2_pass": 284, "l3_pass": 227, "cascade_pass": 296, "l3_invoked": 12}, "failures": 0}
+{"cases": 1296, "cases_per_profile_ratio": 54, "summary": {"white": {"20": {"l1": 54, "l2": 54, "l3": 41, "cascade": 54}, "50": {"l1": 54, "l2": 54, "l3": 41, "cascade": 54}}, "lowpass_5f": {"20": {"l1": 54, "l2": 54, "l3": 42, "cascade": 54}, "50": {"l1": 54, "l2": 54, "l3": 42, "cascade": 54}}, "lowpass_2f": {"20": {"l1": 54, "l2": 54, "l3": 35, "cascade": 54}, "50": {"l1": 54, "l2": 54, "l3": 42, "cascade": 54}}, "bandpass": {"20": {"l1": 54, "l2": 54, "l3": 37, "cascade": 54}, "50": {"l1": 54, "l2": 54, "l3": 42, "cascade": 54}}, "highband": {"20": {"l1": 54, "l2": 54, "l3": 41, "cascade": 54}, "50": {"l1": 54, "l2": 54, "l3": 39, "cascade": 54}}, "looped": {"20": {"l1": 54, "l2": 54, "l3": 40, "cascade": 54}, "50": {"l1": 54, "l2": 54, "l3": 38, "cascade": 54}}, "spikes": {"20": {"l1": 54, "l2": 54, "l3": 35, "cascade": 54}, "50": {"l1": 54, "l2": 54, "l3": 41, "cascade": 54}}, "narrowband": {"20": {"l1": 54, "l2": 54, "l3": 33, "cascade": 54}, "50": {"l1": 54, "l2": 54, "l3": 15, "cascade": 54}}, "drift": {"20": {"l1": 54, "l2": 54, "l3": 39, "cascade": 54}, "50": {"l1": 54, "l2": 54, "l3": 42, "cascade": 54}}, "harmonics": {"20": {"l1": 54, "l2": 53, "l3": 40, "cascade": 54}, "50": {"l1": 49, "l2": 44, "l3": 37, "cascade": 49}}, "am": {"20": {"l1": 54, "l2": 54, "l3": 39, "cascade": 54}, "50": {"l1": 54, "l2": 54, "l3": 45, "cascade": 54}}, "clipping": {"20": {"l1": 54, "l2": 54, "l3": 38, "cascade": 54}, "50": {"l1": 52, "l2": 51, "l3": 25, "cascade": 50}}}, "failures": 9}

@@ -1,11 +1,11 @@
-"""驱动固件 `RT1`/`RT2` 自激环路，并汇总一套 296 题矩阵。
+"""驱动固件 `RT4` 级联自激环路，并汇总一套 296 题矩阵。
 
 背景：`RT` 让板子自己用 DAC（PA15）产生已知波形，经杜邦线回到 ADC
 输入（PA25），走完整的采集 + 识别链路，最后把"标称值"和"测量值"一起
 上报。因此不需要信号发生器，也能验证"模拟输出 -> 引脚 -> 连线 -> ADC
 -> 算法 -> 串口"整条通路。
 
-固件侧协议（一条 `RT1` 或 `RT2` 命令触发一整轮）：
+固件侧协议（一条 `RT1`～`RT4` 命令触发一整轮）：
 
     RT-START,algorithm=2,name=global_harmonic_model,cases=296,...,dump=0
     RT-CASE,index=1/296,group=custom,profile=boundary,type=sine,...
@@ -40,8 +40,8 @@ EXPECTED_CHALLENGE_CASES = 96
 
 
 def command_for_algorithm(algorithm):
-    """把命令行选择映射成固件命令，集中避免 RT1/RT2 写反。"""
-    if algorithm not in ('1', '2', '3'):
+    """把命令行选择映射成固件命令。"""
+    if algorithm not in ('1', '2', '3', '4'):
         raise ValueError(f'不支持的算法: {algorithm!r}')
     return f'RT{algorithm}'
 
@@ -151,13 +151,13 @@ def main():
         description='跑一遍固件 RT 自激矩阵并汇总通过情况')
     parser.add_argument('--port', default='COM15',
                         help='XDS110 Application/User UART，默认 COM15')
-    parser.add_argument('--timeout', type=float, default=600.0,
-                        help='整轮 296 题矩阵的期限秒，默认 600')
+    parser.add_argument('--timeout', type=float, default=4500.0,
+                        help='整轮 296 题矩阵的期限秒，默认 4500')
     parser.add_argument('--acquire-timeout', type=float, default=15.0,
                         help='抢占同一串口的等待上限秒')
     parser.add_argument('--output', default=None, help='会话目录；默认自动命名')
-    parser.add_argument('--algorithm', choices=('1', '2', '3'), default='3',
-                        help='1=legacy_amdf_crossing，2=global_harmonic_model，3=fast_phase_model（默认）')
+    parser.add_argument('--algorithm', choices=('1', '2', '3', '4'), default='4',
+                        help='1=legacy_amdf_crossing，2=global_harmonic_model，3=fast_phase_model，4=三级级联（默认）')
     parser.add_argument('--csv', action='store_true',
                         help='兼容旧固件：仅在固件回传 SAMPLES 时额外写 CSV')
     args = parser.parse_args()
@@ -293,6 +293,13 @@ def main():
                 }
                 continue
 
+            if line.startswith('CASCADE,'):
+                if current is None:
+                    protocol_error = 'CASCADE_WITHOUT_CASE'
+                    break
+                current['cascade'] = parse_kv('CASCADE', line)
+                continue
+
             if line.startswith('RESULT,'):
                 if current is None:
                     protocol_error = 'RESULT_WITHOUT_CASE'
@@ -305,6 +312,20 @@ def main():
                     protocol_error = 'CHECK_WITHOUT_CASE'
                     break
                 current['check'] = parse_kv('RT-CHECK', line)
+                continue
+
+            if line.startswith('RT-RETRY,'):
+                if current is None:
+                    protocol_error = 'RETRY_WITHOUT_CASE'
+                    break
+                current.setdefault('retries', []).append(parse_kv('RT-RETRY', line))
+                continue
+
+            if line.startswith('RT-TIMING,'):
+                if current is None:
+                    protocol_error = 'TIMING_WITHOUT_CASE'
+                    break
+                current['timing'] = parse_kv('RT-TIMING', line)
                 continue
 
             if line.startswith('SAMPLES,'):

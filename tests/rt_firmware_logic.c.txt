@@ -1,0 +1,101 @@
+/* Tests the firmware's RT phase generation and deadline decisions without a board. */
+#include <assert.h>
+#include <stdint.h>
+
+#define main firmware_main
+#include "../empty.c"
+#undef main
+
+int main(void)
+{
+    static uint16_t samples[WAVEFORM_SAMPLE_COUNT];
+    uint32_t boundary_low = 0U;
+    uint32_t boundary_high = 0U;
+    uint32_t linearly_guarded = 0U;
+    uint16_t index;
+
+    for (index = 0U; index < RT_CASE_COUNT; ++index) {
+        const rt_case_t *item = &g_rt_cases[index];
+        uint32_t nominal;
+        uint32_t actual;
+
+        rt_load_case(item, index);
+        if (g_rt_linear_guarded) {
+            uint16_t minimum = WAVEFORM_ADC_FULL_SCALE;
+            uint16_t maximum = 0U;
+            uint32_t sample_index;
+
+            for (sample_index = 0U; sample_index < WAVEFORM_SAMPLE_COUNT;
+                 ++sample_index) {
+                uint16_t code = rt_wave_code(
+                    (uint16_t)(g_dac_phase >> 16U));
+                g_dac_phase += g_rt_phase_inc;
+                if (code < minimum) minimum = code;
+                if (code > maximum) maximum = code;
+            }
+            assert(minimum >= RT_DAC_LINEAR_HEADROOM_COUNTS);
+            assert(maximum <= (WAVEFORM_ADC_FULL_SCALE -
+                               RT_DAC_LINEAR_HEADROOM_COUNTS));
+            ++linearly_guarded;
+            /* 后面的边界频率测试需要一份刚初始化的确定性波形。 */
+            rt_load_case(item, index);
+        }
+        nominal = rt_case_frequency_millihz(item);
+        actual = (uint32_t)(((uint64_t)g_rt_phase_inc *
+                             WAVEFORM_SAMPLE_RATE_HZ * 1000U +
+                             (UINT64_C(1) << 31U)) >> 32U);
+        assert(nominal >= 100000U && nominal <= 400000U);
+        assert((nominal > actual ? nominal - actual : actual - nominal) <= 1U);
+        if (item->cycles == 20U) {
+            waveform_frame_t frame;
+            waveform_result_t result;
+            uint32_t sample_index;
+            bool valid;
+
+            assert(nominal == 100000U);
+            for (sample_index = 0U; sample_index < WAVEFORM_SAMPLE_COUNT;
+                 ++sample_index) {
+                samples[sample_index] =
+                    rt_wave_code((uint16_t)(g_dac_phase >> 16U));
+                g_dac_phase += g_rt_phase_inc;
+            }
+            frame.samples = samples;
+            frame.sample_count = WAVEFORM_SAMPLE_COUNT;
+            frame.sample_rate_millihz =
+                WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ;
+            frame.adc_full_scale = WAVEFORM_ADC_FULL_SCALE;
+            frame.adc_reference_microvolts =
+                WAVEFORM_ACQUISITION_REFERENCE_MICROVOLTS;
+            frame.frontend_gain_ppm = WAVEFORM_UNITY_GAIN_PPM;
+            frame.sequence = index + 1U;
+            frame.flags = WAVEFORM_ACQUISITION_FLAGS;
+            valid = waveform_analyze_frame_with_algorithm(
+                &frame, &result, WAVEFORM_ALGORITHM_FAST_PHASE_MODEL);
+            assert(rt_check_case(item, &result, valid, false));
+            ++boundary_low;
+        } else if (item->cycles == 82U) {
+            assert(nominal == 400000U);
+            ++boundary_high;
+        }
+    }
+    assert(boundary_low == 8U && boundary_high == 32U);
+    assert(linearly_guarded > 0U && linearly_guarded < RT_CASE_COUNT);
+
+    /* 这正是 2026-09-25 实测中反复失败的两个高端小幅度用例。旧中心码
+     * 分别接近 4032/3995；修正后波形上沿不再进入 DAC 上端非线性区。 */
+    rt_load_case(&g_rt_cases[1], 1U);
+    assert(g_rt_center <= (WAVEFORM_ADC_FULL_SCALE -
+                           RT_DAC_LINEAR_HEADROOM_COUNTS));
+    assert(g_rt_linear_guarded);
+    rt_load_case(&g_rt_cases[5], 5U);
+    assert(g_rt_center <= (WAVEFORM_ADC_FULL_SCALE -
+                           RT_DAC_LINEAR_HEADROOM_COUNTS));
+    assert(g_rt_linear_guarded);
+
+    assert(rt_can_retry(false, 100U, 13099U));
+    assert(!rt_can_retry(false, 100U, 13100U));
+    assert(!rt_can_retry(true, 100U, 101U));
+    assert(rt_can_retry(false, UINT32_MAX - 100U, 12898U));
+    assert(!rt_can_retry(false, UINT32_MAX - 100U, 12899U));
+    return 0;
+}

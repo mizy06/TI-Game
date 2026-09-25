@@ -33,9 +33,26 @@ cc -std=c99 -O2 -Wall -Wextra -Werror \
 # 临时目标文件验证完即删除；-f 表示即使文件不存在也不报错。
 rm -f "$script_dir/empty_host_syntax.o"
 
+# 边界频率、相位步长、13 s 重试期限使用同一份板端逻辑验证。
+cc -std=c99 -O2 -Wall -Wextra -Werror \
+  -I"$script_dir/stubs" -I"$project_dir" \
+  -x c "$script_dir/rt_firmware_logic.c.txt" -x none \
+  "$project_dir/waveform_analyzer.c" "$project_dir/waveform_cascade.c" \
+  -lm -o "$script_dir/rt_firmware_logic"
+"$script_dir/rt_firmware_logic"
+rm -f "$script_dir/rt_firmware_logic"
+
 # 编译并运行算法的 C 回归、精度测试和赛事压力测试。
 bash "$script_dir/run_host_tests.sh"
 
 # discover 自动寻找 tests 下所有 test_*.py；-B 禁止生成 __pycache__，
 # -v 打印每个测试名，失败时更容易定位。
 python3 -B -m unittest discover -s "$script_dir" -p 'test_*.py' -v
+
+# 直接调用固件所用级联入口，记录三条独立路径和 L3 的真实触发数量。
+python3 -B "$project_dir/tools/evaluate_cascade.py" \
+  --library "$script_dir/waveform_analyzer_host.so" \
+  --output "$script_dir/results/cascade_296.json"
+python3 -B "$project_dir/tools/noise_cascade_matrix.py" \
+  --library "$script_dir/waveform_analyzer_host.so" \
+  --output "$script_dir/results/noise_cascade_matrix.json"

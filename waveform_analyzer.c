@@ -1380,6 +1380,9 @@ bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
     if (frame != NULL) {
         result->sequence = frame->sequence;
     }
+    if (algorithm == WAVEFORM_ALGORITHM_CASCADE) {
+        return waveform_analyze_cascade(frame, result, NULL);
+    }
     if ((algorithm != WAVEFORM_ALGORITHM_LEGACY_AMDF_CROSSING) &&
         (algorithm != WAVEFORM_ALGORITHM_GLOBAL_HARMONIC_MODEL) &&
         (algorithm != WAVEFORM_ALGORITHM_FAST_PHASE_MODEL)) {
@@ -1617,12 +1620,11 @@ bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
     return true;
 }
 
-/* Default to the tested low-compute path; algorithms 1/2 remain callable. */
+/* Production cascade; legacy algorithms remain explicitly callable for RT1-3. */
 bool waveform_analyze_frame(const waveform_frame_t *frame,
                             waveform_result_t *result)
 {
-    return waveform_analyze_frame_with_algorithm(
-        frame, result, WAVEFORM_ALGORITHM_FAST_PHASE_MODEL);
+    return waveform_analyze_cascade(frame, result, NULL);
 }
 
 /* 旧接口包装器：把固定默认参数装成一帧，再调用唯一的新版实现。
@@ -1687,6 +1689,8 @@ const char *waveform_algorithm_name(waveform_algorithm_t algorithm)
         return "global_harmonic_model";
     case WAVEFORM_ALGORITHM_FAST_PHASE_MODEL:
         return "fast_phase_model";
+    case WAVEFORM_ALGORITHM_CASCADE:
+        return "cascade_rt3_spectral_yin";
     default:
         return "unknown_algorithm";
     }
