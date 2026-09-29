@@ -14,6 +14,7 @@
 static volatile uint16_t g_adc_samples[WAVEFORM_SAMPLE_COUNT];
 static volatile bool g_capture_done;
 static volatile bool g_capture_failed;
+static uint32_t g_frame_sequence;
 
 /* MSPM0G3507 has 32 KB SRAM.  Keep one 8 KB sample buffer and let the
  * analyzer operate in place; a second DMA buffer would unnecessarily consume
@@ -72,6 +73,15 @@ static void uart_put_percent_permille(uint16_t permille)
     uart_put_u32(permille / 10U);
     uart_put_char('.');
     uart_put_char((char)('0' + (permille % 10U)));
+}
+
+/* Convert an ADC-code DC estimate to volts with three decimal places. */
+static void uart_put_offset_voltage(uint16_t counts)
+{
+    uint32_t millivolts = ((uint32_t)counts * 3300U +
+                           (WAVEFORM_ADC_FULL_SCALE / 2U)) /
+                          WAVEFORM_ADC_FULL_SCALE;
+    uart_put_milli(millivolts);
 }
 
 static bool uart_rx_error_pending(void)
@@ -328,42 +338,27 @@ static bool capture_samples(void)
 
 static void print_result(const waveform_result_t *result, bool valid)
 {
+    /* Competition CSV: type,frequency_hz,vpp_v,duty_pct,dc_offset_v.
+     * Non-square waveforms use duty_pct=0.  Keep this line free of labels so
+     * a host can parse it with a plain comma split. */
     if (!valid) {
-        uart_put_string("RESULT,status=");
-        uart_put_string(waveform_status_name(result->status));
-        uart_put_string(",type=unknown,high_clip_samples=");
-        uart_put_u32(result->high_clip_samples);
-        uart_put_string(",low_clip_samples=");
-        uart_put_u32(result->low_clip_samples);
-        uart_put_string(",invalid_samples=");
-        uart_put_u32(result->invalid_samples);
-        uart_put_string("\r\n");
+        uart_put_string("unknown,0,0,0,0\r\n");
         return;
     }
 
-    uart_put_string("RESULT,status=OK,type=");
     uart_put_string(waveform_type_name(result->type));
-    uart_put_string(",freq_hz=");
+    uart_put_char(',');
     uart_put_milli(result->frequency_millihz);
-    uart_put_string(",vpp_v=");
+    uart_put_char(',');
     uart_put_milli(result->vpp_millivolts);
+    uart_put_char(',');
     if (result->type == WAVEFORM_TYPE_SQUARE) {
-        uart_put_string(",duty_pct=");
         uart_put_percent_permille(result->duty_permille);
     } else {
-        uart_put_string(",duty_pct=NA");
+        uart_put_char('0');
     }
-    uart_put_string(",score_pct=");
-    uart_put_percent_permille(result->best_score_permille);
-    uart_put_string(",margin_pct=");
-    if (result->best_score_permille >= result->second_score_permille) {
-        uart_put_percent_permille((uint16_t)(result->best_score_permille -
-                                             result->second_score_permille));
-    } else {
-        uart_put_string("0.0");
-    }
-    uart_put_string(",cycles=");
-    uart_put_u32(result->accepted_cycles);
+    uart_put_char(',');
+    uart_put_offset_voltage(result->dc_offset_counts);
     uart_put_string("\r\n");
 }
 
@@ -381,11 +376,14 @@ int main(void)
                                      DL_GPIO_WAKEUP_DISABLE);
 
     uart_put_string("\r\nTI-CUP WAVEFORM CLASSIFIER\r\n");
-    uart_put_string("FW=prelim-dma-20260919-v1,INJECT=LE16-4096-FNV1A\r\n");
+    uart_put_string("FW=hardware-dma-cascade-v2.1,API=0x00020100\r\n");
+    uart_put_string("ALGO=cascade_rt3_spectral_yin,OUTPUT=CSV5\r\n");
+    uart_put_string("INJECT=LE16-4096-FNV1A\r\n");
     uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS=20000Hz, N=4096\r\n");
     uart_put_string("READY: send R=ADC, W=Inject, T=Simulate\r\n");
 
     for (;;) {
+        waveform_frame_t frame;
         waveform_result_t result;
         bool valid;
         trigger_mode_t mode = wait_for_trigger();
@@ -409,7 +407,15 @@ int main(void)
         }
 
         uart_put_string("PROCESSING\r\n");
-        valid = waveform_analyze((const uint16_t *)g_adc_samples, &result);
+        frame.samples = (const uint16_t *)g_adc_samples;
+        frame.sample_count = WAVEFORM_SAMPLE_COUNT;
+        frame.adc_full_scale = WAVEFORM_ADC_FULL_SCALE;
+        frame.sample_rate_millihz = WAVEFORM_SAMPLE_RATE_HZ * 1000UL;
+        frame.adc_reference_microvolts = 3300000UL;
+        frame.frontend_gain_ppm = 1000000UL;
+        frame.sequence = ++g_frame_sequence;
+        frame.flags = WAVEFORM_FRAME_FLAG_CONTIGUOUS;
+        valid = waveform_analyze_frame(&frame, &result);
         print_result(&result, valid);
         wait_for_button_release();
         uart_put_string("READY\r\n");
