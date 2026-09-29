@@ -28,7 +28,7 @@ class DualAlgorithmClockTests(unittest.TestCase):
         self.assertIn("suffix == '4'", source)
         self.assertIn('waveform_analyze_cascade(&frame, &result, &trace)', source)
         self.assertIn('RT-SUITE-START,algorithms=2', source)
-        self.assertIn('FW=cascade-v2.2,API=0x00020100,CPU_HZ=', source)
+        self.assertIn('FW=cascade-v2.3-fs-estimate,API=0x00020100,CPU_HZ=', source)
 
     def test_sysconfig_requests_rated_80_mhz_and_retimes_peripherals(self):
         config = (ROOT / 'empty.syscfg').read_text(encoding='utf-8')

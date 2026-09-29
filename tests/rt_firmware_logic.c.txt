@@ -1,5 +1,6 @@
 /* Tests the firmware's RT phase generation and deadline decisions without a board. */
 #include <assert.h>
+#include <math.h>
 #include <stdint.h>
 
 #define main firmware_main
@@ -13,6 +14,43 @@ int main(void)
     uint32_t boundary_high = 0U;
     uint32_t linearly_guarded = 0U;
     uint16_t index;
+
+    /* The September 29 external 370 Hz input has ~54.70 samples/period.
+     * Exercise the actual cascade with that spacing: wrong nominal metadata
+     * reads ~365.6 Hz, while the board-specific timer rate reads ~370 Hz.
+     * Vpp is intentionally unaffected by the timebase correction. */
+    for (uint32_t kind = 0U; kind < 3U; ++kind) {
+        waveform_frame_t frame;
+        waveform_result_t result;
+        waveform_cascade_trace_t trace;
+        for (uint32_t i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
+            double phase = fmod((double)i * 370.0 / 20240.0, 1.0);
+            double wave = kind == 0U ? sin(6.283185307179586 * phase) :
+                          kind == 1U ? (phase < 0.5 ? 1.0 : -1.0) :
+                          (phase < 0.5 ? 4.0 * phase - 1.0 :
+                           3.0 - 4.0 * phase);
+            samples[i] = (uint16_t)(1241.0 + 620.0 * wave + 0.5);
+        }
+        frame.samples = samples;
+        frame.sample_count = WAVEFORM_SAMPLE_COUNT;
+        frame.adc_full_scale = WAVEFORM_ADC_FULL_SCALE;
+        frame.sample_rate_millihz = WAVEFORM_SAMPLE_RATE_HZ * 1000UL;
+        frame.adc_reference_microvolts = 3300000U;
+        frame.frontend_gain_ppm = WAVEFORM_UNITY_GAIN_PPM;
+        frame.sequence = kind + 1U;
+        frame.flags = WAVEFORM_FRAME_FLAG_CONTIGUOUS;
+        assert(waveform_analyze_cascade(&frame, &result, &trace));
+        assert(result.type == (waveform_type_t)kind);
+        assert(result.frequency_millihz > 365300U &&
+               result.frequency_millihz < 365900U);
+        frame.sample_rate_millihz = WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ;
+        assert(waveform_analyze_cascade(&frame, &result, &trace));
+        assert(result.type == (waveform_type_t)kind);
+        assert(result.frequency_millihz > 369700U &&
+               result.frequency_millihz < 370300U);
+        assert(result.vpp_microvolts > 970000U &&
+               result.vpp_microvolts < 1030000U);
+    }
 
     for (index = 0U; index < RT_CASE_COUNT; ++index) {
         const rt_case_t *item = &g_rt_cases[index];
@@ -42,7 +80,7 @@ int main(void)
         }
         nominal = rt_case_frequency_millihz(item);
         actual = (uint32_t)(((uint64_t)g_rt_phase_inc *
-                             WAVEFORM_SAMPLE_RATE_HZ * 1000U +
+                             WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ +
                              (UINT64_C(1) << 31U)) >> 32U);
         assert(nominal >= 100000U && nominal <= 400000U);
         assert((nominal > actual ? nominal - actual : actual - nominal) <= 1U);
@@ -73,12 +111,12 @@ int main(void)
                 &frame, &result, WAVEFORM_ALGORITHM_FAST_PHASE_MODEL);
             assert(rt_check_case(item, &result, valid, false));
             ++boundary_low;
-        } else if (item->cycles == 82U) {
+        } else if (item->cycles >= 81U) {
             assert(nominal == 400000U);
             ++boundary_high;
         }
     }
-    assert(boundary_low == 8U && boundary_high == 32U);
+    assert(boundary_low == 8U && boundary_high == 36U);
     assert(linearly_guarded > 0U && linearly_guarded < RT_CASE_COUNT);
 
     /* 这正是 2026-09-25 实测中反复失败的两个高端小幅度用例。旧中心码

@@ -5,7 +5,7 @@
  * the active build directory remain untouched and may be regenerated safely.
  *
  * 零基础阅读提示：
- * 1. 定时器每 50 us 触发一次 ADC，因此采样率为 20 kHz；
+ * 1. 定时器每 4000 个总线时钟触发一次 ADC；实际采样率见板级校准；
  * 2. ADC 中断把 4096 个点依次放进 g_adc_samples；
  * 3. 主循环把这帧数据交给 waveform_analyze_frame；
  * 4. 结果经 UART 打印给电脑。
@@ -21,6 +21,7 @@
  */
 
 #include "ti_msp_dl_config.h"
+#include "board_calibration.h"
 #include "waveform_analyzer.h"
 #include "rt_question_set.h"
 
@@ -500,10 +501,10 @@ static void print_result(const waveform_result_t *result, bool valid)
  * 整条通路，而不是只验证算法本身。
  *
  * 为什么对得很准（三条设计约束）：
- * 1. 产生和采集共用 TIMER_0 的同一个 20 kHz 节拍。每个节拍上硬件先触发
+ * 1. 产生和采集共用 TIMER_0 的同一个采样节拍。每个节拍上硬件先触发
  *    ADC 采样保持，之后中断里才把 DAC 更新到下一点，因此第 k 个 ADC 点
  *    采到的正是第 k 个 DAC 码，帧内不需要任何对齐或插值。
- * 2. 用例频率取 f = cycles * 20000 / 4096（cycles 为整数），保证一帧 4096
+ * 2. 用例频率取 f = cycles * fs / 4096（cycles 为整数），保证一帧 4096
  *    点里正好放下整数个周期，首尾严格连续，换帧不会产生毛刺。
  * 3. DAC 和 ADC 都以 VDDA 为参考，参考电压的绝对误差在码域两端互相
  *    抵消；同时把可容纳的测试波形限制在 DAC 数据手册规定的 0.3 V 到
@@ -516,7 +517,7 @@ static void print_result(const waveform_result_t *result, bool valid)
 
 /* 题集定义在 rt_question_set.h：前 200 题是自编门禁，后 96 题是
  * challenge。参数由原 competition_stress_suite.py 固定 seed 题库映射而来；
- * 硬件采样率固定为 20 kHz，所以频率量化到一帧内的整数周期。 */
+ * 硬件节拍固定，所以频率量化到一帧内的整数周期。 */
 
 /* 256 点整周期正弦表，幅值 ±2047（约等于 12 位满量程的一半）。
  * 放在 flash 里（const），不占 SRAM。相位取高 8 位直接查表，相位量化
@@ -604,12 +605,12 @@ void SysTick_Handler(void)
  * 用整数运算保留到 mHz，避免为了打印一个频率引入浮点。 */
 static uint32_t rt_case_frequency_millihz(const rt_case_t *item)
 {
-    /* 整周期量化使 20 周期变为 97.656 Hz、82 周期变为 400.391 Hz，
-     * 都越过了赛题 100~400 Hz 的端点。边界题改为准确的标称频率。 */
+    /* 20 个整周期不足 100 Hz；81、82 个整周期超过 400 Hz。
+     * 边界题用相位累加器生成准确标称频率。 */
     if (item->cycles == 20U) {
         return 100000U;
     }
-    if (item->cycles == 82U) {
+    if (item->cycles >= 81U) {
         return 400000U;
     }
     return ((uint32_t)item->cycles * WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ) /
@@ -782,11 +783,13 @@ static void rt_load_case(const rt_case_t *item, uint16_t index)
 
     g_rt_type = item->type;
     /* 普通题仍保持整周期；100/400 Hz 边界题用 Q16.16 相位累加器，
-     * 每帧分别约 20.48/81.92 周期，跨帧保持相位连续。 */
+     * 按本板采样率换算相位步长，跨帧保持相位连续。 */
     g_rt_phase_inc = (item->cycles == 20U) ?
-        (uint32_t)(((uint64_t)100U << 32U) / WAVEFORM_SAMPLE_RATE_HZ) :
-        (item->cycles == 82U) ?
-        (uint32_t)(((uint64_t)400U << 32U) / WAVEFORM_SAMPLE_RATE_HZ) :
+        (uint32_t)(((uint64_t)100U << 32U) * 1000U /
+                   WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ) :
+        (item->cycles >= 81U) ?
+        (uint32_t)(((uint64_t)400U << 32U) * 1000U /
+                   WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ) :
         (uint32_t)item->cycles * (UINT32_MAX / WAVEFORM_SAMPLE_COUNT + 1U);
     /* 占空比千分数换算成相位门限：permille/1000 * 65536。 */
     g_rt_duty_thresh =
@@ -1206,7 +1209,7 @@ static bool rt_run_matrix(waveform_algorithm_t algorithm, bool print_ready)
     uart_put_string(",challenge=");
     uart_put_u32(RT_CHALLENGE_CASE_COUNT);
     uart_put_string(",fs_hz=");
-    uart_put_u32(WAVEFORM_SAMPLE_RATE_HZ);
+    uart_put_milli(WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ);
     uart_put_string(",n=");
     uart_put_u32(WAVEFORM_SAMPLE_COUNT);
     uart_put_string(",dac=PA15,adc=PA25,dump=0\r\n");
@@ -1340,7 +1343,7 @@ int main(void)
         for (;;) { /* 10 s timing contract cannot be checked without timer. */ }
     }
     uart_put_string("\r\nTI-CUP WAVEFORM CLASSIFIER\r\n");
-    uart_put_string("FW=cascade-v2.2,API=0x00020100,CPU_HZ=");
+    uart_put_string("FW=cascade-v2.3-fs-estimate,API=0x00020100,CPU_HZ=");
     uart_put_u32(CPUCLK_FREQ);
     uart_put_string(",DEFAULT_ALGORITHM=4,INJECT=LE16-4096-FNV1A\r\n");
     uart_put_string("ADC=PA25, FS_HZ=");
@@ -1400,8 +1403,11 @@ int main(void)
         frame.samples = (const uint16_t *)g_adc_samples;
         frame.sample_count = WAVEFORM_SAMPLE_COUNT;
         frame.adc_full_scale = WAVEFORM_ADC_FULL_SCALE;
-        frame.sample_rate_millihz =
-            WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ;
+        /* W/T carry synthetic samples defined at 20 kHz. Only a real ADC
+         * frame uses this board's observed timer rate. */
+        frame.sample_rate_millihz = (mode == TRIGGER_ADC_CAPTURE) ?
+            WAVEFORM_ACQUISITION_SAMPLE_RATE_MILLIHZ :
+            WAVEFORM_SAMPLE_RATE_HZ * 1000UL;
         frame.adc_reference_microvolts =
             WAVEFORM_ACQUISITION_REFERENCE_MICROVOLTS;
         frame.frontend_gain_ppm =

@@ -161,10 +161,13 @@ quality_flags=3 表示默认采样时钟和参考电压仍使用标称值；完�
 2. 导入本目录；
 3. Project > Clean；
 4. Build Project；
-5. 烧录后确认启动横幅包含 `FW=cascade-v2.2`、`API=0x00020100` 和
-   `CPU_HZ=80000000`；
+5. 烧录后确认启动横幅包含 `FW=cascade-v2.3-fs-estimate`、
+   `API=0x00020100`、`FS_HZ=20240.000` 和 `CPU_HZ=80000000`；
 6. 优先发送 `RT4` 测试正式级联；`RT1`、`RT2`、`RT3` 与 `RT` 保留历史对照。
 
 `empty.syscfg` 已配置 80 MHz SYSPLL、ULPCLK÷2、PLL/FCC 校验、20 kS/s
 定时器和 115200 UART。目标板构建仍应以 CCS/SysConfig 2.11 工程重新生成的
 文件为准；不要复用旧 Debug 目录。
+
+9 月 29 日外部输入的频率换算修正见 [板级校准说明](CALIBRATION_2026-09-29.md)。
+`board_calibration.h` 中的 20240 Hz 是依据当日日志的暂定值，须在目标板实测。

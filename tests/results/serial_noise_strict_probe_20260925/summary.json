@@ -1,0 +1,10 @@
+{
+  "cases": 1,
+  "passed": 1,
+  "failed": 0,
+  "class_correct": 1,
+  "max_freq_err_pct": 100.0,
+  "max_vpp_err_pct": 100.0,
+  "max_duty_err_pp": 0.0,
+  "max_elapsed_s": 1.7819999999992433
+}

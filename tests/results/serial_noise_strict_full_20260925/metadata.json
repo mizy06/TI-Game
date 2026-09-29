@@ -1,0 +1,27 @@
+{
+  "port": "COM15",
+  "hwid": "USB VID:PID=0451:BEF3 SER=MG350001 LOCATION=1-6:x.0",
+  "mode": "UART W injection; NOT analog ADC validation",
+  "baud": 115200,
+  "fs_hz": 20000.0,
+  "sample_count": 4096,
+  "seed_base": 20260925,
+  "planned_cases": 162,
+  "manual_noise_limit": "noise Vpp <= signal Vpp * 20%; bandwidth upper limit >= 5*f",
+  "noise_models": [
+    "white",
+    "lowpass_5f",
+    "highband"
+  ],
+  "noise_levels": [
+    0.0,
+    0.2
+  ],
+  "engineering_gate_not_official": {
+    "freq_pct": 0.5,
+    "vpp_pct": 8.0,
+    "duty_pp": 2.0,
+    "frame_budget_s": 10.0
+  },
+  "script_sha256": "a4f95341c4e4702379429ff268bc3e00ca5deb5502e888bf866cd665d7cfe7e0"
+}
