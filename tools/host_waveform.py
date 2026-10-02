@@ -102,7 +102,7 @@ def classify(dll, payload: bytes) -> str:
     values = (ctypes.c_uint16 * SAMPLES).from_buffer_copy(payload)
     frame = Frame(values, SAMPLES, 4095, 20000000, 3300000, 1000000, 1, 1)
     result = Result()
-    ok = bool(dll.waveform_analyze_frame(ctypes.byref(frame), ctypes.byref(result)))
+    ok = bool(dll.ti_waveform_analyze_frame(ctypes.byref(frame), ctypes.byref(result)))
     if not ok:
         return "unknown,0,0,0,0"
     duty = result.duty_permille / 10 if result.type == 1 else 0
@@ -115,6 +115,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", required=True)
     parser.add_argument("--dll", default=str(ROOT / "tools" / "waveform_analyzer_host.dll"))
+    parser.add_argument("--loop", action="store_true",
+                        help="keep the port open and analyze one frame per Enter")
     args = parser.parse_args()
     try:
         import serial
@@ -122,8 +124,15 @@ def main() -> int:
         dll.ti_waveform_analyze_frame.argtypes = [ctypes.POINTER(Frame), ctypes.POINTER(Result)]
         dll.ti_waveform_analyze_frame.restype = ctypes.c_bool
         with serial.Serial(args.port, 115200, timeout=2, write_timeout=2) as port:
-            payload = dump(port)
-        print(classify(dll, payload), flush=True)
+            if args.loop:
+                print("Host cascade ready. Press Enter to capture; Ctrl+C to quit.", flush=True)
+                while True:
+                    input()
+                    payload = dump(port)
+                    print(classify(dll, payload), flush=True)
+            else:
+                payload = dump(port)
+                print(classify(dll, payload), flush=True)
         return 0
     except Exception as error:
         print(f"host_waveform: {error}", file=sys.stderr)
