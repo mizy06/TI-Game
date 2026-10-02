@@ -34,19 +34,35 @@ ADC121.adcMem0trig         = "DL_ADC12_TRIGGER_MODE_TRIGGER_NEXT";
 ADC121.repeatMode          = true;
 ADC121.powerDownMode       = "DL_ADC12_POWER_DOWN_MODE_MANUAL";
 ADC121.subChanID           = 1;
-ADC121.enabledInterrupts   = ["DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED"];
+/* One half-word DMA transfer is generated for each MEM0 conversion.  FIFO is
+ * intentionally left disabled: the classifier consumes one uint16_t sample
+ * per timer event and the 32 KB SRAM budget does not allow a second buffer. */
+ADC121.configureDMA       = true;
+ADC121.enableFIFO         = false;
+ADC121.enableDMA          = true;
+ADC121.sampCnt            = 1;
+ADC121.enabledDMATriggers = ["DL_ADC12_DMA_MEM0_RESULT_LOADED"];
+ADC121.enabledInterrupts  = ["DL_ADC12_INTERRUPT_DMA_DONE",
+                             "DL_ADC12_INTERRUPT_UNDERFLOW"];
 ADC121.adcPin2Config.$name = "ti_driverlib_gpio_GPIOPinGeneric2";
+
+ADC121.DMA_CHANNEL.peripheral.$assign = "DMA_CH0";
+ADC121.DMA_CHANNEL.$name              = "DMA_CH0";
+ADC121.DMA_CHANNEL.addressMode       = "f2b";
+ADC121.DMA_CHANNEL.srcLength         = "HALF_WORD";
+ADC121.DMA_CHANNEL.dstLength         = "HALF_WORD";
+ADC121.DMA_CHANNEL.dstIncDec         = "INCREMENT";
 
 const Board = scripting.addModule("/ti/driverlib/Board", {}, false);
 
 GPIO1.$name                       = "GPIO_GRP_0";
 GPIO1.associatedPins[0].$name     = "PIN_0";
 GPIO1.associatedPins[0].direction = "INPUT";
+GPIO1.associatedPins[0].internalResistor = "PULL_UP";
 
 SYSCTL.forceDefaultClkConfig = true;
 
 TIMER1.$name                       = "TIMER_0";
-TIMER1.interrupts                  = ["ZERO"];
 TIMER1.timerPeriod                 = "0.05 ms";
 TIMER1.timerMode                   = "PERIODIC";
 TIMER1.timerClkPrescale            = 1;
@@ -55,6 +71,7 @@ TIMER1.event1ControllerInterruptEn = ["ZERO_EVENT"];
 
 UART1.$name             = "UART_0";
 UART1.profile           = "CONFIG_PROFILE_1";
+UART1.enableInternalLoopback = false;
 UART1.txPinConfig.$name = "ti_driverlib_gpio_GPIOPinGeneric0";
 UART1.rxPinConfig.$name = "ti_driverlib_gpio_GPIOPinGeneric1";
 
@@ -72,5 +89,5 @@ GPIO1.associatedPins[0].pin.$suggestSolution = "PB13";
 SYSCTL.peripheral.$suggestSolution           = "SYSCTL";
 TIMER1.peripheral.$suggestSolution           = "TIMA0";
 UART1.peripheral.$suggestSolution            = "UART0";
-UART1.peripheral.rxPin.$suggestSolution      = "PA1";
-UART1.peripheral.txPin.$suggestSolution      = "PA0";
+UART1.peripheral.rxPin.$suggestSolution      = "PA11";
+UART1.peripheral.txPin.$suggestSolution      = "PA10";

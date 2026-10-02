@@ -1,19 +1,24 @@
-/*
- * TI Cup waveform classifier application for MSPM0G3507.
- *
- * This is an application-owned source file. SysConfig-generated files under
- * the active build directory remain untouched and may be regenerated safely.
- */
-
+/* MSPM0G3507 acquisition firmware: 4096 ADC samples via TIMA0 + DMA_CH0.
+ * Classification and all physical-unit calculations run on the host. */
 #include "ti_msp_dl_config.h"
-#include "waveform_analyzer.h"
-
+#include "acquisition_config.h"
 #include <stdbool.h>
 #include <stdint.h>
 
-static volatile uint16_t g_adc_samples[WAVEFORM_SAMPLE_COUNT];
-static volatile uint32_t g_sample_index;
+static volatile uint16_t g_adc_samples[ACQ_SAMPLE_COUNT];
 static volatile bool g_capture_done;
+static volatile bool g_capture_failed;
+static uint32_t g_frame_sequence;
+
+#if ACQ_SAMPLE_COUNT > 65535
+#error "DMA transfer size must fit the 16-bit transfer counter"
+#endif
+#define CAPTURE_TIMEOUT_MS (500U)
+#define UART_RX_ERROR_MASK (DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR | \
+                            DL_UART_MAIN_INTERRUPT_BREAK_ERROR | \
+                            DL_UART_MAIN_INTERRUPT_PARITY_ERROR | \
+                            DL_UART_MAIN_INTERRUPT_FRAMING_ERROR | \
+                            DL_UART_MAIN_INTERRUPT_NOISE_ERROR)
 
 static void uart_put_char(char value)
 {
@@ -44,133 +49,57 @@ static void uart_put_u32(uint32_t value)
     }
 }
 
-static void uart_put_milli(uint32_t value)
+static bool uart_rx_error_pending(void)
 {
-    uart_put_u32(value / 1000U);
-    uart_put_char('.');
-    uart_put_char((char)('0' + ((value / 100U) % 10U)));
-    uart_put_char((char)('0' + ((value / 10U) % 10U)));
-    uart_put_char((char)('0' + (value % 10U)));
-}
+    uint32_t status = DL_UART_Main_getRawInterruptStatus(UART_0_INST,
+                                                         UART_RX_ERROR_MASK);
 
-static void uart_put_percent_permille(uint16_t permille)
-{
-    uart_put_u32(permille / 10U);
-    uart_put_char('.');
-    uart_put_char((char)('0' + (permille % 10U)));
-}
-
-#include <math.h>
-
-typedef enum {
-    TRIGGER_ADC_CAPTURE = 0,
-    TRIGGER_UART_INJECT,
-    TRIGGER_ONCHIP_SELFTEST
-} trigger_mode_t;
-
-static uint32_t g_sim_rng = 0x13579BDFU;
-
-static uint32_t sim_rand(void)
-{
-    g_sim_rng = (1664525U * g_sim_rng) + 1013904223U;
-    return g_sim_rng;
-}
-
-static uint8_t g_selftest_case = 0U;
-
-static void generate_simulated_samples(void)
-{
-    /* 4 standard noisy test cases:
-     * 0: Sine 200 Hz, Vpp ~2.0V, 15% Vpp uniform noise
-     * 1: Square 250 Hz, 30% duty, Vpp ~2.0V, 15% Vpp uniform noise
-     * 2: Triangle 150 Hz, Vpp ~2.0V, 15% Vpp uniform noise
-     * 3: Sawtooth 300 Hz, Vpp ~2.0V, 15% Vpp uniform noise
-     */
-    uint32_t freq_hz = (g_selftest_case == 0U) ? 200U :
-                       (g_selftest_case == 1U) ? 250U :
-                       (g_selftest_case == 2U) ? 150U : 300U;
-    uint32_t wave_type = g_selftest_case;
-    g_selftest_case = (g_selftest_case + 1U) % 4U;
-
-    uint32_t phase_inc = (freq_hz * 65536U) / WAVEFORM_SAMPLE_RATE_HZ;
-    uint32_t phase = 0U;
-    int32_t vpp_counts = 2482; // ~2.0V (2.0 * 4095 / 3.3)
-    int32_t center = 2048;     // 1.65V DC offset
-    int32_t noise_amp = vpp_counts * 15 / 200;
-
-    for (uint32_t i = 0U; i < WAVEFORM_SAMPLE_COUNT; ++i) {
-        int32_t val = 0;
-        uint16_t p16 = (uint16_t)phase;
-
-        switch (wave_type) {
-        case 0: // Sine
-            val = (int32_t)(sinf(2.0f * 3.14159265f * (float)phase / 65536.0f) * (float)(vpp_counts / 2));
-            break;
-        case 1: // Square (30% duty)
-            val = (p16 < (65536U * 30U / 100U)) ? (vpp_counts / 2) : -(vpp_counts / 2);
-            break;
-        case 2: // Triangle
-            if (p16 < 16384U) {
-                val = (int32_t)(((int64_t)p16 * vpp_counts) / 32768U);
-            } else if (p16 < 49152U) {
-                val = (vpp_counts / 2) - (int32_t)(((int64_t)(p16 - 16384U) * vpp_counts) / 32768U);
-            } else {
-                val = -(vpp_counts / 2) + (int32_t)(((int64_t)(p16 - 49152U) * vpp_counts) / 32768U);
-            }
-            break;
-        case 3: // Falling Sawtooth
-        default:
-            val = (vpp_counts / 2) - (int32_t)(((int64_t)p16 * vpp_counts) / 65536U);
-            break;
-        }
-
-        // Add pseudo-random noise (max 15% Vpp)
-        int32_t noise = (int32_t)(sim_rand() % (uint32_t)(noise_amp * 2 + 1)) - noise_amp;
-        int32_t sample = center + val + noise;
-        if (sample < 0) sample = 0;
-        if (sample > 4095) sample = 4095;
-        g_adc_samples[i] = (uint16_t)sample;
-
-        phase = (phase + phase_inc) & 0xFFFFU;
+    if (status == 0U) {
+        return false;
     }
-}
-
-static bool receive_uart_samples(void)
-{
-    volatile uint8_t *dest = (volatile uint8_t *)g_adc_samples;
-    uint32_t total = WAVEFORM_SAMPLE_COUNT * sizeof(uint16_t);
-    uint32_t count = 0U;
-    uint32_t timeout_loops = 0U;
-    uint32_t checksum = 2166136261U;
-
-    uart_put_string("READY_FOR_DATA\r\n");
-
-    while (count < total) {
-        if (!DL_UART_Main_isRXFIFOEmpty(UART_0_INST)) {
-            uint8_t value = DL_UART_Main_receiveData(UART_0_INST);
-            dest[count++] = value;
-            checksum = (checksum ^ value) * 16777619U;
-            timeout_loops = 0U;
-        } else {
-            delay_cycles(CPUCLK_FREQ / 100000U); // ~10 us
-            if (++timeout_loops > 250000U) {     // ~2.5s timeout
-                uart_put_string("ERR_TIMEOUT\r\n");
-                return false;
-            }
-        }
-    }
-    uart_put_string("DATA,bytes=");
-    uart_put_u32(total);
-    uart_put_string(",fnv1a=");
-    uart_put_u32(checksum);
-    uart_put_string("\r\n");
-    for (count = 0U; count < WAVEFORM_SAMPLE_COUNT; ++count) {
-        if (g_adc_samples[count] > WAVEFORM_ADC_FULL_SCALE) {
-            uart_put_string("ERR_SAMPLE_RANGE\r\n");
-            return false;
-        }
-    }
+    DL_UART_Main_clearInterruptStatus(UART_0_INST, status);
     return true;
+}
+
+/* DUMP v2: metadata, LE16 payload, FNV-1a over the exact transmitted bytes. */
+static uint32_t frame_fnv1a(void)
+{
+    uint32_t hash = 2166136261U;
+    uint32_t i;
+    for (i = 0U; i < ACQ_SAMPLE_COUNT; ++i) {
+        uint16_t sample = g_adc_samples[i];
+        hash = (hash ^ (uint8_t)sample) * 16777619U;
+        hash = (hash ^ (uint8_t)(sample >> 8)) * 16777619U;
+    }
+    return hash;
+}
+
+static void dump_adc_frame(void)
+{
+    uint32_t i;
+    uart_put_string("DUMP,proto=2,bytes=");
+    uart_put_u32(ACQ_SAMPLE_COUNT * 2U);
+    uart_put_string(",fnv1a=");
+    uart_put_u32(frame_fnv1a());
+    uart_put_string(",seq=");
+    uart_put_u32(++g_frame_sequence);
+    uart_put_string(",fs_millihz=");
+    uart_put_u32(ACQ_SAMPLE_RATE_MILLIHZ);
+    uart_put_string(",vref_uv=");
+    uart_put_u32(ACQ_REFERENCE_MICROVOLTS);
+    uart_put_string(",gain_ppm=");
+    uart_put_u32(ACQ_FRONTEND_GAIN_PPM);
+    uart_put_string(",adc_max=");
+    uart_put_u32(ACQ_ADC_FULL_SCALE);
+    uart_put_string(",flags=");
+    uart_put_u32(ACQ_FLAGS);
+    uart_put_string("\r\n");
+    for (i = 0U; i < ACQ_SAMPLE_COUNT; ++i) {
+        uint16_t sample = g_adc_samples[i];
+        uart_put_char((char)(uint8_t)sample);
+        uart_put_char((char)(uint8_t)(sample >> 8));
+    }
+    uart_put_string("DUMP_END\r\n");
 }
 
 static bool button_is_pressed(void)
@@ -179,25 +108,23 @@ static bool button_is_pressed(void)
             GPIO_GRP_0_PIN_0_PIN) == 0U;
 }
 
-static trigger_mode_t wait_for_trigger(void)
+static bool wait_for_trigger(void)
 {
     for (;;) {
+        (void)uart_rx_error_pending();
         while (!DL_UART_Main_isRXFIFOEmpty(UART_0_INST)) {
             uint8_t value = DL_UART_Main_receiveData(UART_0_INST);
             if ((value == 'r') || (value == 'R')) {
-                return TRIGGER_ADC_CAPTURE;
+                return false;
             }
-            if ((value == 'w') || (value == 'W')) {
-                return TRIGGER_UART_INJECT;
-            }
-            if ((value == 't') || (value == 'T')) {
-                return TRIGGER_ONCHIP_SELFTEST;
+            if ((value == 'd') || (value == 'D')) {
+                return false;
             }
         }
         if (button_is_pressed()) {
             delay_cycles(CPUCLK_FREQ / 100U);
             if (button_is_pressed()) {
-                return TRIGGER_ADC_CAPTURE;
+                return true;
             }
         }
         delay_cycles(CPUCLK_FREQ / 1000U);
@@ -212,111 +139,112 @@ static void wait_for_button_release(void)
     delay_cycles(CPUCLK_FREQ / 100U);
 }
 
-static void capture_samples(void)
+static void configure_adc_dma_capture(void)
 {
-    __disable_irq();
-    g_sample_index = 0U;
-    g_capture_done = false;
-    DL_TimerA_stopCounter(TIMER_0_INST);
+    /* SysConfig creates DMA_CH0 and connects ADC0's event trigger.  Addresses
+     * and size must be restored for every capture because a completed block
+     * leaves the DMA destination at the end of the sample buffer. */
+    DL_DMA_disableChannel(DMA, DMA_CH0_CHAN_ID);
+    DL_DMA_configTransfer(DMA, DMA_CH0_CHAN_ID,
+                          DL_DMA_SINGLE_TRANSFER_MODE,
+                          DL_DMA_NORMAL_MODE,
+                          DL_DMA_WIDTH_HALF_WORD,
+                          DL_DMA_WIDTH_HALF_WORD,
+                          DL_DMA_ADDR_UNCHANGED,
+                          DL_DMA_ADDR_INCREMENT);
+    DL_DMA_setSrcAddr(DMA, DMA_CH0_CHAN_ID,
+                      DL_ADC12_getMemResultAddress(ADC12_0_INST,
+                                                   ADC12_0_ADCMEM_0));
+    DL_DMA_setDestAddr(DMA, DMA_CH0_CHAN_ID,
+                       (uint32_t)(uintptr_t)g_adc_samples);
+    DL_DMA_setTransferSize(DMA, DMA_CH0_CHAN_ID,
+                           (uint16_t)ACQ_SAMPLE_COUNT);
+    DL_DMA_clearInterruptStatus(DMA, DL_DMA_INTERRUPT_CHANNEL0 |
+                                     DL_DMA_INTERRUPT_ADDR_ERROR |
+                                     DL_DMA_INTERRUPT_DATA_ERROR);
+
+    /* DMA_DONE is reported by ADC0 when the configured DMA block completes.
+     * Clear both terminal and fault status before re-arming.  Otherwise an
+     * underflow from the previous frame can make the next frame fail before
+     * its first conversion. */
     DL_ADC12_clearInterruptStatus(ADC12_0_INST,
-                                 DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED);
+                                  DL_ADC12_INTERRUPT_DMA_DONE |
+                                      DL_ADC12_INTERRUPT_UNDERFLOW);
+    DL_ADC12_clearDMATriggerStatus(ADC12_0_INST,
+                                   DL_ADC12_DMA_MEM0_RESULT_LOADED);
+    DL_ADC12_enableDMA(ADC12_0_INST);
+    DL_ADC12_enableDMATrigger(ADC12_0_INST,
+                              DL_ADC12_DMA_MEM0_RESULT_LOADED);
+    DL_DMA_enableChannel(DMA, DMA_CH0_CHAN_ID);
+}
+
+static void stop_adc_dma_capture(bool failed)
+{
+    DL_TimerA_stopCounter(TIMER_0_INST);
+    DL_ADC12_disableDMATrigger(ADC12_0_INST,
+                               DL_ADC12_DMA_MEM0_RESULT_LOADED);
+    DL_ADC12_disableDMA(ADC12_0_INST);
+    DL_DMA_disableChannel(DMA, DMA_CH0_CHAN_ID);
+    g_capture_failed = failed;
+    g_capture_done = true;
+}
+
+static bool capture_samples(void)
+{
+    uint32_t elapsed_ms;
+
+    __disable_irq();
+    g_capture_done = false;
+    g_capture_failed = false;
+    DL_TimerA_stopCounter(TIMER_0_INST);
+    configure_adc_dma_capture();
     NVIC_ClearPendingIRQ(ADC12_0_INST_INT_IRQN);
     NVIC_EnableIRQ(ADC12_0_INST_INT_IRQN);
     DL_TimerA_startCounter(TIMER_0_INST);
     __enable_irq();
 
-    while (!g_capture_done) {
-        __WFI();
+    for (elapsed_ms = 0U;
+         (!g_capture_done) && (elapsed_ms < CAPTURE_TIMEOUT_MS);
+         ++elapsed_ms) {
+        uint32_t dma_errors = DL_DMA_getRawInterruptStatus(
+            DMA, DL_DMA_INTERRUPT_ADDR_ERROR | DL_DMA_INTERRUPT_DATA_ERROR);
+        if (dma_errors != 0U) {
+            DL_DMA_clearInterruptStatus(DMA, dma_errors);
+            stop_adc_dma_capture(true);
+            break;
+        }
+        delay_cycles(CPUCLK_FREQ / 1000U);
+    }
+    if (!g_capture_done) {
+        stop_adc_dma_capture(true);
     }
     NVIC_DisableIRQ(ADC12_0_INST_INT_IRQN);
-}
-
-static void print_result(const waveform_result_t *result, bool valid)
-{
-    if (!valid) {
-        uart_put_string("RESULT,status=");
-        uart_put_string(waveform_status_name(result->status));
-        uart_put_string(",type=unknown,high_clip_samples=");
-        uart_put_u32(result->high_clip_samples);
-        uart_put_string(",low_clip_samples=");
-        uart_put_u32(result->low_clip_samples);
-        uart_put_string(",invalid_samples=");
-        uart_put_u32(result->invalid_samples);
-        uart_put_string("\r\n");
-        return;
-    }
-
-    uart_put_string("RESULT,status=OK,type=");
-    uart_put_string(waveform_type_name(result->type));
-    uart_put_string(",freq_hz=");
-    uart_put_milli(result->frequency_millihz);
-    uart_put_string(",vpp_v=");
-    uart_put_milli(result->vpp_millivolts);
-    if (result->type == WAVEFORM_TYPE_SQUARE) {
-        uart_put_string(",duty_pct=");
-        uart_put_percent_permille(result->duty_permille);
-    } else {
-        uart_put_string(",duty_pct=NA");
-    }
-    uart_put_string(",score_pct=");
-    uart_put_percent_permille(result->best_score_permille);
-    uart_put_string(",margin_pct=");
-    if (result->best_score_permille >= result->second_score_permille) {
-        uart_put_percent_permille((uint16_t)(result->best_score_permille -
-                                             result->second_score_permille));
-    } else {
-        uart_put_string("0.0");
-    }
-    uart_put_string(",cycles=");
-    uart_put_u32(result->accepted_cycles);
-    uart_put_string("\r\n");
+    return !g_capture_failed;
 }
 
 int main(void)
 {
     SYSCFG_DL_init();
-
-    /* The starter project selected UART loopback and a floating input. These
-     * application overrides avoid editing the protected .syscfg source. */
     DL_UART_Main_disableLoopbackMode(UART_0_INST);
     DL_GPIO_initDigitalInputFeatures(GPIO_GRP_0_PIN_0_IOMUX,
                                      DL_GPIO_INVERSION_DISABLE,
                                      DL_GPIO_RESISTOR_PULL_UP,
                                      DL_GPIO_HYSTERESIS_ENABLE,
                                      DL_GPIO_WAKEUP_DISABLE);
-
-    /* Also map UART0 to PA10 (TX) and PA11 (RX) so the onboard LaunchPad XDS110
-     * backchannel virtual COM port works directly without external jumper wires. */
-    DL_GPIO_initPeripheralOutputFunction(IOMUX_PINCM21, IOMUX_PINCM21_PF_UART0_TX);
-    DL_GPIO_initPeripheralInputFunction(IOMUX_PINCM22, IOMUX_PINCM22_PF_UART0_RX);
-
-    uart_put_string("\r\nTI-CUP WAVEFORM CLASSIFIER\r\n");
-    uart_put_string("FW=audited-20260917-v1,INJECT=LE16-4096-FNV1A\r\n");
-    uart_put_string("ADC=PA25, FS=20000Hz, N=4096\r\n");
-    uart_put_string("READY: send R=ADC, W=Inject, T=Simulate\r\n");
-
+    uart_put_string("\r\nTI-CUP ADC DMA HOST V2\r\n");
+    uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS=20000Hz, N=4096\r\n");
+    uart_put_string("READY: send D or R for raw ADC frame\r\n");
     for (;;) {
-        waveform_result_t result;
-        bool valid;
-        trigger_mode_t mode = wait_for_trigger();
-
-        if (mode == TRIGGER_ADC_CAPTURE) {
-            uart_put_string("CAPTURING\r\n");
-            capture_samples();
-        } else if (mode == TRIGGER_UART_INJECT) {
-            if (!receive_uart_samples()) {
-                uart_put_string("READY\r\n");
-                continue;
-            }
-        } else if (mode == TRIGGER_ONCHIP_SELFTEST) {
-            uart_put_string("GENERATING\r\n");
-            generate_simulated_samples();
+        bool from_button = wait_for_trigger();
+        uart_put_string("CAPTURING\r\n");
+        if (capture_samples()) {
+            dump_adc_frame();
+        } else {
+            uart_put_string("ERR_ADC_DMA\r\n");
         }
-
-        uart_put_string("PROCESSING\r\n");
-        valid = waveform_analyze((const uint16_t *)g_adc_samples, &result);
-        print_result(&result, valid);
-        wait_for_button_release();
+        if (from_button) {
+            wait_for_button_release();
+        }
         uart_put_string("READY\r\n");
     }
 }
@@ -324,18 +252,11 @@ int main(void)
 void ADC12_0_INST_IRQHandler(void)
 {
     switch (DL_ADC12_getPendingInterrupt(ADC12_0_INST)) {
-    case DL_ADC12_IIDX_MEM0_RESULT_LOADED:
-        if (g_sample_index < WAVEFORM_SAMPLE_COUNT) {
-            g_adc_samples[g_sample_index++] =
-                DL_ADC12_getMemResult(ADC12_0_INST, ADC12_0_ADCMEM_0);
-            if (g_sample_index >= WAVEFORM_SAMPLE_COUNT) {
-                DL_TimerA_stopCounter(TIMER_0_INST);
-                g_capture_done = true;
-            }
-        } else {
-            DL_TimerA_stopCounter(TIMER_0_INST);
-            g_capture_done = true;
-        }
+    case DL_ADC12_IIDX_DMA_DONE:
+        stop_adc_dma_capture(false);
+        break;
+    case DL_ADC12_IIDX_UNDERFLOW:
+        stop_adc_dma_capture(true);
         break;
     default:
         break;
