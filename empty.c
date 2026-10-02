@@ -101,7 +101,8 @@ static bool uart_rx_error_pending(void)
 typedef enum {
     TRIGGER_ADC_CAPTURE = 0,
     TRIGGER_UART_INJECT,
-    TRIGGER_ONCHIP_SELFTEST
+    TRIGGER_ONCHIP_SELFTEST,
+    TRIGGER_HOST_DUMP
 } trigger_mode_t;
 
 static uint32_t g_sim_rng = 0x13579BDFU;
@@ -213,6 +214,37 @@ static bool receive_uart_samples(void)
     return true;
 }
 
+static uint32_t frame_fnv1a(void)
+{
+    const volatile uint8_t *bytes = (const volatile uint8_t *)g_adc_samples;
+    uint32_t total = WAVEFORM_SAMPLE_COUNT * sizeof(uint16_t);
+    uint32_t checksum = 2166136261U;
+    uint32_t i;
+    for (i = 0U; i < total; ++i) {
+        checksum = (checksum ^ bytes[i]) * 16777619U;
+    }
+    return checksum;
+}
+
+/* D protocol: ASCII header, exactly 8192 little-endian bytes, ASCII trailer. */
+static void dump_adc_frame(void)
+{
+    const volatile uint8_t *bytes = (const volatile uint8_t *)g_adc_samples;
+    uint32_t total = WAVEFORM_SAMPLE_COUNT * sizeof(uint16_t);
+    uint32_t checksum = frame_fnv1a();
+    uint32_t i;
+
+    uart_put_string("DUMP,bytes=");
+    uart_put_u32(total);
+    uart_put_string(",fnv1a=");
+    uart_put_u32(checksum);
+    uart_put_string("\r\n");
+    for (i = 0U; i < total; ++i) {
+        uart_put_char((char)bytes[i]);
+    }
+    uart_put_string("DUMP_END\r\n");
+}
+
 static bool button_is_pressed(void)
 {
     return (DL_GPIO_readPins(GPIO_GRP_0_PORT, GPIO_GRP_0_PIN_0_PIN) &
@@ -233,6 +265,9 @@ static trigger_mode_t wait_for_trigger(void)
             }
             if ((value == 't') || (value == 'T')) {
                 return TRIGGER_ONCHIP_SELFTEST;
+            }
+            if ((value == 'd') || (value == 'D')) {
+                return TRIGGER_HOST_DUMP;
             }
         }
         if (button_is_pressed()) {
@@ -380,7 +415,7 @@ int main(void)
     uart_put_string("ALGO=cascade_rt3_spectral_yin,OUTPUT=CSV5\r\n");
     uart_put_string("INJECT=LE16-4096-FNV1A\r\n");
     uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS=20000Hz, N=4096\r\n");
-    uart_put_string("READY: send R=ADC, W=Inject, T=Simulate\r\n");
+    uart_put_string("READY: send R=ADC, D=Dump, W=Inject, T=Simulate\r\n");
 
     for (;;) {
         waveform_frame_t frame;
@@ -396,6 +431,16 @@ int main(void)
                 uart_put_string("READY\r\n");
                 continue;
             }
+        } else if (mode == TRIGGER_HOST_DUMP) {
+            uart_put_string("CAPTURING\r\n");
+            if (!capture_samples()) {
+                uart_put_string("ERR_ADC_DMA\r\n");
+                uart_put_string("READY\r\n");
+                continue;
+            }
+            dump_adc_frame();
+            uart_put_string("READY\r\n");
+            continue;
         } else if (mode == TRIGGER_UART_INJECT) {
             if (!receive_uart_samples()) {
                 uart_put_string("READY\r\n");
