@@ -667,6 +667,38 @@ static bool agree(const waveform_result_t *a,const waveform_result_t *b)
         return false;
     return true;
 }
+/* Estimate the baseline from complete cycles, correcting the known nonzero
+ * mean of a non-50% square. Quantile midpoints are biased by duty/noise; using
+ * two arbitrary phase bins is phase-dependent. Integrate the fractional last
+ * interval too so noninteger periods do not bias the mean. */
+static void refine_dc(const waveform_frame_t *f, waveform_result_t *r)
+{
+    uint64_t limit=(uint64_t)(f->sample_count-1U)<<16;
+    uint32_t period=r->period_q16_samples, cycles, whole, fraction, i;
+    uint64_t end, integral;
+    int64_t center;
+    if(!period) return;
+    cycles=(uint32_t)(limit/period);
+    if(!cycles) return;
+    end=(uint64_t)cycles*period;
+    whole=(uint32_t)(end>>16); fraction=(uint32_t)(end&65535U);
+    integral=((uint64_t)f->samples[0]+f->samples[whole])*32768ULL;
+    for(i=1;i<whole;i++) integral+=(uint64_t)f->samples[i]*65536ULL;
+    if(fraction && whole+1U<f->sample_count) {
+        int64_t last=(int64_t)f->samples[whole]*65536LL+
+            ((int64_t)f->samples[whole+1U]-f->samples[whole])*fraction;
+        integral+=(uint64_t)(((int64_t)f->samples[whole]*65536LL+last)*fraction/131072LL);
+    }
+    center=(int64_t)((integral+end/2U)/end);
+    if(r->type==WAVEFORM_TYPE_SQUARE) {
+        int64_t correction=(int64_t)r->vpp_counts_q16*
+            ((int64_t)r->duty_ppm-500000LL);
+        center-=correction/(65536LL*1000000LL);
+    }
+    if(center<0) center=0;
+    if(center>f->adc_full_scale) center=f->adc_full_scale;
+    r->dc_offset_counts=(uint16_t)center;
+}
 bool waveform_analyze_cascade(const waveform_frame_t *f,waveform_result_t *out,
                               waveform_cascade_trace_t *trace)
 {
@@ -679,11 +711,31 @@ bool waveform_analyze_cascade(const waveform_frame_t *f,waveform_result_t *out,
     if(trace) {trace->l1_status=l1.status;trace->l2_status=l2.status;
                trace->l1_type=l1.type;trace->l2_type=l2.type;}
     if(ok1 && ok2 && agree(&l1,&l2)) {
-        *out=l1; if(trace) trace->selected_level=1; return true;
+        *out=l1; refine_dc(f,out);
+        if(trace) trace->selected_level=1;
+        return true;
     }
     ok3=waveform_analyze_robust(f,&l3);
     if(trace) {trace->l3_ran=true;trace->l3_status=l3.status;
                trace->l3_type=l3.type;trace->selected_level=3;}
+    /* Smooth-wave time-domain models can be nearly tied when Gaussian noise
+     * overlaps the third harmonic. Accept strong independent spectral evidence
+     * only if both time-domain estimates found the same period and failed solely
+     * on the shape margin. Invalid, clipped and nonperiodic frames stay rejected. */
+    if(!ok1 && !ok3 && ok2 &&
+       l1.status==WAVEFORM_STATUS_CLASSIFICATION_AMBIGUOUS &&
+       l3.status==WAVEFORM_STATUS_CLASSIFICATION_AMBIGUOUS &&
+       l2.best_score_permille>=980U && l2.model_margin_permille>=15U &&
+       l1.best_score_permille>=980U && l3.best_score_permille>=980U &&
+       (uint64_t)absdiff(l1.frequency_millihz,l2.frequency_millihz)*1000ULL<=
+           (uint64_t)l2.frequency_millihz*5ULL &&
+       (uint64_t)absdiff(l3.frequency_millihz,l2.frequency_millihz)*1000ULL<=
+           (uint64_t)l2.frequency_millihz*5ULL) {
+        *out=l2; refine_dc(f,out);
+        if(trace) trace->selected_level=2;
+        return true;
+    }
     *out=(!ok3 && !ok1) ? l1 : l3;
+    if(ok3) refine_dc(f,out);
     return ok3;
 }

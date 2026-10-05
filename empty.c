@@ -233,7 +233,7 @@ int main(void)
                                      DL_GPIO_WAKEUP_DISABLE);
     uart_put_string("\r\nTI-CUP ADC DMA HOST V2\r\n");
     uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS=20000Hz, N=4096\r\n");
-    uart_put_string("READY: send D or R for raw ADC frame\r\n");
+    uart_put_string("READY: server R -> raw ADC frame; RT runs on host\r\n");
     for (;;) {
         bool from_button = wait_for_trigger();
         uart_put_string("CAPTURING\r\n");

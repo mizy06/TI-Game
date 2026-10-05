@@ -1,34 +1,67 @@
-# TI-Game `main`：板端采样，上位机计算
+# TI 杯波形识别：单片机采样 + 上位机 server
 
-MSPM0G3507 只负责 TIMER_0 定时触发 ADC0.CH2、DMA_CH0 收集 4096 个样点，并通过 UART0 发给电脑。分类、频率、峰峰值、占空比和直流偏置均由电脑上的三级级联算法计算。算法源文件来自 `algorithm/precision-waveform-analysis`，与所给硬件快照中的 `waveform_analyzer.c/.h` 和 `waveform_cascade.c` 逐字节一致；硬件采集与 CCS 配置以 `hardware-serial-dma` 快照为基础。
+单片机只执行 TIMA0 → ADC → DMA 连续采样和 UART 上传；波形分类、频率、峰峰值、占空比、偏置估计及自激测试全部在电脑端运行。板端保留 20 kS/s、4096 点、12 位 ADC、115200 8-N-1 的 DUMP v2 协议。算法修改后只需重新构建电脑端库，无需重新烧录单片机。
 
-## 接线与准备
+## 使用
 
-| 用途 | 引脚 | 说明 |
-| --- | --- | --- |
-| 输入 | PA25 / ADC0.CH2 | 输入必须始终在 0–3.3 V 内，共地；建议串联至少 1 kΩ |
-| UART | PA10/TX、PA11/RX | LaunchPad XDS110 Application/User UART，115200 8-N-1 |
-| 按键 | PB13 | 接地触发一次原始帧发送，低有效 |
+1. 在 CCS 导入此工程，Clean / Build / Flash。板端源文件为 `empty.c`、`empty.syscfg`、`acquisition_config.h`，CCS 已排除算法和 tools/tests。必须保留 `tools` 中的 CCS 构建 wrapper。
+2. ADC 输入 PA25，与信号源共地；XDS110 UART 为 PA10/PA11。确认输入在 ADC 电压范围内，关闭占用串口的 CCS 终端。
+3. 电脑安装 Python 3.10+、GCC/Clang（Windows 可用 MinGW），在工程根目录安装依赖：
 
-1. 在 CCS 中导入本目录，安装 MSPM0 SDK `2.11.00.07` 和相容的 SysConfig，Clean、Build 并烧录。若 SDK 不在工程快照里的 `D:/github/mspm0_sdk_2_11_00_07`，在 CCS 项目属性中调整 SDK 路径。
-2. 电脑安装 Python 3.10+、C 编译器和 `pyserial`：`python -m pip install pyserial`。
-3. 在 Windows PowerShell 运行 `.\tools\build_host_waveform.ps1`，在 Linux/macOS 运行 `./tools/build_host_waveform.sh`。Windows 编译脚本需要 LLVM/Clang 或 MinGW GCC；若使用 Clang/MSVC，还需 C++ Build Tools 和 Windows SDK。
-4. 关闭 CCS 串口终端。在 Windows 运行 `python tools\host_waveform.py --port COM6`；在 Linux 运行 `python3 tools/host_waveform.py --port /dev/ttyACM0`。把端口改成实际的 XDS110 Application/User UART。持续检测：`python tools/host_waveform.py --port COM6 --loop`，每次按回车采一帧。
+```bash
+python -m pip install -r requirements.txt
+python server.py --port COM6
+```
 
-每次检测输出一行 CSV：`type,frequency_hz,vpp_v,duty_pct,dc_offset_v`。例如 `sine,200.013,1.998,0.0,1.650`。方波之外占空比为 `0.0`；识别失败为 `unknown,0,0,0,0`，传输、固件或 ABI 错误会报错并返回非零退出码。
+Windows 把 COM6 换成实际 XDS110 Application/User UART；Linux 可用 `/dev/ttyACM0`。库缺失或源码较新时 server 自动调用现有构建脚本，Windows 使用 PowerShell，Linux/macOS 使用 bash。
 
-固件收到 `D` 或 `R` 后采样并发送二进制帧，PB13 同样触发；普通串口终端无法直接显示二进制数据。旧版固件上的 `W/T/RT` 板端计算与自测命令已移除。上位机要求 `DUMP` v2 协议，更新固件与算法库后一起使用。
+在 server 的 IDE 终端输入命令并回车：
 
-## 分工与校准
+| 命令 | 行为 |
+| --- | --- |
+| `R` | 单片机实采外部输入、串口上传、电脑运行算法并输出一行 |
+| `RT` | 电脑生成恢复的 296 项板载算法时期矩阵，每项调用与 R 相同的主机算法 |
+| `Q` | 退出 |
 
-- `empty.c`、`empty.syscfg`、`acquisition_config.h`：板端 DMA 采样、串口输出、采样参数；CCS 工程明确排除算法和上位机工具源文件。
-- `waveform_analyzer.c/.h`、`waveform_cascade.c`：算法源码，只在上位机编译；`tools/host_api.c` 导出稳定的调用入口。
-- `tools/host_waveform.py`：请求原始帧，校验 FNV-1a 和协议元数据、DLL ABI，然后输出结果。
+默认 IDE 输出仅为原来的五列，不打印表头、菜单、日志或测试总结：
 
-标称采样率 20 kS/s，ADC 满刻度 4095，参考电压 3.300 V，前端增益 1。实测校准后修改 `acquisition_config.h` 的相应值，并仅在完成校准时设置对应的 `ACQ_FLAGS` 位。固件把这些值逐帧发送给上位机，不必在 Python 中重复修改。历史算法包的 `board_calibration.h` 含针对另一时钟配置推测的 20.24 kS/s，本项目未采用该未实测值。
+```text
+sine,200.013,1.998,0.0,1.650
+```
 
-协议和错误处理见 [上位机算法与串口协议](docs/HOST_ALGORITHM.md)。原理与数值实验见 [算法研究](docs/ALGORITHM_RESEARCH_AND_DECISIONS.md) 和 [快速算法报告](docs/FAST_ALGORITHM_REPORT.md)；这些历史文档中的板端算法或 RT 测试说明不适用于当前固件。
+顺序固定为 **波形名,频率 Hz,峰峰值 V,占空比 %,直流偏置 V**。非方波占空比为 `0.0`，算法拒识仍为 `unknown,0,0,0,0`。传输错误不产生虚假的测量结果。进度与错误写入 `data/<会话>/server.log`；需要临时显示诊断可加 `--verbose`（stderr）。
 
-## 验证
+无需硬件也可自测；也支持直接运行一条命令：
 
-运行 `./tests/run_all_checks.sh`：编译检查固件入口、执行两组各 2400 帧的真实 C 算法回归、构建主机动态库，并用模拟串口帧测试上位机协议和计算。实际 CCS 构建、烧录和接线需要在 MSPM0G3507 环境中完成。
+```bash
+python server.py RT
+python server.py R --port COM6
+python server.py RT --suite competition
+python server.py RT --case-id competition-000101
+python server.py RT --max-cases 8
+```
+
+`--max-cases` 仅用于短冒烟测试，默认不截断矩阵。`--list-matrix` 只保存题目清单。自测是电脑端合成 ADC 数字样本，不驱动 DAC，也不替代信号发生器、模拟前端和实际 ADC 的测量。
+
+## 自动保存
+
+所有接收到的串口字节在解析前落盘；每帧原始 LE16 样本、采样元数据、完整算法结果独立保存。校验失败、半帧、算法拒识也保留。server 持续接收 PB13 按键上传，包括运行 RT 期间，不清空串口接收缓冲。不同启动、重复帧号和重复 RT 都不会覆盖文件。
+
+默认保存至工程 `data` 目录，与当前启动目录无关；可用 `--data-dir 路径` 改位置。加 `--sample-csv` 可同时生成逐样点时间/ADC 码/电压 CSV。默认二进制样本已经完整保存，方便节省完整矩阵的空间；随时可用 `python tools/export_capture.py data/<会话>/uart/000001` 转换。
+
+## 验证和详细说明
+
+```bash
+bash tests/run_all_checks.sh
+python server.py RT
+```
+
+前者执行固件语法检查、原有两组各 2400 帧 C 回归和 server/串口/存档自动化测试；后者执行完整矩阵。RT 直接命令成功返回 0，断言失败返回 1，运行错误返回 2，中断返回 130。实际 CCS 编译烧录和硬件端到端时间需在开发板上验证。
+
+- [操作步骤](RUNBOOK.md)
+- [串口与主机算法](docs/HOST_ALGORITHM.md)
+- [296 项测试矩阵与 1296 项噪声矩阵](docs/SELF_TEST_MATRIX.md)
+- [数据存档与后续分析](docs/DATA_ARCHIVE.md)
+- [最新验证报告](docs/VALIDATION.md)
+
+矩阵参数、工程门限和验证口径记录在 `docs/SELF_TEST_MATRIX.md` 与 `docs/VALIDATION.md`。赛事尚未公布决赛最终幅值、偏置范围和评分阈值，本矩阵使用明确列出的安全输入范围和工程误差门限；连续参数无法被有限题集逐一穷举。

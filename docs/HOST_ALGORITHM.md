@@ -1,33 +1,45 @@
-# 板端原始帧与上位机三级算法
+# 板端采样协议与 server 算法
 
-## 一次测量
+## 分工
 
-上位机向 115200 8-N-1 UART 发送一个 `D`。固件用 TIMA0 以标称 20 kS/s 触发 ADC0.CH2，DMA_CH0 采集 4096 个右对齐 12 位样点。采集约 204.8 ms；固件只计算传输校验值，不执行波形分类或物理量估算。
+`empty.c` 只有采集、UART、校验和硬件错误处理。`server.py` 是唯一推荐入口，`tools/host_waveform.py` 作为旧命令兼容入口也转入相同 server 和强制存档流程。旧 `--loop` 不再按空回车采集，统一输入 R / RT / Q。
+
+算法源码在电脑上编译为动态库：L1 快速相位模板、L2 谐波分析、L3 鲁棒周期/时域模板。L1 与 L2 同意时采用共识；否则运行 L3。两条时域路径均仅因形状分数余量不足拒识时，只有 L2 的高置信谐波证据和三者基频一致同时成立才允许频域后备。
+
+偏置按完整周期积分求均值，非 50% 方波扣除 `Vpp × (duty−0.5)` 的均值偏移；不能把非 50% 方波的均值直接当发生器偏置。三角波幅值增加电脑端联合最小二乘谐波校核：同时拟合 DC、1/3/5/7 次分量，只有 3/5/7 次独立幅值估计相互差异不超过 3%、与原估计相差 8%–30% 且量化分辨率足够时才采用。这用于基波频段噪声较强而高次谐波可靠的情况；结果 quality_flags bit4 标记该路径。
+
+C 算法有共享工作区，server 为 UART 和 RT 调用加同一互斥锁，避免并发破坏状态。
+
+## 线上协议
+
+server 输入 R 后向 UART 写单个 ASCII `R`（不带换行）。固件仍兼容 D/d/r 和 PB13 按键采集，RT 只在 server 内分派，绝不向固件发送 `RT`。
 
 ```text
 CAPTURING\r\n
 DUMP,proto=2,bytes=8192,fnv1a=...,seq=...,fs_millihz=20000000,vref_uv=3300000,gain_ppm=1000000,adc_max=4095,flags=1\r\n
-<8192 bytes: 4096 个小端 uint16 ADC 样点，没有前后分隔符>
+<8192 bytes: 4096 个小端 uint16，右对齐 12 位 ADC 码>
 DUMP_END\r\n
 READY\r\n
 ```
 
-FNV-1a 初值 `2166136261`，依次对实际发送的低字节、高字节执行 `(hash ^ byte) * 16777619`，以 32 位无符号整数回绕。`seq` 每帧递增；`flags` 位 0 表示样点连续、位 1 表示采样时钟已校准、位 2 表示参考电压已校准。`fs_millihz` 的单位是 mHz，`vref_uv` 的单位是 µV，`gain_ppm` 表示 ADC 引脚幅度与输入幅度之比。`R` 和 PB13 也触发相同二进制帧。
+FNV-1a 从 2166136261 开始，对每个实际载荷字节执行 `(hash ^ byte) * 16777619` 并按 uint32 回绕。序号为板端自增值，重启后可重复；文件使用独立会话/本地编号，不依赖 seq 唯一性。
 
-Python 端先检查协议版本、长度、帧尾、校验值和 ABI 版本及结构体大小，随后把样点及帧头元数据传给 `waveform_analyze_frame()`。算法的 L1 快速相位模型和 L2 频域模型一致时采用共识；拒识或不一致时运行 L3 鲁棒时域模型。只有算法返回 OK 才输出测量值。
+| 字段 | 单位/含义 |
+| --- | --- |
+| fs_millihz | mHz，20000000 表示 20 kS/s |
+| vref_uv | ADC 参考电压 µV |
+| gain_ppm | ADC 输入幅值 / 被测源幅值，1000000 表示 1 倍 |
+| adc_max | 4095 |
+| flags bit0 | 样点连续 |
+| flags bit1/2 | 时钟/参考电压已校准 |
+| flags bit3 | 硬件平均 |
 
-## 构建与调用
+采集约 204.8 ms；8192 字节在 115200 8-N-1 上传约 711 ms，另有帧头/帧尾。server R 等待上限 10 s，日志记录请求到接收的时间，实际总时限仍需在真实电脑和开发板上验收。
 
-```powershell
-.\tools\build_host_waveform.ps1
-python -m pip install pyserial
-python tools\host_waveform.py --port COM6 --loop
-```
+## 接收、保存与输出
 
-```bash
-./tools/build_host_waveform.sh
-python3 -m pip install pyserial
-python3 tools/host_waveform.py --port /dev/ttyACM0 --loop
-```
+后台持续接收，包括 PB13 的主动上传及 RT 期间到达的帧。接收缓冲从不清空；所有接收字节先保存到 uart_rx.bin，再进行协议解析。载荷分块落盘，完整帧经过版本/元数据范围/长度/FNV/帧尾验证后才调用算法。坏校验帧同样消费帧尾以支持下一次 R 恢复；无法解析的字节仍留在 UART 原始日志中。
 
-`--loop` 每按一次回车请求一帧；省略它则采集一次。主机库变更后重新构建。输出列依次为 `type,frequency_hz,vpp_v,duty_pct,dc_offset_v`。需要保存结果可重定向标准输出；诊断信息写在标准错误输出。检查失败不会把损坏数据交给算法。
+输出格式保持 `type,frequency_hz,vpp_v,duty_pct,dc_offset_v`，没有表头。Hz/V 保留 3 位小数，方波占空比保留 1 位，非方波为 0.0。算法拒识为 `unknown,0,0,0,0`。协议错误不会送算法、不会伪造 unknown 测量行。
+
+默认诊断写 server.log，IDE 只显示五列结果；`--verbose` 可把诊断显示在 stderr。文件布局见 [数据存档](DATA_ARCHIVE.md)。

@@ -5,8 +5,8 @@ The firmware sends DUMP protocol v2, including the measured acquisition metadata
 """
 from __future__ import annotations
 
-import argparse
 import ctypes
+import struct
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -80,13 +80,15 @@ def read_line(port) -> str:
     return line.decode("ascii").rstrip("\r\n")
 
 
-def read_exact(port, count: int) -> bytes:
+def read_exact(port, count: int, on_chunk=None) -> bytes:
     chunks = bytearray()
     while len(chunks) < count:
         chunk = port.read(count - len(chunks))
         if not chunk:
             raise TimeoutError(f"serial timeout after {len(chunks)}/{count} bytes")
         chunks.extend(chunk)
+        if on_chunk is not None:
+            on_chunk(chunk)
     return bytes(chunks)
 
 
@@ -123,26 +125,49 @@ def parse_header(line: str) -> Metadata:
                     _uint(fields, "fnv1a", 0, 0xffffffff))
 
 
-def dump(port) -> tuple[bytes, Metadata]:
-    port.reset_input_buffer()
-    port.write(b"D")
-    port.flush()
+def receive_frame(port, *, first_line=None, store=None):
+    """Receive without discarding buffered frames; archive before validation."""
+    record = None
     for _ in range(16):
-        line = read_line(port)
+        line = first_line if first_line is not None else read_line(port)
+        first_line = None
         if line.startswith("ERR_"):
             raise RuntimeError(f"board capture failed: {line}")
         if line.startswith("DUMP,"):
-            meta = parse_header(line)
-            payload = read_exact(port, PAYLOAD_BYTES)
-            if fnv1a(payload) != meta.checksum:
-                raise ValueError("DUMP FNV-1a integrity check failed")
-            if read_line(port) != "DUMP_END" or read_line(port) != "READY":
-                raise ValueError("missing DUMP_END / READY")
-            return payload, meta
+            record = store.begin("uart", {"raw_header": line}) if store else None
+            try:
+                meta = parse_header(line)
+                if record:
+                    record.set_metadata(meta)
+                payload = read_exact(port, PAYLOAD_BYTES,
+                                     record.append if record else None)
+                # Consume the trailer even on a checksum failure to allow resync.
+                end, ready = read_line(port), read_line(port)
+                if fnv1a(payload) != meta.checksum:
+                    raise ValueError("DUMP FNV-1a integrity check failed")
+                if end != "DUMP_END" or ready != "READY":
+                    raise ValueError("missing DUMP_END / READY")
+                if record:
+                    record.info["calculated_fnv1a"] = fnv1a(payload)
+                    record.complete(payload)
+                return payload, meta, record
+            except Exception as error:
+                if record:
+                    if record.info["payload_bytes"] == PAYLOAD_BYTES:
+                        record.info["calculated_fnv1a"] = fnv1a(record.payload.read_bytes())
+                    record.fail(error)
+                raise
         if line in ("CAPTURING", "READY") or line.startswith(("TI-CUP ", "ADC=", "READY:")) or not line:
             continue
         raise ValueError(f"unexpected board response: {line}")
     raise ValueError("board did not send a DUMP frame")
+
+
+def dump(port, *, store=None, command=b"D") -> tuple[bytes, Metadata]:
+    port.write(command)
+    port.flush()
+    payload, meta, _ = receive_frame(port, store=store)
+    return payload, meta
 
 
 def load_api(path: str):
@@ -159,49 +184,42 @@ def load_api(path: str):
     return dll
 
 
-def classify(dll, payload: bytes, meta: Metadata) -> str:
+def analyze(dll, payload: bytes, meta: Metadata) -> tuple[str, dict]:
     if len(payload) != PAYLOAD_BYTES:
         raise ValueError("incomplete ADC payload")
-    values = (ctypes.c_uint16 * SAMPLES).from_buffer_copy(payload)
+    values = (ctypes.c_uint16 * SAMPLES)(*struct.unpack(f"<{SAMPLES}H", payload))
     frame = Frame(values, SAMPLES, meta.adc_full_scale,
                   meta.sample_rate_millihz, meta.reference_microvolts,
                   meta.gain_ppm, meta.sequence, meta.flags)
     result = Result()
     ok = bool(dll.ti_waveform_analyze_frame(ctypes.byref(frame), ctypes.byref(result)))
+    details = {name: int(getattr(result, name)) for name, _ in Result._fields_}
+    details["ok"] = ok
     if not ok:
-        return "unknown,0,0,0,0"
+        return "unknown,0,0,0,0", details
     if result.algorithm_version != ABI_VERSION or result.sequence != meta.sequence or not 0 <= result.type < len(NAMES) - 1:
         raise RuntimeError("host algorithm returned incompatible result")
     duty = result.duty_permille / 10 if result.type == 1 else 0
     # The DC estimate is measured at the ADC pin; undo the front-end gain.
     offset = result.dc_offset_counts * meta.reference_microvolts / (meta.adc_full_scale * meta.gain_ppm)
-    return (f"{NAMES[result.type]},{result.frequency_millihz / 1000:.3f},"
-            f"{result.vpp_millivolts / 1000:.3f},{duty:.1f},{offset:.3f}")
+    return ((f"{NAMES[result.type]},{result.frequency_millihz / 1000:.3f},"
+             f"{result.vpp_millivolts / 1000:.3f},{duty:.1f},{offset:.3f}"), details)
+
+
+def classify(dll, payload: bytes, meta: Metadata) -> str:
+    return analyze(dll, payload, meta)[0]
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--port", required=True, help="XDS110 Application/User UART, e.g. COM6 or /dev/ttyACM0")
-    parser.add_argument("--dll", default=str(ROOT / LIBRARY_NAME))
-    parser.add_argument("--loop", action="store_true", help="capture one frame on each Enter")
-    args = parser.parse_args()
-    try:
-        import serial
-        dll = load_api(args.dll)
-        with serial.Serial(args.port, 115200, timeout=3, write_timeout=3) as port:
-            if args.loop:
-                print("Press Enter to capture; Ctrl+C to quit.", file=sys.stderr, flush=True)
-                while True:
-                    input()
-                    print(classify(dll, *dump(port)), flush=True)
-            else:
-                print(classify(dll, *dump(port)), flush=True)
-        return 0
-    except KeyboardInterrupt:
-        return 0
-    except Exception as error:
-        print(f"host_waveform: {error}", file=sys.stderr)
-        return 2
+    # Historical entry point uses the same server and mandatory archive path.
+    sys.path.insert(0, str(ROOT.parent))
+    from tools.waveform_server import main as server_main
+    argv = sys.argv[1:]
+    if "--loop" in argv:
+        argv.remove("--loop")
+    elif not any(arg.upper() in ("R", "RT") for arg in argv):
+        argv.insert(0, "R")
+    return server_main(argv)
 
 
 if __name__ == "__main__":

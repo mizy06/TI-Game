@@ -1,0 +1,52 @@
+# 原始输入自动存档
+
+默认数据根为工程 `data`，用 `--data-dir` 可以指定另一目录。每次启动创建 UTC 时间 + 随机后缀会话，已有目录不会被复用。所有数据留在本地电脑，不自动删除。
+
+| 路径 | 内容 |
+| --- | --- |
+| `<会话>/session.json` | 保存格式、创建时间、逐样点 CSV 开关 |
+| `<会话>/server.log` | 启动、RT 进度/结论、命令/传输/算法错误 |
+| `<会话>/uart_rx.bin` | 完整收到的 UART 字节，包括横幅、帧头、载荷、帧尾、错误行和坏字节 |
+| `<会话>/uart/<编号>/samples.adc.bin` | 实际接收的 ADC 载荷，uint16 小端；部分接收也原样保留，包括奇数字节尾 |
+| `<会话>/uart/<编号>/capture.json` | 线上帧头、元数据、校验状态、样本长度、算法全部字段、原五列输出 |
+| `<会话>/rt/<编号>/samples.adc.bin` | 合成题目的 ADC 原始输入，同样完整落盘 |
+| `<会话>/rt/<编号>/capture.json` | 生成参数/真值、实际噪声、元数据、结果、误差及通过判定 |
+| `<会话>/rt-<运行编号>/matrix.json` | 本次所选题目完整参数清单 |
+| `<会话>/rt-<运行编号>/results.csv` | 每个 case 的原输出、状态、误差、输入参数和原始帧位置 |
+| `<会话>/rt-<运行编号>/summary.json` | 是否跑完、完整默认覆盖标记、分组结果、最坏误差、失败列表 |
+
+接收字节先写 UART 原始文件并 flush/fsync，然后交给解析器；分块 ADC 载荷也落盘并同步，再验证协议和调用算法。JSON 使用临时文件 + 原子替换。进程突然终止时，可从原始字节恢复；capture.json 的 validation 若仍为 receiving，应按未完成处理，实际长度以 binary 文件为准。无法解析的帧头可能没有可拆分的 ADC 载荷，但整段字节仍保存在 uart_rx.bin。
+
+协议有效帧 validation 为 valid，传输损坏或截断为 invalid。算法拒识仍是传输有效输入：validation=valid，algorithm.ok=false，输出为 unknown。合成坏元数据题的原始生成帧完整保存，由算法进行元数据拒识。
+
+没有 reset_input_buffer 丢弃数据的操作；后台接收线程处理主动按键上传及 RT 期间上传。帧序号重启重复不会覆盖文件。收到错误数据不会调用算法；异常时也不会以一行伪测量替代错误。
+
+## 转为 CSV
+
+```bash
+python server.py --port COM6 --sample-csv
+python tools/export_capture.py data/<会话>/uart/000001
+```
+
+第一条每帧同步保存 samples.csv，第二条随时将某个已有帧转换为同目录 samples.csv。列为 index、time_s、adc_counts、adc_voltage_v、input_voltage_v；时间用线上采样率，电压用线上 Vref/adc_max/gain。没有完整元数据时仍保留码值，无法换算的列留空。坏帧 CSV 仅导出已收到的完整 uint16，不代表有效测量；奇数字节尾仍在二进制中。
+
+默认不生成逐样点 CSV 是为了控制完整 RT 的空间，二进制和 JSON 已保存全部样本及换算信息。296 项仅样本二进制约 2.3 MiB；逐点 CSV 会大得多。磁盘写入失败会报错并停止该次测量，不能悄悄输出没有存档的结果。
+
+## Python 分析
+
+```python
+import json
+from pathlib import Path
+import numpy as np
+
+frame = Path('data/<会话>/uart/000001')
+info = json.loads((frame / 'capture.json').read_text(encoding='utf-8'))
+raw = (frame / 'samples.adc.bin').read_bytes()
+adc = np.frombuffer(raw[:len(raw)//2*2], dtype='<u2')
+meta = info['metadata']
+time_s = np.arange(len(adc)) / (meta['sample_rate_millihz'] / 1000)
+adc_v = adc.astype(float) * meta['reference_microvolts'] / 1e6 / meta['adc_full_scale']
+input_v = adc_v / (meta['gain_ppm'] / 1e6)
+```
+
+先检查 validation / 实际长度 / algorithm.ok，再分析频率、模型误差或异常样点。这里 gain 表示幅值比，未实现额外的模拟前端偏置扣除；若外接电平搬移电路，需要先标定并扩展协议中的前端偏置模型。

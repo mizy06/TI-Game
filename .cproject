@@ -24,7 +24,7 @@
                                 <listOptionValue value="RUNTIME_SUPPORT_LIBRARY="/>
                                 <listOptionValue value="CCS_MBS_VERSION=70.0.0"/>
                                 <listOptionValue value="PRODUCTS=MSPM0-SDK:2.11.0.07;sysconfig:1.28.1;"/>
-                                <listOptionValue value="PRODUCT_MACRO_IMPORTS={&quot;MSPM0-SDK&quot;:[&quot;${COM_TI_MSPM0_SDK_INCLUDE_PATH}&quot;,&quot;${COM_TI_MSPM0_SDK_LIBRARY_PATH}&quot;,&quot;${COM_TI_MSPM0_SDK_LIBRARIES}&quot;,&quot;${COM_TI_MSPM0_SDK_SYMBOLS}&quot;,&quot;${COM_TI_MSPM0_SDK_SYSCONFIG_MANIFEST}&quot;],&quot;sysconfig&quot;:[&quot;${SYSCONFIG_TOOL_INCLUDE_PATH}&quot;,&quot;${SYSCONFIG_TOOL_LIBRARY_PATH}&quot;,&quot;${SYSCONFIG_TOOL_LIBRARIES}&quot;,&quot;${SYSCONFIG_TOOL_SYMBOLS}&quot;,&quot;${SYSCONFIG_TOOL_SYSCONFIG_MANIFEST}&quot;]}"/>
+                                <listOptionValue value="PRODUCT_MACRO_IMPORTS={&quot;MSPM0-SDK&quot;:[&quot;${COM_TI_MSPM0_SDK_INSTALL_DIR}&quot;]}"/>
                                 <listOptionValue value="OUTPUT_TYPE=executable"/>
                             </option>
                             <option id="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.1337490863" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION" value="TICLANG_5.1.1.LTS" valueType="string"/>
@@ -38,12 +38,10 @@
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.SELECT_PROCESSOR_MODE__ARM_THUMB.61571275" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.SELECT_PROCESSOR_MODE__ARM_THUMB" value="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.SELECT_PROCESSOR_MODE__ARM_THUMB.MTHUMB" valueType="enumerated"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.OPT_LEVEL.783467644" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.OPT_LEVEL" value="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.OPT_LEVEL.2" valueType="enumerated"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.INCLUDE_PATH.1011209006" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.INCLUDE_PATH" valueType="includePath">
-                                    <listOptionValue value="D:/github/mspm0_sdk_2_11_00_07/source"/>
-                                    <listOptionValue value="${SYSCONFIG_TOOL_INCLUDE_PATH}"/>
                                     <listOptionValue value="${PROJECT_ROOT}"/>
                                     <listOptionValue value="${PROJECT_ROOT}/${ConfigName}"/>
-                                    <listOptionValue value="D:/github/mspm0_sdk_2_11_00_07/source/third_party/CMSIS/Core/Include"/>
-                                    <listOptionValue value="D:/github/mspm0_sdk_2_11_00_07/source"/>
+                                    <listOptionValue value="${COM_TI_MSPM0_SDK_INSTALL_DIR}/source/third_party/CMSIS/Core/Include"/>
+                                    <listOptionValue value="${COM_TI_MSPM0_SDK_INSTALL_DIR}/source"/>
                                 </option>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.GENERATE_DWARF_DEBUG.2069408404" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.GENERATE_DWARF_DEBUG" value="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.GENERATE_DWARF_DEBUG.G_LOWERCASE" valueType="enumerated"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.WALL.1710294812" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.compilerID.WALL" value="true" valueType="boolean"/>
@@ -56,14 +54,11 @@
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.linkerID.OUTPUT_FILE.973642221" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.linkerID.OUTPUT_FILE" value="${ProjName}.out" valueType="string"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.linkerID.LIBRARY.1882393898" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.linkerID.LIBRARY" valueType="libs">
                                     <listOptionValue value="ti/driverlib/lib/ticlang/m0p/mspm0g1x0x_g3x0x/driverlib.a"/>
-                                    <listOptionValue value="${SYSCONFIG_TOOL_LIBRARIES}"/>
                                     <listOptionValue value="device.cmd.genlibs"/>
                                     <listOptionValue value="libc.a"/>
                                 </option>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.linkerID.SEARCH_PATH.971704974" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_5.1.linkerID.SEARCH_PATH" valueType="libPaths">
-                                    <listOptionValue value="D:/github/mspm0_sdk_2_11_00_07/source"/>
-                                    <listOptionValue value="${SYSCONFIG_TOOL_LIBRARY_PATH}"/>
-                                    <listOptionValue value="D:/github/mspm0_sdk_2_11_00_07/source"/>
+                                    <listOptionValue value="${COM_TI_MSPM0_SDK_INSTALL_DIR}/source"/>
                                     <listOptionValue value="${PROJECT_ROOT}"/>
                                     <listOptionValue value="${PROJECT_BUILD_DIR}/syscfg"/>
                                     <listOptionValue value="${CG_TOOL_ROOT}/lib"/>
@@ -79,7 +74,7 @@
                                 <option id="com.ti.ccstudio.buildDefinitions.sysConfig.OUTPUT_DIR__MANUAL.219422794" superClass="com.ti.ccstudio.buildDefinitions.sysConfig.OUTPUT_DIR__MANUAL" value="." valueType="string"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.sysConfig.DIRECTORY_MODE.67650639" superClass="com.ti.ccstudio.buildDefinitions.sysConfig.DIRECTORY_MODE" value="com.ti.ccstudio.buildDefinitions.sysConfig.DIRECTORY_MODE.manual" valueType="enumerated"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.sysConfig.PRODUCTS.552039851" superClass="com.ti.ccstudio.buildDefinitions.sysConfig.PRODUCTS" valueType="stringList">
-                                    <listOptionValue value="D:/github/mspm0_sdk_2_11_00_07/.metadata/product.json"/>
+                                    <listOptionValue value="${COM_TI_MSPM0_SDK_INSTALL_DIR}/.metadata/product.json"/>
                                 </option>
                                 <option id="com.ti.ccstudio.buildDefinitions.sysConfig.COMPILER.1232026623" superClass="com.ti.ccstudio.buildDefinitions.sysConfig.COMPILER" value="ticlang" valueType="string"/>
                             </tool>

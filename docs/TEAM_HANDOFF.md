@@ -1,8 +1,10 @@
 # 交接清单
 
-1. CCS 导入项目，检查 MSPM0 SDK 2.11.00.07 和 SysConfig，Clean + Build + Flash。
-2. 确认启动横幅 `TI-CUP ADC DMA HOST V2`，并确认实际 XDS110 Application/User UART 端口；关闭占用串口的 CCS 终端。
-3. Windows 执行 `.\tools\build_host_waveform.ps1`，然后 `python tools\host_waveform.py --port COM6 --loop`。
-4. 输出中每行仅包含波形、Hz、Vpp、占空比%、偏置 V。错误请看标准错误输出。
-5. 修改算法只编辑 `waveform_analyzer.c/.h` 和 `waveform_cascade.c`，重新构建上位机库；修改采样时钟、参考电压或增益编辑 `acquisition_config.h` 并重烧录固件。
-6. `./tests/run_all_checks.sh` 是无板端回归；真实电压输入、串口时序、CCS 固件构建还需在目标硬件上验证。
+1. CCS Clean / Build / Flash；确认新固件与 DUMP v2 协议，板端只负责采样上传。
+2. 确認 PA25 输入、共地、XDS110 UART 端口；关闭占用串口的 CCS 终端。
+3. 安装 `requirements.txt` 和主机编译器；运行 `python server.py --port COM6`。
+4. 输入 R 外测、RT 合成自测、Q 退出；IDE 默认只有波形名 + 四个数，详细状态看最新 data 会话的 server.log。
+5. 每帧原始数据、元数据及结果均保存。不要只保留屏幕结果；失败/半帧及完整 UART 字节日志也需要保留。
+6. 算法只在电脑执行。修改 C 算法会自动重建主机库；修改采样/参考电压/增益/校准标志需重新烧录。
+7. `bash tests/run_all_checks.sh` 和 `python server.py RT` 做软件回归；实际 CCS 构建、发生器输入、标定和端到端时间在硬件上验收。
+8. 范围与门限见 SELF_TEST_MATRIX.md；验证步骤见 VALIDATION.md。当前入口只有板端 `R` 采样和主机 `RT` 自激测试。
