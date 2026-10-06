@@ -21,6 +21,8 @@ waveform,frequency_hz,vpp_v,duty_pct,dc_offset_v
 
 诊断和原始 UART/ADC 数据保存在 `data/<session>/`。旧 DLL 若缺少当前 ABI 导出，server 会先用子进程探测并自动重建，避免 Windows 文件锁导致启动失败。使用 `--dll` 指定外部库时不会覆盖它。
 
+输入 R 没有输出时，先看终端 stderr：缺少 `--port` 会立即显示启动方法；ADC/DMA 错误、串口错误和 10 s 超时也直接显示，并保存至 server.log。只有完整有效帧的算法拒识才输出 `unknown,0,0,0,0`。无外部波形不影响固定采样，实际浮空输入可能拾取噪声，不能保证总是平直。错误后主命令循环继续等待下一条命令，输入 Q 才退出服务。
+
 ## 软件验证
 
 ```bash

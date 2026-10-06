@@ -3,6 +3,7 @@ import io
 import json
 import math
 import subprocess
+import struct
 import sys
 import tempfile
 import threading
@@ -138,6 +139,71 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(len(output.getvalue().splitlines()), 1)
             self.assertEqual(len(list(store.path.glob("uart/*/samples.adc.bin"))), 2)
 
+    def test_no_signal_frame_returns_unknown_and_saves_rejection(self):
+        for dc in (0, 100, 2048, 4095):
+            with self.subTest(dc=dc), tempfile.TemporaryDirectory() as directory:
+                payload = struct.pack("<4096H", *([dc] * 4096))
+                output = io.StringIO()
+                store = CaptureStore(directory)
+                port = LiveSerial(response(payload))
+                service = SerialService(port, store, Engine(self.api, output), stderr=io.StringIO())
+                try:
+                    service.measure(timeout=2)
+                finally:
+                    service.close()
+                self.assertEqual(output.getvalue(), "unknown,0,0,0,0\n")
+                info = json.loads(next(store.path.glob("uart/*/capture.json")).read_text())
+                self.assertEqual(info["validation"], "valid")
+                self.assertFalse(info["algorithm"]["ok"])
+                self.assertNotEqual(info["algorithm"]["status"], 0)
+                self.assertEqual((next(store.path.glob("uart/*/samples.adc.bin"))).read_bytes(), payload)
+
+    def test_no_response_times_out_and_next_r_recovers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = io.StringIO()
+            port = LiveSerial(b"")
+            service = SerialService(port, CaptureStore(directory), Engine(self.api, output), stderr=io.StringIO())
+            try:
+                started = time.monotonic()
+                with self.assertRaisesRegex(TimeoutError, "waiting for board response"):
+                    service.measure(timeout=.04)
+                self.assertLess(time.monotonic() - started, .5)
+                self.assertIsNone(service.pending)
+                self.assertEqual(output.getvalue(), "")
+                port.reply = response(sine_payload())
+                service.measure(timeout=3)
+                self.assertEqual(len(output.getvalue().splitlines()), 1)
+            finally:
+                service.close()
+
+    def test_board_capture_timeout_is_reported_and_recovers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = io.StringIO()
+            port = LiveSerial(b"CAPTURING\r\nERR_ADC_DMA\r\nREADY\r\n")
+            service = SerialService(port, CaptureStore(directory), Engine(self.api, output), stderr=io.StringIO())
+            try:
+                with self.assertRaisesRegex(RuntimeError, "ERR_ADC_DMA"):
+                    service.measure(timeout=2)
+                self.assertEqual(output.getvalue(), "")
+                port.reply = response(sine_payload())
+                service.measure(timeout=3)
+                self.assertEqual(len(output.getvalue().splitlines()), 1)
+            finally:
+                service.close()
+
+    def test_capture_stage_timeout_and_command_do_not_wait_for_drain(self):
+        with tempfile.TemporaryDirectory() as directory:
+            port = LiveSerial(b"CAPTURING\r\n")
+            def forbidden_drain():
+                raise AssertionError("R must not enter an unbounded serial flush")
+            port.flush = forbidden_drain
+            service = SerialService(port, CaptureStore(directory), Engine(self.api, io.StringIO()), stderr=io.StringIO())
+            try:
+                with self.assertRaisesRegex(TimeoutError, "board ADC/DMA capture"):
+                    service.measure(timeout=.15)
+            finally:
+                service.close()
+
     def test_rt_cli_is_offline_and_stdout_has_only_original_fields(self):
         with tempfile.TemporaryDirectory() as directory:
             result = subprocess.run([sys.executable, str(ROOT / "server.py"), "RT",
@@ -165,12 +231,14 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(result[0], "square")
             self.assertAlmostEqual(float(result[4]), 1.4, delta=.04)
 
-    def test_interactive_commands_keep_diagnostics_out_of_ide_output(self):
+    def test_interactive_errors_are_visible_and_stdout_remains_measurements(self):
         with tempfile.TemporaryDirectory() as directory:
             result = subprocess.run([sys.executable, str(ROOT / "server.py"), "--data-dir", directory,
                 "--max-cases", "2"], input="bad\nR\nRT\nQ\n", capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertEqual(result.stderr, "")
+            self.assertIn("server: enter R, RT or Q", result.stderr)
+            self.assertIn("R requires --port", result.stderr)
+            self.assertNotIn("RT done:", result.stderr)
             self.assertIn("R requires --port", next(Path(directory).glob("*/server.log")).read_text())
             self.assertEqual(len(result.stdout.splitlines()), 2)
 

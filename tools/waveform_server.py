@@ -105,6 +105,7 @@ class SerialService:
         self.pending = None
         self.pending_error = None
         self.pending_started = None
+        self.pending_stage = None
         self.thread = threading.Thread(target=self._reader, name="adc-uart-receiver", daemon=True)
         self.thread.start()
 
@@ -116,6 +117,11 @@ class SerialService:
                 return True
         return False
 
+    def _stage(self, stage):
+        with self.pending_lock:
+            if self.pending is not None:
+                self.pending_stage = stage
+
     def _reader(self):
         while not self.stop.is_set():
             try:
@@ -126,17 +132,21 @@ class SerialService:
                     raise TimeoutError("serial line incomplete; received bytes saved in uart_rx.bin")
                 line = raw.decode("ascii").rstrip("\r\n")
                 if line.startswith("DUMP,"):
+                    self._stage("receiving ADC frame")
                     payload, meta, record = host.receive_frame(self.port, first_line=line, store=self.store)
                     with self.pending_lock:
                         requested = self.pending_started if self.pending is not None else None
                     if requested is not None:
                         record.info["request_to_received_s"] = time.perf_counter() - requested
                         record.save()
+                    self._stage("analyzing ADC frame")
                     self.engine.process(payload, meta, record)
                     self._signal()
                 elif line.startswith("ERR_"):
                     raise RuntimeError(f"board capture failed: {line}")
-                elif line in ("CAPTURING", "READY", "") or line.startswith(("TI-CUP ", "ADC=", "READY:")):
+                elif line == "CAPTURING":
+                    self._stage("board ADC/DMA capture")
+                elif line in ("READY", "") or line.startswith(("TI-CUP ", "ADC=", "READY:")):
                     continue
                 else:
                     raise ValueError(f"unexpected board response: {line}")
@@ -159,17 +169,24 @@ class SerialService:
             with self.pending_lock:
                 self.pending, self.pending_error = event, None
                 self.pending_started = time.perf_counter()
+                self.pending_stage = "waiting for board response"
+                deadline = self.pending_started + timeout
             try:
                 if self.port.write(b"R") != 1:
                     raise OSError("serial command write incomplete")
-                self.port.flush()
-                if not event.wait(timeout):
-                    raise TimeoutError("R exceeded 10 s; received bytes remain archived")
+                # Serial.write already submits the byte and has write_timeout.
+                # A driver-level flush/drain can block without that timeout.
+                if not event.wait(max(0., deadline - time.perf_counter())):
+                    with self.pending_lock:
+                        stage = self.pending_stage
+                    raise TimeoutError(f"R exceeded {timeout:g} s at {stage}; "
+                                       "received bytes remain archived; this request has ended")
                 if self.pending_error:
                     raise self.pending_error
             finally:
                 with self.pending_lock:
                     self.pending = self.pending_started = None
+                    self.pending_stage = None
 
     def close(self):
         self.stop.set()
@@ -187,7 +204,7 @@ def parser():
     p.add_argument("--dll", help="explicit existing host library; default builds automatically when needed")
     p.add_argument("--data-dir", type=Path, default=PROJECT / "data")
     p.add_argument("--sample-csv", action="store_true", help="also export all raw sample voltages to CSV (large)")
-    p.add_argument("--verbose", action="store_true", help="also show diagnostic messages on stderr; default IDE output is only five fields")
+    p.add_argument("--verbose", action="store_true", help="also show progress on stderr; errors are always visible, stdout is only five fields")
     p.add_argument("--suite", choices=("all", "competition"), default="all",
                    help="board-era matrix: 200 preliminary cases plus 96 evaluated challenges")
     p.add_argument("--seed", type=int, default=20261005)
@@ -206,16 +223,18 @@ def main(argv=None):
     try:
         store = CaptureStore(args.data_dir, args.sample_csv)
         with (store.path / "server.log").open("w", encoding="utf-8", buffering=1) as diagnostics:
-            sink = DiagnosticTee(diagnostics, sys.stderr) if args.verbose else diagnostics
+            errors = DiagnosticTee(diagnostics, sys.stderr)
+            sink = errors if args.verbose else diagnostics
             with redirect_stderr(sink):
-                return run_server(args, store)
+                return run_server(args, store, error_output=errors)
     except Exception as error:
         print(f"server: {error}", file=sys.stderr)
         return 2
 
 
-def run_server(args, store):
+def run_server(args, store, error_output=None):
     service = None
+    errors = error_output or sys.stderr
     try:
         print(f"Data: {store.path}", file=sys.stderr, flush=True)
         if args.list_matrix:
@@ -234,12 +253,14 @@ def run_server(args, store):
         if args.port:
             import serial
             port = serial.Serial(args.port, 115200, timeout=3, write_timeout=3)
-            service = SerialService(port, store, engine)
+            service = SerialService(port, store, engine, stderr=errors)
 
         def dispatch(command):
             if command == "R":
                 if service is None:
-                    raise ValueError("R requires --port COM6 (or your XDS110 UART)")
+                    raise ValueError("R requires --port COM6 (use your XDS110 UART port): "
+                                     "restart with python server.py --port COM6; "
+                                     "no ADC frame was acquired")
                 service.measure()
                 return 0
             if command == "RT":
@@ -263,14 +284,14 @@ def run_server(args, store):
                 if code is None:
                     break
                 if code:
-                    print("RT regression failures: see summary.json", file=sys.stderr, flush=True)
+                    print("RT regression failures: see summary.json", file=errors, flush=True)
             except Exception as error:
-                print(f"server: {error}", file=sys.stderr, flush=True)
+                print(f"server: {error}", file=errors, flush=True)
         return 0
     except KeyboardInterrupt:
         return 130
     except Exception as error:
-        print(f"server: {error}", file=sys.stderr, flush=True)
+        print(f"server: {error}", file=errors, flush=True)
         return 2
     finally:
         if service:

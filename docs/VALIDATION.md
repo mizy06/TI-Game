@@ -1,5 +1,7 @@
 # 2.1.2 验证
 
+2.1.2-r1 的 server 修复验证见 ../validation/r_stop/checks.log 与 no_signal.json：29 项 Python 测试通过，16 种无周期输入的实际 C 三层均拒识，最终输出 unknown。下表为此前 2.1.2 的完整算法验证；本次没有改动算法。
+
 本次结果、全部误差和偏差对照见 ../FIXES.md 与 ../validation/audit_summary.json。
 
 ## 验证
@@ -27,4 +29,3 @@
 | fifth_harmonic_interferer | -4.1254% | -0.4312% | 1.5314% |
 
 比较明细在 validation/pipeline_comparison.csv，全部汇总在 validation/audit_summary.json。原版验证记录在 validation_previous_2.1.1/。
-
