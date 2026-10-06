@@ -545,6 +545,31 @@ static uint32_t fit_template(waveform_type_t type, uint32_t duty, uint32_t edge,
         uint64_t amplitude=et ? (cov*2048ULL*65536ULL)/et : 0;
         if(amplitude>UINT32_MAX) amplitude=UINT32_MAX;
         *vpp_q16=(uint32_t)amplitude;
+        if(type==WAVEFORM_TYPE_SAWTOOTH) {
+            int64_t sy=0,st=0,c=0,e=0;
+            uint32_t count=0;
+            for(b=0;b<CBINS;b++) {
+                int32_t t=model[(b+best_shift)&(CBINS-1)];
+                if(t < -800 || t > 800) continue;
+                sy+=observed[b];st+=t;count++;
+            }
+            for(b=0;b<CBINS;b++) {
+                int32_t t=model[(b+best_shift)&(CBINS-1)];
+                int64_t x,y;
+                if(t < -800 || t > 800) continue;
+                x=(int64_t)t*count-st;y=(int64_t)observed[b]*count-sy;
+                c+=x*y;e+=x*x;
+            }
+            if(c>0 && e>0) {
+                uint64_t numerator=(uint64_t)c;
+                uint64_t denominator=(uint64_t)e;
+                while(numerator>UINT64_MAX/(2048ULL*65536ULL)) {
+                    numerator>>=1;denominator>>=1;
+                }
+                amplitude=numerator*2048ULL*65536ULL/denominator;
+                *vpp_q16=(uint32_t)(amplitude>UINT32_MAX ? UINT32_MAX : amplitude);
+            }
+        }
         if(precise_score) {
             uint64_t c=best_cov>>20, y=energy_y>>20, t=energy_t>>20;
             uint64_t precise;
@@ -650,6 +675,8 @@ bool waveform_analyze_robust(const waveform_frame_t *f, waveform_result_t *r)
     r->second_score_permille=(uint16_t)second;
     r->frequency_millihz=freq;
     r->vpp_counts_q16=vpp;
+    if(winner==WAVEFORM_TYPE_SAWTOOTH)
+        r->quality_flags|=WAVEFORM_QUALITY_RAMP_AMPLITUDE;
     r->accepted_cycles=(uint16_t)(((uint64_t)f->sample_count*freq)/f->sample_rate_millihz);
     r->dc_offset_counts=(uint16_t)((folded[0]+folded[CBINS/2])/2);
     return finish(f,r,(waveform_type_t)winner,freq,vpp,chosen_duty,
@@ -736,6 +763,21 @@ bool waveform_analyze_cascade(const waveform_frame_t *f,waveform_result_t *out,
         return true;
     }
     *out=(!ok3 && !ok1) ? l1 : l3;
+    /* Shape disagreement in L2 must not discard accurate L1 edge timing.
+     * When both time-domain stages identify the same shape and all three
+     * independent period estimates agree, retain L3's shape decision but use
+     * L1's long-record crossing regression. L3's coarse phase-bin energy search
+     * can move the period to a nearby phase grid under high-harmonic noise. */
+    if(ok1 && ok2 && ok3 && l1.type==l3.type &&
+       l1.best_score_permille>=950U && l3.best_score_permille>=950U &&
+       (uint64_t)absdiff(l1.frequency_millihz,l2.frequency_millihz)*1000ULL<=
+           (uint64_t)l1.frequency_millihz*5ULL &&
+       (uint64_t)absdiff(l1.frequency_millihz,l3.frequency_millihz)*1000ULL<=
+           (uint64_t)l1.frequency_millihz*5ULL) {
+        out->frequency_millihz=l1.frequency_millihz;
+        out->period_q16_samples=l1.period_q16_samples;
+        out->quality_flags|=WAVEFORM_QUALITY_TIMING_CONSENSUS;
+    }
     if(ok3) refine_dc(f,out);
     return ok3;
 }

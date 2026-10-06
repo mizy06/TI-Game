@@ -11,5 +11,4 @@ for case_name in host_test precision_validation; do
   "$tmp/$case_name"
 done
 bash "$root/tools/build_host_waveform.sh"
-python3 -m unittest discover -s "$root/tests" -p 'test_host_integration.py' -v
-python3 -m unittest discover -s "$root/tests" -p 'test_server.py' -v
+python3 -m unittest discover -s "$root/tests" -p 'test*.py' -v

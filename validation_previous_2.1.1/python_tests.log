@@ -1,0 +1,25 @@
+test_checksum_error_does_not_call_algorithm (test_host_integration.IntegrationTests.test_checksum_error_does_not_call_algorithm) ... ok
+test_missing_trailer_and_capture_error (test_host_integration.IntegrationTests.test_missing_trailer_and_capture_error) ... ok
+test_old_firmware_requires_upgrade (test_host_integration.IntegrationTests.test_old_firmware_requires_upgrade) ... ok
+test_real_cascade_uses_metadata_from_wire (test_host_integration.IntegrationTests.test_real_cascade_uses_metadata_from_wire) ... ok
+test_challenge_and_inl_parameters_survive_matrix_conversion (test_regression_fixes.RepairTests.test_challenge_and_inl_parameters_survive_matrix_conversion) ... ok
+test_evaluation_uses_unrounded_internal_amplitude (test_regression_fixes.RepairTests.test_evaluation_uses_unrounded_internal_amplitude) ... ok
+test_exception_keeps_all_cases_and_complete_raw_records (test_regression_fixes.RepairTests.test_exception_keeps_all_cases_and_complete_raw_records) ... ok
+test_harmonic_vpp_truth_is_for_the_distorted_clean_signal (test_regression_fixes.RepairTests.test_harmonic_vpp_truth_is_for_the_distorted_clean_signal) ... ok
+test_interrupted_run_preserves_finished_results_and_not_run_ids (test_regression_fixes.RepairTests.test_interrupted_run_preserves_finished_results_and_not_run_ids) ... ok
+test_saw_ramp_amplitude_does_not_shrink_with_frequency_or_phase (test_regression_fixes.RepairTests.test_saw_ramp_amplitude_does_not_shrink_with_frequency_or_phase) ... ok
+test_board_era_gate_and_challenge_matrix_is_explicit (test_server.MatrixTests.test_board_era_gate_and_challenge_matrix_is_explicit) ... ok
+test_generated_contest_noise_is_zero_mean_bandlimited_and_not_clipped (test_server.MatrixTests.test_generated_contest_noise_is_zero_mean_bandlimited_and_not_clipped) ... ok
+test_bad_checksum_and_partial_adc_bytes_survive_validation (test_server.ServerTests.test_bad_checksum_and_partial_adc_bytes_survive_validation) ... ok
+test_checksum_error_has_no_stdout_and_next_r_recovers (test_server.ServerTests.test_checksum_error_has_no_stdout_and_next_r_recovers) ... ok
+test_interactive_commands_keep_diagnostics_out_of_ide_output (test_server.ServerTests.test_interactive_commands_keep_diagnostics_out_of_ide_output) ... ok
+test_non_50_percent_square_dc_is_not_sample_mean (test_server.ServerTests.test_non_50_percent_square_dc_is_not_sample_mean) ... ok
+test_r_and_unsolicited_button_frames_are_both_saved (test_server.ServerTests.test_r_and_unsolicited_button_frames_are_both_saved) ... ok
+test_rt_cli_is_offline_and_stdout_has_only_original_fields (test_server.ServerTests.test_rt_cli_is_offline_and_stdout_has_only_original_fields) ... ok
+test_strong_triangle_spectral_and_amplitude_backstops (test_server.ServerTests.test_strong_triangle_spectral_and_amplitude_backstops) ... ok
+test_verbose_diagnostics_are_still_saved (test_server.ServerTests.test_verbose_diagnostics_are_still_saved) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 5.775s
+
+OK

@@ -6,4 +6,5 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 bash "$root/tests/run_host_tests.sh"
 python3 -m py_compile "$root/server.py" "$root/tools/host_waveform.py" \
   "$root/tools/waveform_server.py" "$root/tools/capture_store.py" "$root/tools/self_test.py" \
-  "$root/tools/export_capture.py"
+  "$root/tools/export_capture.py" "$root/tools/verify_rt_archive.py" \
+  "$root/tools/envelope_measurement.py" "$root/tools/audit_bias_controls.py"

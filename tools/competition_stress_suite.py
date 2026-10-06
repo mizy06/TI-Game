@@ -26,7 +26,7 @@ from typing import Iterable
 
 SAMPLE_COUNT = 4096      # 每帧点数，与 C 静态工作区和默认工程一致。
 ADC_FULL_SCALE = 4095    # 12 位无符号 ADC 的最大码值 2^12-1。
-ALGORITHM_VERSION = 0x00020100
+ALGORITHM_VERSION = 0x00020102
 ALGORITHM_NAME = {
     1: "legacy_amdf_crossing",
     2: "global_harmonic_model",

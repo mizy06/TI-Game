@@ -189,7 +189,7 @@ def parser():
     p.add_argument("--sample-csv", action="store_true", help="also export all raw sample voltages to CSV (large)")
     p.add_argument("--verbose", action="store_true", help="also show diagnostic messages on stderr; default IDE output is only five fields")
     p.add_argument("--suite", choices=("all", "competition"), default="all",
-                   help="board-era matrix: 200 preliminary gate cases plus 96 observed challenges")
+                   help="board-era matrix: 200 preliminary cases plus 96 evaluated challenges")
     p.add_argument("--seed", type=int, default=20261005)
     p.add_argument("--random-count", type=int, default=512,
                    help="accepted for CLI compatibility; the restored board-era matrix is fixed")

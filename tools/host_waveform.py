@@ -13,7 +13,7 @@ from pathlib import Path
 
 SAMPLES = 4096
 PAYLOAD_BYTES = SAMPLES * 2
-ABI_VERSION = 0x00020100
+ABI_VERSION = 0x00020102
 NAMES = ("sine", "square", "triangle", "sawtooth", "unknown")
 ROOT = Path(__file__).resolve().parent
 LIBRARY_NAME = ("waveform_analyzer_host.dll" if sys.platform == "win32" else
@@ -199,11 +199,20 @@ def analyze(dll, payload: bytes, meta: Metadata) -> tuple[str, dict]:
         return "unknown,0,0,0,0", details
     if result.algorithm_version != ABI_VERSION or result.sequence != meta.sequence or not 0 <= result.type < len(NAMES) - 1:
         raise RuntimeError("host algorithm returned incompatible result")
-    duty = result.duty_permille / 10 if result.type == 1 else 0
+    from tools.envelope_measurement import refine
+    refine(payload, meta, details)
+    duty = details["duty_permille"] / 10 if details["type"] == 1 else 0
     # The DC estimate is measured at the ADC pin; undo the front-end gain.
-    offset = result.dc_offset_counts * meta.reference_microvolts / (meta.adc_full_scale * meta.gain_ppm)
+    offset = details["dc_offset_counts"] * meta.reference_microvolts / (meta.adc_full_scale * meta.gain_ppm)
+    if result.type == 3:
+        # With an abrupt saw reset between ADC samples, exact integer-period
+        # sampling cannot identify sub-sample reset time independently of DC.
+        # Report this phase uncertainty; it is not a total error/confidence bound.
+        details["dc_sampling_uncertainty_microvolts"] = int(round(
+            details["vpp_microvolts"] * result.frequency_millihz /
+            (2 * meta.sample_rate_millihz)))
     return ((f"{NAMES[result.type]},{result.frequency_millihz / 1000:.3f},"
-             f"{result.vpp_millivolts / 1000:.3f},{duty:.1f},{offset:.3f}"), details)
+             f"{details['vpp_millivolts'] / 1000:.3f},{duty:.1f},{offset:.3f}"), details)
 
 
 def classify(dll, payload: bytes, meta: Metadata) -> str:

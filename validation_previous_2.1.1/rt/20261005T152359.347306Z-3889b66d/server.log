@@ -1,0 +1,5 @@
+Data: /workspace/scratch/4517f64a034a/repair/TI-game/validation/rt/20261005T152359.347306Z-3889b66d
+RT: 296 cases; reports: /workspace/scratch/4517f64a034a/repair/TI-game/validation/rt/20261005T152359.347306Z-3889b66d/rt-1791213839941611947
+RT: 100/296; failures=0
+RT: 200/296; failures=0
+RT done: {'passed': 296, 'completed': 296}; summary: /workspace/scratch/4517f64a034a/repair/TI-game/validation/rt/20261005T152359.347306Z-3889b66d/rt-1791213839941611947/summary.json

@@ -25,8 +25,15 @@ waveform,frequency_hz,vpp_v,duty_pct,dc_offset_v
 
 ```bash
 python server.py RT --max-cases 8
-python -m unittest discover -s tests -p 'test_host_integration.py'
-python -m unittest discover -s tests -p 'test_server.py'
+python -m unittest discover -s tests -p 'test*.py'
 ```
 
 完整矩阵可直接运行 `python server.py RT`；实际 CCS 构建、烧录、串口和模拟前端仍需在目标硬件上验收。
+
+## 查看全部 RT 结果
+
+运行 `python server.py RT`，在最新 `data/<会话>/rt-<运行编号>/` 打开 summary.json 看总判定、results.csv 看全部明细、results.json 看全部内部字段。原始 ADC 在同一会话的 rt/<编号>/。全部用例参与判定，失败时直接命令返回 1；单项算法异常也保存并继续。
+
+包内本次验证在 validation/，原 data/ 保留的是旧版输入和旧版结果。
+
+2.1.2 的 DC 真值为设置偏置；R/RT 均包含 NumPy 包络重建。无噪声偏差对照可运行 `python tools/audit_bias_controls.py`，全部对照数据另存新会话。

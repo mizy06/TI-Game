@@ -1,0 +1,38 @@
+{
+  "schema": 2,
+  "seed": 20261005,
+  "suite": "all",
+  "selected": 296,
+  "complete": true,
+  "all_passed": true,
+  "counts": {
+    "passed": 296,
+    "completed": 296
+  },
+  "groups": {
+    "competition/preliminary": {
+      "passed": 200,
+      "worst_frequency_error_pct": 0.02856251770986251,
+      "worst_vpp_error_pct": 2.2979921874999976,
+      "worst_duty_error_pp": 0.19180000000000064,
+      "worst_dc_error_v": 0.005592529536191493
+    },
+    "competition/final_strong": {
+      "passed": 96,
+      "worst_frequency_error_pct": 0.14180572615516418,
+      "worst_vpp_error_pct": 8.593550568181819,
+      "worst_duty_error_pp": 0.4247000000000014,
+      "worst_dc_error_v": 0.01962035885758906
+    }
+  },
+  "full_default_matrix": true,
+  "not_run": [],
+  "wall_time_s": 2.2896232470000086,
+  "failures": [],
+  "result_files": [
+    "results.csv",
+    "results.jsonl",
+    "results.json"
+  ],
+  "note": "All 296 cases are evaluated; signed errors use internal precision. Limits are engineering policy. Raw ADC and complete diagnostics are retained."
+}

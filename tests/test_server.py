@@ -175,9 +175,21 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(len(result.stdout.splitlines()), 2)
 
     def test_strong_triangle_spectral_and_amplitude_backstops(self):
+        from dataclasses import replace
+        from tools.self_test import evaluate
         selected = [c for c in matrix() if c.id in ("competition-000263", "competition-000279", "competition-000295")]
         self.assertEqual(len(selected), 3)
         for case in selected:
+            # Restored AM/interference cases have their actual clean-envelope
+            # truth and normal challenge gates, rather than the old 5% bound
+            # on collapsed, undistorted inputs.
+            payload, meta, facts = generate(case)
+            line, details = host.analyze(self.api, payload, meta)
+            self.assertTrue(evaluate(case, line, details, .01, facts)["passed"])
+            # Keep the original narrowband-noise amplitude backstop check.
+            case = replace(case, am_depth=0, am_rate_hz=0, interferer_ratio=0,
+                           interferer_frequency_ratio=0, inl_lsb=0,
+                           noise_mode="gaussian_highpass", bandwidth_ratio=2.)
             payload, meta, _ = generate(case)
             line, details = host.analyze(self.api, payload, meta)
             wave,f,vpp,duty,dc = line.split(",")
@@ -206,8 +218,8 @@ class MatrixTests(unittest.TestCase):
         self.assertEqual({c.wave for c in cases}, set(host.NAMES[:-1]))
         self.assertEqual(sum(c.group == "preliminary" for c in cases), 200)
         self.assertEqual(sum(c.group == "final_strong" for c in cases), 96)
-        self.assertEqual(sum(c.expectation == "measure" for c in cases), 200)
-        self.assertEqual(sum(c.expectation == "observe" for c in cases), 96)
+        self.assertEqual(sum(c.expectation == "measure" for c in cases), 296)
+        self.assertEqual(sum(c.expectation == "observe" for c in cases), 0)
 
     def test_generated_contest_noise_is_zero_mean_bandlimited_and_not_clipped(self):
         import numpy as np

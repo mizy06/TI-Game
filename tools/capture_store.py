@@ -38,6 +38,29 @@ def atomic_json(path, value):
             pass
 
 
+def atomic_text(path, value):
+    """Publish a closed, durable text snapshot while keeping its streaming log."""
+    temp = path.with_suffix(path.suffix + "." + uuid.uuid4().hex + ".tmp")
+    try:
+        with temp.open("w", encoding="utf-8", newline="") as stream:
+            stream.write(value)
+            stream.flush()
+            os.fsync(stream.fileno())
+        for attempt in range(8):
+            try:
+                os.replace(temp, path)
+                break
+            except PermissionError:
+                if attempt == 7:
+                    raise
+                time.sleep(.025*(attempt+1))
+    finally:
+        try:
+            temp.unlink()
+        except FileNotFoundError:
+            pass
+
+
 def export_samples(payload_path, meta, output_path):
     raw = Path(payload_path).read_bytes()
     values = struct.unpack(f"<{len(raw)//2}H", raw[:len(raw)//2*2])

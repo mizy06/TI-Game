@@ -13,6 +13,8 @@
 | `<会话>/rt/<编号>/capture.json` | 生成参数/真值、实际噪声、元数据、结果、误差及通过判定 |
 | `<会话>/rt-<运行编号>/matrix.json` | 本次所选题目完整参数清单 |
 | `<会话>/rt-<运行编号>/results.csv` | 每个 case 的原输出、状态、误差、输入参数和原始帧位置 |
+| `<会话>/rt-<运行编号>/results.jsonl` | 每例完整参数、生成真值、元数据、算法字段及判定，逐条 flush/fsync |
+| `<会话>/rt-<运行编号>/results.json` | 全部完整结果，包含通过、失败和异常 |
 | `<会话>/rt-<运行编号>/summary.json` | 是否跑完、完整默认覆盖标记、分组结果、最坏误差、失败列表 |
 
 接收字节先写 UART 原始文件并 flush/fsync，然后交给解析器；分块 ADC 载荷也落盘并同步，再验证协议和调用算法。JSON 使用临时文件 + 原子替换。进程突然终止时，可从原始字节恢复；capture.json 的 validation 若仍为 receiving，应按未完成处理，实际长度以 binary 文件为准。无法解析的帧头可能没有可拆分的 ADC 载荷，但整段字节仍保存在 uart_rx.bin。
@@ -50,3 +52,23 @@ input_v = adc_v / (meta['gain_ppm'] / 1e6)
 ```
 
 先检查 validation / 实际长度 / algorithm.ok，再分析频率、模型误差或异常样点。这里 gain 表示幅值比，未实现额外的模拟前端偏置扣除；若外接电平搬移电路，需要先标定并扩展协议中的前端偏置模型。
+
+## RT 完整判定和恢复
+
+296 项全部有布尔 passed 字段和 PASS / FAIL / ERROR verdict，不再有 observe。单项算法异常保存 ERROR 后继续；磁盘失败或用户中断则停止，complete=false、not_run 列出未完成用例。CSV / JSONL / JSON 均保存全部结果，summary.json 包含总判定、最坏误差和失败列表。
+
+独立检查存档：
+
+```bash
+python tools/verify_rt_archive.py data/<会话>/rt-<运行编号>
+```
+
+锯齿波算法诊断含 dc_sampling_uncertainty_microvolts，RT 明细含 dc_sampling_uncertainty_v。这是跳变落在两个采样点之间时半采样间隔对应的偏置相位不确定度，不含噪声和标定误差，不是统计置信区间；该字段不用于改判通过。
+
+## 2.1.2 测量口径
+
+`generated.truth.dc_v` 严格等于 `context.case.dc_v` 设置偏置。`algorithm` 中 Vpp/DC 为 R/RT 完整流程的最终结果；`carrier_result` 是原 C 阶段数值，`envelope_measurement` 保留模型、相干性、残差及连续包络计数。CSV、JSONL、JSON 和逐帧 self_test 都使用最终内部精度值；独立检查工具同时检查设置偏置真值的一致性。
+
+`validation/rt/` 为完整默认 RT，`validation/seed_20261006/` 为另一种子完整 RT，`validation/bias_controls/` 保留 96 项关掉噪声和 INL 的独立对照，包括全部 ADC 和逐帧诊断。可运行 `python tools/audit_bias_controls.py` 重现对照。
+
+运行结束时逐帧 capture.json、CSV 和 JSONL 都从完整已完成快照原子定稿，再自动执行一致性检查；存档核对失败使运行失败。持续写入时每项仍 fsync，异常/中断继续保留已完成结果。聚合条目中的 capture_info 是可核对的完整逐帧快照，可在外部同步或读取导致文件缺失时恢复记录，而无需重算算法。

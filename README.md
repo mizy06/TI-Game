@@ -20,7 +20,7 @@ Windows 把 COM6 换成实际 XDS110 Application/User UART；Linux 可用 `/dev/
 | 命令 | 行为 |
 | --- | --- |
 | `R` | 单片机实采外部输入、串口上传、电脑运行算法并输出一行 |
-| `RT` | 电脑生成恢复的 296 项板载算法时期矩阵，每项调用与 R 相同的主机算法 |
+| `RT` | 电脑生成 296 项矩阵，全部保存完整结果并判定 PASS / FAIL，每项调用与 R 相同的主机算法 |
 | `Q` | 退出 |
 
 默认 IDE 输出仅为原来的五列，不打印表头、菜单、日志或测试总结：
@@ -63,5 +63,7 @@ python server.py RT
 - [296 项测试矩阵与 1296 项噪声矩阵](docs/SELF_TEST_MATRIX.md)
 - [数据存档与后续分析](docs/DATA_ARCHIVE.md)
 - [最新验证报告](docs/VALIDATION.md)
+
+DC 以设置偏置为准，Vpp 以重建后的完整无噪声摆幅为准。修复说明见 `FIXES.md`；包内 `validation/rt/` 已包含完整 296 项原始 ADC 与全部结果。首次启动自动构建当前平台主机库，Windows 需已有 LLVM/Clang 或 MinGW GCC；算法版本为 2.1.2。
 
 矩阵参数、工程门限和验证口径记录在 `docs/SELF_TEST_MATRIX.md` 与 `docs/VALIDATION.md`。赛事尚未公布决赛最终幅值、偏置范围和评分阈值，本矩阵使用明确列出的安全输入范围和工程误差门限；连续参数无法被有限题集逐一穷举。
