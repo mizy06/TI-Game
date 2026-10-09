@@ -293,7 +293,8 @@ class ROTests(unittest.TestCase):
                 self.assertEqual(code, 0, status.getvalue())
                 self.assertEqual(bytes(port.written), b"RR")
                 self.assertEqual(len(output.getvalue().splitlines()), 2)
-                self.assertTrue(all(len(line.split(",")) == 3 for line in output.getvalue().splitlines()))
+                self.assertTrue(all(len(line.split(",")) == 5 and line.startswith("RESULT,")
+                                    for line in output.getvalue().splitlines()))
                 report = next(store.path.glob("ro-*"))
                 summary = json.loads((report / "summary.json").read_text())
                 self.assertTrue(summary["all_passed"])
@@ -412,7 +413,7 @@ class ROTests(unittest.TestCase):
                     self.assertEqual(row["metadata"]["sample_rate_millihz"], 20000000)
                     self.assertEqual(row["case"]["fs_hz"], 19760.)
                     self.assertEqual(row["generator"]["sample_rate_hz"], 19760.)
-                    self.assertEqual(output.getvalue().split(",")[0], "sine")
+                    self.assertEqual(output.getvalue().split(",")[:2], ["RESULT", "sine"])
                     self.assertAlmostEqual(row["result"]["measured"]["frequency_hz"], 100., delta=1.)
 
     def test_invalid_settings_or_case_id_fail_before_network(self):

@@ -50,22 +50,28 @@ FNV-1a 从 2166136261 开始，对每个实际载荷字节执行 `(hash ^ byte) 
 | 板端 ADC/DMA | TIMER 驱动 4096 次转换完成 | 约 500 ms 未完成或硬件错误，停止 TIMER/ADC DMA 并发送 ERR_ADC_DMA |
 | UART | 完整头部、8192 字节、DUMP_END 和 READY | 每次底层读/写超时为 3 s；不完整帧和校验错误显示并存档 |
 | 主机 R 等待 | 接收、算法和结果保存完成 | 从发令前计时，10 s 后显示所处阶段，本次等待结束 |
-| 算法 | L1/L2 共识，或 L3/严格 L2 后备成功 | 无有效分类则返回 false，输出 unknown,0,0,0,0 |
+| 算法 | L1/L2 共识，或 L3/严格 L2 后备成功 | 无有效分类则返回 false，内部保存 unknown,0,0,0,0，终端显示拒识诊断 |
 | 命令循环 | 本次 R 结束后读取下一条命令 | Q/QUIT/EXIT、输入结束或 Ctrl+C 退出服务 |
 
 板端 `wait_for_trigger()` 等的是 R/D 命令或 PB13 按键，不是 ADC 电平或外部周期。无外部波形仍应得到一帧；平直或非周期帧由算法拒识。所有循环的三层计算均针对这一帧，不会继续等待后续信号。板端采样超时使用 1 ms delay_cycles 计数，存在中断/处理开销，并非硬件时钟精确的 500 ms 墙钟限制。
 
 主机的 10 s 限制结束主命令线程对本次 R 的等待，不强行终止后台接收或原生 C 运算；已经到达的字节继续存档，迟到的完整帧仍可能输出。Q 关闭串口，并最多等待接收线程 5 s。RT 与 UART 算法共享锁，RT 期间的 UART 帧可能处于等待分析阶段。实际总时间还受驱动、磁盘和线程调度影响。
 
-本次移除了发 R 后的 UART flush/drain：一个字节由带 write_timeout 的 Serial.write 提交，不再额外进入没有同样超时保证的驱动排空等待。配置、传输及超时错误默认可见；五列测量 stdout 不混入错误文字。
+如果 R 发令后 3 s 仍停在“等待板卡响应”，连接层会先取消旧接收操作并等待旧线程退出，再重开同一串口，最多再发送一次 R。恢复和重试计入本次 10 s 预算，不重新开始计时；已进入板卡采集、帧接收或分析阶段时不自动重发。若停止旧线程期间已有完整迟到结果，则使用该结果，不再发第二次命令。禁止创建同时读取同一串口的两个线程；旧句柄中可读的排队字节在重新打开前保存到 uart_rx.bin，不调用 reset_input_buffer。驱动不能释放时明确报错，不伪造识别完成。
+
+接收线程因设备 I/O 错误终止，或静默恢复仍未成功时，下一次 R 会尝试重新连接。帧/行的 TimeoutError 属于可恢复的解析超时，不能因为它继承 OSError 就永久停止接收线程。`connection.jsonl` 带 UTC 时间，记录每次请求、发令 attempt、已接收字节总数、错误、超时阶段以及重连结果，以区分下一次故障的发令、接收和分析环节。
+
+本次移除了发 R 后的 UART flush/drain：一个字节由带 write_timeout 的 Serial.write 提交，不再额外进入没有同样超时保证的驱动排空等待。配置、传输及超时错误默认可见；RESULT 结果 stdout 不混入错误文字。
 
 ## 接收、保存与输出
 
 后台持续接收，包括 PB13 的主动上传及 RT 期间到达的帧。接收缓冲从不清空；所有接收字节先保存到 uart_rx.bin，再进行协议解析。载荷分块落盘，完整帧经过版本/元数据范围/长度/FNV/帧尾验证后才调用算法。坏校验帧同样消费帧尾以支持下一次 R 恢复；无法解析的字节仍留在 UART 原始日志中。
 
-输出格式保持 `type,frequency_hz,vpp_v,duty_pct,dc_offset_v`，没有表头。Hz/V 保留 3 位小数，方波占空比保留 1 位，非方波为 0.0。算法拒识为 `unknown,0,0,0,0`。协议错误不会送算法、不会伪造 unknown 测量行。
+IDE 成功结果行统一为 `RESULT,type,frequency_hz,vpp_v,duty_pct`。type 只允许小写 sine、square、triangle、sawtooth；Hz/V 保留 3 位小数，方波占空比保留 1 位，非方波固定为 `0`。数值不带单位，不使用科学计数法，采用半角逗号和英文小数点。每帧仅输出一行并立即刷新，以完整有效行出现的时刻作为识别完成时刻。
 
-进度默认写 server.log；错误同时显示在 stderr。`--verbose` 可同时显示进度，stdout 始终只有五列测量结果。文件布局见 [数据存档](DATA_ARCHIVE.md)。
+内部算法接口和归档中的 `output` 仍保留 `type,frequency_hz,vpp_v,duty_pct,dc_offset_v`，包括 DC 诊断；`display_output` 保存实际 RESULT 行。算法拒识时内部保存 `unknown,0,0,0,0`，`display_output` 为空，stderr 显示 `measurement rejected: status=...`。协议错误不会送算法，也不生成 RESULT 行。
+
+进度默认写 server.log；错误同时显示在 stderr。`--verbose` 可同时显示进度，stdout 始终只有比赛格式的 RESULT 结果行。文件布局见 [数据存档](DATA_ARCHIVE.md)。
 
 ## 2.1.1 修复
 

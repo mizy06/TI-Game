@@ -1,11 +1,13 @@
-"""Command server. Stdout: type,frequency_hz,vpp_v[,square_duty_pct]."""
+"""Command server. Stdout: RESULT,type,frequency_hz,vpp_v,duty_pct."""
 from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 from contextlib import redirect_stderr
 from dataclasses import asdict
+from datetime import datetime, timezone
 import subprocess
 import sys
 import threading
@@ -74,16 +76,20 @@ def build_api(path=None):
 
 
 def measurement_output(line):
-    """Display only requested measurements; keep the internal result for audits."""
+    """Format successful recognition for the contest's IDE result protocol."""
     fields = line.split(",")
-    return ",".join(fields[:4] if fields[0] == "square" else fields[:3])
+    if fields[0] not in host.NAMES[:-1]:
+        return ""
+    duty = fields[3] if fields[0] == "square" else "0"
+    return f"RESULT,{','.join(fields[:3])},{duty}"
 
 
 class Engine:
-    def __init__(self, api, output=None):
+    def __init__(self, api, output=None, stderr=None):
         self.api = api
         self.lock = threading.Lock()  # C cascade owns shared, non-reentrant workspaces.
         self.output = output or sys.stdout
+        self.stderr = stderr or sys.stderr
 
     def process(self, payload, meta, record):
         with self.lock:
@@ -100,18 +106,28 @@ class Engine:
             if record:
                 record.info["display_output"] = output
                 record.result(line, details, elapsed)
-            print(output, file=self.output, flush=True)
+            if output:
+                print(output, file=self.output, flush=True)
+            else:
+                print(f"measurement rejected: status={details['status']}", file=self.stderr, flush=True)
         return line, details, elapsed
 
 
 class SerialService:
     """Read unsolicited PB13 frames too, including while RT is running."""
+    RESPONSE_GRACE_S = 3.
+
     def __init__(self, port, store, engine, stderr=None, *, parameters_path=None):
         self.store, self.engine = store, engine
         self.stderr = stderr or sys.stderr
         self.raw_port = port
         self.port = RecordingSerial(port, store.path)
         self.stop = threading.Event()
+        self.receiver_stop = threading.Event()
+        self.reconnect_needed = False
+        self.receiver_error = None
+        self.request_sequence = 0
+        self.connection_log_lock = threading.Lock()
         self.pending_lock = threading.Lock()
         self.request_lock = threading.Lock()
         self.pending = None
@@ -130,8 +146,64 @@ class SerialService:
             # Raw RO reference captures can repair a broken parameters file.
             # Ordinary R must report the error instead of silently going nominal.
             print(f"R calibration: {error}; run RO to replace the parameters", file=self.stderr, flush=True)
+        self._connection_event("opened", port=getattr(port, "port", None))
+        self._start_reader()
+
+    def _connection_event(self, event, **details):
+        value = {"utc": datetime.now(timezone.utc).isoformat(), "event": event,
+                 "request": self.request_sequence, "received_bytes": self.port.wire.tell(), **details}
+        with self.connection_log_lock:
+            with (self.store.path / "connection.jsonl").open("a", encoding="utf-8") as stream:
+                stream.write(json.dumps(value, ensure_ascii=False) + "\n")
+                stream.flush()
+
+    def _start_reader(self):
+        self.receiver_stop.clear()
+        self.receiver_error = None
         self.thread = threading.Thread(target=self._reader, name="adc-uart-receiver", daemon=True)
         self.thread.start()
+
+    def _reconnect(self, deadline):
+        """Stop the sole reader, archive queued RX bytes, then reopen this port."""
+        if not callable(getattr(self.raw_port, "open", None)):
+            raise RuntimeError("serial port cannot reopen; restart the server")
+        self.reconnect_needed = True
+        self._connection_event("reconnect_started")
+        self.receiver_stop.set()
+        try:
+            cancel = getattr(self.raw_port, "cancel_read", None)
+            if callable(cancel) and getattr(self.raw_port, "is_open", True):
+                cancel()
+            self.thread.join(timeout=max(0., min(1., deadline - time.perf_counter())))
+            if self.thread.is_alive():
+                # Closing releases a stalled driver read when cancellation did not.
+                self.raw_port.close()
+                self.thread.join(timeout=max(0., min(1., deadline - time.perf_counter())))
+            if self.thread.is_alive():
+                raise RuntimeError("serial receiver did not stop during recovery; no second reader was started")
+            drained = 0
+            if getattr(self.raw_port, "is_open", False):
+                # Preserve bytes still queued in the old handle before open()
+                # initializes the driver. Never reset or clear the RX buffer.
+                while time.perf_counter() < deadline:
+                    waiting = getattr(self.raw_port, "in_waiting", 0)
+                    if not waiting:
+                        break
+                    data = self.port.read(min(waiting, 8192))
+                    drained += len(data)
+                    if not data:
+                        break
+            self.raw_port.close()
+            if time.perf_counter() >= deadline:
+                raise TimeoutError("serial recovery exhausted the R deadline")
+            self.raw_port.open()
+            self._start_reader()
+            self.reconnect_needed = False
+            self._connection_event("reconnect_complete", queued_bytes_archived=drained)
+            print("UART: reopened the connection after no board response", file=self.stderr, flush=True)
+        except Exception as error:
+            self._connection_event("reconnect_failed", error=f"{type(error).__name__}: {error}")
+            raise
 
     @property
     def calibration(self):
@@ -170,7 +242,7 @@ class SerialService:
                 self.pending_stage = stage
 
     def _reader(self):
-        while not self.stop.is_set():
+        while not self.stop.is_set() and not self.receiver_stop.is_set():
             try:
                 raw = self.port.read_until(b"\n", 256)
                 if not raw:
@@ -223,14 +295,16 @@ class SerialService:
                 else:
                     raise ValueError(f"unexpected board response: {line}")
             except Exception as error:
-                if self.stop.is_set():
+                if self.stop.is_set() or self.receiver_stop.is_set():
                     break
+                self._connection_event("receiver_error", error=f"{type(error).__name__}: {error}")
                 if not self._signal(error):
                     print(f"UART: {error}", file=self.stderr, flush=True)
                 # A closed/device-disconnected port cannot be recovered by parsing.
-                if hasattr(self.raw_port, "is_open") and not self.raw_port.is_open:
-                    break
-                if isinstance(error, OSError):
+                if ((hasattr(self.raw_port, "is_open") and not self.raw_port.is_open) or
+                        (isinstance(error, OSError) and not isinstance(error, TimeoutError))):
+                    self.receiver_error = str(error)
+                    self.reconnect_needed = True
                     break
 
     def capture(self, timeout=10.):
@@ -239,30 +313,57 @@ class SerialService:
 
     def measure(self, timeout=10., *, return_result=False, raw=False):
         with self.request_lock:
-            if not self.thread.is_alive():
-                raise RuntimeError("serial receiver is stopped; restart the server")
+            self.request_sequence += 1
+            started = time.perf_counter()
+            deadline = started + timeout
+            if self.reconnect_needed or not self.thread.is_alive():
+                self._reconnect(deadline)
             event = threading.Event()
             with self.pending_lock:
                 self.pending, self.pending_error = event, None
                 self.pending_result = None
                 self.pending_raw = raw
-                self.pending_started = time.perf_counter()
+                self.pending_started = started
                 self.pending_stage = "waiting for board response"
-                deadline = self.pending_started + timeout
             try:
+                self._connection_event("request_started", timeout_s=timeout, raw_reference=raw)
                 if self.port.write(b"R") != 1:
                     raise OSError("serial command write incomplete")
+                self._connection_event("command_sent", attempt=1)
                 # Serial.write already submits the byte and has write_timeout.
                 # A driver-level flush/drain can block without that timeout.
+                event.wait(max(0., min(self.RESPONSE_GRACE_S, deadline - time.perf_counter())))
+                with self.pending_lock:
+                    silent = not event.is_set() and self.pending_stage == "waiting for board response"
+                if (silent and deadline - time.perf_counter() > .25 and
+                        callable(getattr(self.raw_port, "open", None))):
+                    self._connection_event("no_response", stage="waiting for board response")
+                    self._reconnect(deadline)
+                    # A late complete frame received while stopping the old
+                    # reader already satisfies this request; do not send twice.
+                    if not event.is_set():
+                        if self.port.write(b"R") != 1:
+                            raise OSError("serial recovery command write incomplete")
+                        self._connection_event("command_sent", attempt=2)
                 if not event.wait(max(0., deadline - time.perf_counter())):
                     with self.pending_lock:
                         stage = self.pending_stage
+                    if stage == "waiting for board response":
+                        self.reconnect_needed = callable(getattr(self.raw_port, "open", None))
+                    self._connection_event("request_timeout", stage=stage,
+                                           receiver_alive=self.thread.is_alive())
                     raise TimeoutError(f"R exceeded {timeout:g} s at {stage}; "
                                        "received bytes remain archived; this request has ended")
                 if self.pending_error:
                     raise self.pending_error
+                self._connection_event("request_complete", elapsed_s=time.perf_counter() - started)
                 if return_result:
                     return self.pending_result
+            except Exception as error:
+                if isinstance(error, OSError) and not isinstance(error, TimeoutError):
+                    self.reconnect_needed = True
+                self._connection_event("request_failed", error=f"{type(error).__name__}: {error}")
+                raise
             finally:
                 with self.pending_lock:
                     self.pending = self.pending_started = None
@@ -288,7 +389,7 @@ def parser():
     p.add_argument("--algorithm-parameters", type=Path, default=PROJECT / "algorithm_parameters.json",
                    help="persistent parameters from the latest successful RO calibration; R loads them automatically")
     p.add_argument("--sample-csv", action="store_true", help="also export all raw sample voltages to CSV (large)")
-    p.add_argument("--verbose", action="store_true", help="also show progress on stderr; stdout is type,frequency,vpp with duty only for square")
+    p.add_argument("--verbose", action="store_true", help="also show progress on stderr; stdout is RESULT,type,frequency,vpp,duty (0 for non-square)")
     p.add_argument("--suite", choices=("all", "competition"), default="all",
                    help="board-era matrix: 200 preliminary cases plus 96 evaluated challenges")
     p.add_argument("--seed", type=int, default=20261005)
@@ -342,7 +443,7 @@ def run_server(args, store, error_output=None):
             atomic_json(store.path / "matrix.json", {"seed": args.seed, "cases": [asdict(c) for c in cases]})
             print(f"Matrix: {len(cases)} cases; {store.path/'matrix.json'}", file=sys.stderr)
             return 0
-        engine = Engine(build_api(args.dll))
+        engine = Engine(build_api(args.dll), stderr=errors)
         # Connection layer: the board link is optional.  A missing or busy UART
         # must not take the whole server down, because RO only needs the board
         # for the R leg; its matrix encoding and generator upload run without it.

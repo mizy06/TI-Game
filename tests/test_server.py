@@ -67,6 +67,64 @@ class LiveSerial:
             self.condition.notify_all()
 
 
+class StalledSerial(LiveSerial):
+    """Board keeps capturing, but the host handle loses RX until it reopens."""
+    def __init__(self, reply):
+        super().__init__(reply)
+        self.stalled = False
+        self.cancelled = False
+        self.fail_open = False
+        self.late_on_cancel = False
+        self.open_calls = 0
+        self.close_calls = 0
+        self.captures = 0
+        self.last_reply = b""
+
+    def write(self, data):
+        self.written.extend(data)
+        self.captures += 1
+        self.last_reply = self.reply.replace(b"seq=37,", f"seq={self.captures},".encode())
+        if not self.stalled:
+            self.inject(self.last_reply)
+        return len(data)
+
+    def read(self, count):
+        with self.condition:
+            if not self.buffer and self.is_open and not self.cancelled:
+                self.condition.wait(.05)
+            if self.cancelled:
+                self.cancelled = False
+                return b""
+            data = bytes(self.buffer[:min(count, 73)])
+            del self.buffer[:len(data)]
+            return data
+
+    @property
+    def in_waiting(self):
+        return len(self.buffer)
+
+    def cancel_read(self):
+        with self.condition:
+            if self.late_on_cancel:
+                self.buffer.extend(self.last_reply[self.last_reply.index(b"DUMP,"):])
+            else:
+                self.cancelled = True
+            self.condition.notify_all()
+
+    def close(self):
+        self.close_calls += 1
+        super().close()
+
+    def open(self):
+        self.open_calls += 1
+        if self.fail_open:
+            raise OSError("device still unavailable")
+        self.is_open, self.stalled, self.cancelled = True, False, False
+
+    def reset_input_buffer(self):
+        raise AssertionError("Recovery must not discard the UART RX buffer")
+
+
 class ServerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -99,8 +157,9 @@ class ServerTests(unittest.TestCase):
                 self.assertEqual(len((record.parent / "samples.csv").read_text().splitlines()), 4097)
             self.assertEqual((store.path / "uart_rx.bin").read_bytes(), response(payload) * 2)
             for line in output.getvalue().splitlines():
-                self.assertEqual(len(line.split(",")), 3)
-                self.assertEqual(line.split(",")[0], "sine")
+                self.assertEqual(len(line.split(",")), 5)
+                self.assertEqual(line.split(",")[:2], ["RESULT", "sine"])
+                self.assertEqual(line.split(",")[4], "0")
 
     def test_bad_checksum_and_partial_adc_bytes_survive_validation(self):
         payload = sine_payload()
@@ -139,23 +198,27 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(len(output.getvalue().splitlines()), 1)
             self.assertEqual(len(list(store.path.glob("uart/*/samples.adc.bin"))), 2)
 
-    def test_no_signal_frame_returns_unknown_and_saves_rejection(self):
+    def test_no_signal_frame_reports_rejection_without_a_contest_result(self):
         for dc in (0, 100, 2048, 4095):
             with self.subTest(dc=dc), tempfile.TemporaryDirectory() as directory:
                 payload = struct.pack("<4096H", *([dc] * 4096))
                 output = io.StringIO()
+                errors = io.StringIO()
                 store = CaptureStore(directory)
                 port = LiveSerial(response(payload))
-                service = SerialService(port, store, Engine(self.api, output), stderr=io.StringIO())
+                service = SerialService(port, store, Engine(self.api, output, stderr=errors), stderr=errors)
                 try:
                     service.measure(timeout=2)
                 finally:
                     service.close()
-                self.assertEqual(output.getvalue(), "unknown,0,0\n")
+                self.assertEqual(output.getvalue(), "")
+                self.assertIn("measurement rejected: status=", errors.getvalue())
                 info = json.loads(next(store.path.glob("uart/*/capture.json")).read_text())
                 self.assertEqual(info["validation"], "valid")
                 self.assertFalse(info["algorithm"]["ok"])
                 self.assertNotEqual(info["algorithm"]["status"], 0)
+                self.assertEqual(info["display_output"], "")
+                self.assertEqual(info["output"], "unknown,0,0,0,0")
                 self.assertEqual((next(store.path.glob("uart/*/samples.adc.bin"))).read_bytes(), payload)
 
     def test_no_response_times_out_and_next_r_recovers(self):
@@ -173,6 +236,85 @@ class ServerTests(unittest.TestCase):
                 port.reply = response(sine_payload())
                 service.measure(timeout=3)
                 self.assertEqual(len(output.getvalue().splitlines()), 1)
+            finally:
+                service.close()
+
+    def test_idle_receive_stall_recovers_with_one_retry_and_keeps_the_session(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, output, errors = CaptureStore(directory), io.StringIO(), io.StringIO()
+            port = StalledSerial(response(sine_payload()))
+            service = SerialService(port, store, Engine(self.api, output), stderr=errors)
+            service.RESPONSE_GRACE_S = .05
+            try:
+                service.measure(timeout=3)
+                original_wire = (store.path / "uart_rx.bin").read_bytes()
+                port.stalled = True
+                service.measure(timeout=3)
+                service.measure(timeout=3)
+                self.assertEqual(port.open_calls, 1)
+                self.assertEqual(bytes(port.written), b"RRRR")
+                self.assertEqual(len(output.getvalue().splitlines()), 3)
+                self.assertTrue((store.path / "uart_rx.bin").read_bytes().startswith(original_wire))
+                records = sorted(store.path.glob("uart/*/capture.json"))
+                self.assertEqual([json.loads(p.read_text())["metadata"]["sequence"] for p in records], [1, 3, 4])
+                events = [json.loads(line) for line in (store.path / "connection.jsonl").read_text().splitlines()]
+                self.assertEqual(sum(e["event"] == "reconnect_complete" for e in events), 1)
+                self.assertEqual(sum(e["event"] == "command_sent" and e["attempt"] == 2 for e in events), 1)
+                self.assertIn("reopened", errors.getvalue())
+                self.assertTrue(service.thread.is_alive())
+            finally:
+                service.close()
+
+    def test_late_frame_during_receive_recovery_is_not_requested_twice(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, output = CaptureStore(directory), io.StringIO()
+            port = StalledSerial(response(sine_payload()))
+            port.stalled, port.late_on_cancel = True, True
+            service = SerialService(port, store, Engine(self.api, output), stderr=io.StringIO())
+            service.RESPONSE_GRACE_S = .05
+            try:
+                service.measure(timeout=3)
+                self.assertEqual(bytes(port.written), b"R")
+                self.assertEqual(len(output.getvalue().splitlines()), 1)
+                self.assertEqual(len(list(store.path.glob("uart/*/capture.json"))), 1)
+                self.assertEqual(port.open_calls, 1)
+            finally:
+                service.close()
+
+    def test_recovery_open_failure_is_reported_without_repeated_commands(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output, errors = io.StringIO(), io.StringIO()
+            store = CaptureStore(directory)
+            port = StalledSerial(response(sine_payload()))
+            port.stalled, port.fail_open = True, True
+            service = SerialService(port, store, Engine(self.api, output), stderr=errors)
+            service.RESPONSE_GRACE_S = .05
+            try:
+                started = time.monotonic()
+                with self.assertRaisesRegex(OSError, "device still unavailable"):
+                    service.measure(timeout=3)
+                self.assertLess(time.monotonic() - started, 2.)
+                self.assertEqual(bytes(port.written), b"R")
+                self.assertEqual(output.getvalue(), "")
+                self.assertFalse(service.thread.is_alive())
+                events = [json.loads(line) for line in (store.path / "connection.jsonl").read_text().splitlines()]
+                self.assertTrue(any(e["event"] == "reconnect_failed" for e in events))
+                port.fail_open = False
+                service.measure(timeout=3)
+                self.assertEqual(len(output.getvalue().splitlines()), 1)
+            finally:
+                service.close()
+
+    def test_board_already_capturing_is_not_reopened_or_commanded_twice(self):
+        with tempfile.TemporaryDirectory() as directory:
+            port = StalledSerial(b"CAPTURING\r\n")
+            service = SerialService(port, CaptureStore(directory), Engine(self.api, io.StringIO()), stderr=io.StringIO())
+            service.RESPONSE_GRACE_S = .05
+            try:
+                with self.assertRaisesRegex(TimeoutError, "board ADC/DMA capture"):
+                    service.measure(timeout=.2)
+                self.assertEqual(bytes(port.written), b"R")
+                self.assertEqual(port.open_calls, 0)
             finally:
                 service.close()
 
@@ -204,7 +346,7 @@ class ServerTests(unittest.TestCase):
             finally:
                 service.close()
 
-    def test_rt_cli_is_offline_and_stdout_has_only_original_fields(self):
+    def test_rt_cli_is_offline_and_stdout_uses_contest_result_lines(self):
         with tempfile.TemporaryDirectory() as directory:
             result = subprocess.run([sys.executable, str(ROOT / "server.py"), "RT",
                 "--max-cases", "8", "--data-dir", directory], capture_output=True, text=True, cwd=directory)
@@ -212,9 +354,13 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(len(result.stdout.splitlines()), 8)
             for line in result.stdout.splitlines():
                 fields = line.split(",")
-                self.assertEqual(len(fields), 4 if fields[0] == "square" else 3)
-                self.assertIn(fields[0], host.NAMES)
-                self.assertTrue(all(math.isfinite(float(x)) for x in fields[1:]))
+                self.assertEqual(len(fields), 5)
+                self.assertEqual(fields[0], "RESULT")
+                self.assertIn(fields[1], host.NAMES[:-1])
+                self.assertTrue(all(math.isfinite(float(x)) for x in fields[2:]))
+                self.assertNotRegex(line, r"[eE][+-]?\d")
+                if fields[1] != "square":
+                    self.assertEqual(fields[4], "0")
             self.assertEqual(result.stderr, "")
             log = next(Path(directory).glob("*/server.log")).read_text()
             self.assertIn("RT done:", log)

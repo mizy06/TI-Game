@@ -13,16 +13,20 @@ python -m pip install -r requirements.txt
 python server.py --port COM6
 ```
 
-把 `COM6` 换成 XDS110 Application/User UART。输入 `R` 采集一帧，输入 `Q` 退出；`RT` 在没有硬件时运行主机合成自测。非方波输出三项，方波追加占空比：
+把 `COM6` 换成 XDS110 Application/User UART。输入 `R` 采集一帧，输入 `Q` 退出；`RT` 在没有硬件时运行主机合成自测。R、RT、RO 成功识别均按比赛格式输出：
 
 ```text
-waveform,frequency_hz,vpp_v
-square,frequency_hz,vpp_v,duty_pct
+RESULT,sine,137.2,1.18,0
+RESULT,square,223.4,1.56,68.2
 ```
 
 诊断和原始 UART/ADC 数据保存在 `data/<session>/`。旧 DLL 若缺少当前 ABI 导出，server 会先用子进程探测并自动重建，避免 Windows 文件锁导致启动失败。使用 `--dll` 指定外部库时不会覆盖它。
 
-输入 R 没有输出时，先看终端 stderr：缺少 `--port` 会立即显示启动方法；ADC/DMA 错误、串口错误和 10 s 超时也直接显示，并保存至 server.log。只有完整有效帧的算法拒识才输出 `unknown,0,0`。无外部波形不影响固定采样，实际浮空输入可能拾取噪声，不能保证总是平直。错误后主命令循环继续等待下一条命令，输入 Q 才退出服务。
+非方波的 duty 固定为 `0`；只允许四种小写波形名，数值不附单位、不使用科学计数法，以完整有效 RESULT 行出现的时刻作为识别完成时刻。
+
+输入 R 没有结果行时，先看终端 stderr：缺少 `--port` 会立即显示启动方法；ADC/DMA 错误、串口错误和 10 s 超时也直接显示，并保存至 server.log。完整有效帧的算法拒识显示 `measurement rejected: status=...`，不输出 RESULT 行。无外部波形不影响固定采样，实际浮空输入可能拾取噪声，不能保证总是平直。错误后主命令循环继续等待下一条命令，输入 Q 才退出服务。
+
+长时间空闲后串口静默时，R 发令后 3 s 尚未收到采集/帧响应会停止旧接收线程、重开同一串口并最多重试一次，仍使用本次 10 s 等待预算。已经开始采集、接收或分析时不自动重发。恢复提示显示在 stderr，发令次数、接收字节数、失败阶段及恢复结果保存于 `data/<session>/connection.jsonl`。恢复仍失败时本次 R 报错，后续 R 会再次尝试连接，无需为每次串口停滞重启整个 server。
 
 ## 软件验证
 

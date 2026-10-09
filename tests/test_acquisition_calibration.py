@@ -25,7 +25,7 @@ META = host.Metadata(1, 20000000, 3300000, 1000000, 4095, 1, 0)
 class BiasedBoard(LiveSerial):
     """Physical sampling clock and affine ADC response differ from wire metadata."""
     def __init__(self, instrument, *, disconnected=False, bad_validation=False,
-                 arb_amplitude_gain=1., arb_offset_gain=1., arb_bias_v=0.):
+                 arb_amplitude_gain=1., arb_offset_gain=1., arb_bias_v=0., arb_offset_curvature=0.):
         super().__init__(b"")
         self.instrument = instrument
         self.actual_rate, self.adc_scale, self.adc_offset = 20240., 1.016, -33.
@@ -33,6 +33,7 @@ class BiasedBoard(LiveSerial):
         self.disconnected, self.bad_validation = disconnected, bad_validation
         self.arb_amplitude_gain, self.arb_offset_gain, self.arb_bias_v = (
             arb_amplitude_gain, arb_offset_gain, arb_bias_v)
+        self.arb_offset_curvature = arb_offset_curvature
 
     def write(self, data):
         self.sequence += 1
@@ -53,7 +54,8 @@ class BiasedBoard(LiveSerial):
             dac = np.frombuffer(g.uploads[-1], dtype="<i2").astype(float)
             indices = np.floor(np.arange(host.SAMPLES) * g.rate / self.actual_rate + 217).astype(int) % len(dac)
             volts = (.5 * g.amp * dac[indices] / 32767 * self.arb_amplitude_gain +
-                     g.offset * self.arb_offset_gain + self.arb_bias_v)
+                     g.offset * self.arb_offset_gain + self.arb_bias_v +
+                     self.arb_offset_curvature * (g.offset - 1.65) ** 2)
         rng = np.random.default_rng(973 + self.sequence)
         codes = np.rint(volts * (4095 / 3.3) * self.adc_scale + self.adc_offset +
                         rng.normal(0, .7, host.SAMPLES))
@@ -169,10 +171,11 @@ class CalibrationTests(unittest.TestCase):
                                         str(competition_data), "--algorithm-parameters", str(parameters)]), 0,
                                         competition_status.getvalue())
                                 fields = competition_output.getvalue().strip().split(",")
-                                self.assertEqual(len(fields), 3)
-                                self.assertEqual(fields[0], "sine")
-                                self.assertAlmostEqual(float(fields[1]), 137.5, delta=.2)
-                                self.assertAlmostEqual(float(fields[2]), 1.2, delta=.02)
+                                self.assertEqual(len(fields), 5)
+                                self.assertEqual(fields[:2], ["RESULT", "sine"])
+                                self.assertAlmostEqual(float(fields[2]), 137.5, delta=.2)
+                                self.assertAlmostEqual(float(fields[3]), 1.2, delta=.02)
+                                self.assertEqual(fields[4], "0")
                                 competition_archive = json.loads(next(competition_data.glob(
                                     "*/uart/*/capture.json")).read_text())
                                 self.assertEqual(competition_archive["analysis_metadata"]["sample_rate_millihz"],

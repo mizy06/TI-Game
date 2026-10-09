@@ -786,6 +786,7 @@ def calibrate_link(service, store, args, stderr, instrument, report, vref, gain)
 def calibrate_playback(service, store, args, stderr, instrument, report, vref, gain):
     """Validate ARB separately from the ADC calibration used in competition R."""
     from dataclasses import asdict
+    from tools.acquisition_calibration import counts
     from tools.generator_calibration import reference, fit_playback, verify_playback
     full_scale = vref / gain
     path = report / "generator_calibration.json"
@@ -802,6 +803,10 @@ def calibrate_playback(service, store, args, stderr, instrument, report, vref, g
             config = profile.apply(config)
         directory = report / "generator-references" / f"{len(info['captures']) + 1:02d}"
         directory.mkdir(parents=True)
+        print(f"RO ARB calibration {len(info['captures']) + 1}/8: "
+              f"{'check' if validation else 'fit'} {wave}, expected DC {expected['dc_v']:.6g} V, "
+              f"AMP {config['amplitude_v']:.6g} V, OFST {config['offset_v']:.6g} V",
+              file=stderr, flush=True)
         (directory / "generator.i16.bin").write_bytes(data)
         config["readback"] = instrument.configure(data, config, readback_dir=directory)
         atomic_json(directory / "configuration.json", {"requested": requested, "sent": config,
@@ -811,17 +816,29 @@ def calibrate_playback(service, store, args, stderr, instrument, report, vref, g
         payload, meta, record = service.capture(args.ro_timeout)
         context = {"reference": expected, "configuration": config, "validation": validation,
                    "capture": record.path.relative_to(store.path).as_posix()}
+        acquisition = service.calibration
+        adjusted, effective = acquisition.apply(payload, meta)
+        samples = counts(payload)
+        # Fit the small OFST control slope from the unrounded calibrated mean.
+        # Re-quantizing every sample first can bias a short voltage difference.
+        measured_dc = ((float(samples.mean()) - acquisition.adc_offset_counts) / acquisition.adc_scale *
+                       full_scale / effective.adc_full_scale)
+        context["measured_dc_v"] = measured_dc
+        context["adc_std_counts"] = float(samples.std()) / acquisition.adc_scale
+        context["metadata"] = asdict(meta)
         record.info["context"]["generator_calibration"] = context
         record.save()
-        adjusted, effective = service.calibration.apply(payload, meta)
-        context["metadata"] = asdict(meta)
         info["captures"].append(context)
         atomic_json(path, info)
-        return {"payload": adjusted, "meta": effective, "config": requested, "reference": expected}
+        return {"payload": adjusted, "meta": effective, "config": requested, "reference": expected,
+                "measured_dc_v": measured_dc}
 
     try:
         print("RO: checking independent ARB voltage references", file=stderr, flush=True)
-        references = [(.15, .5), (.5, .5), (.85, .5), (.5, .3), (.5, .7)]
+        # The SDG's OFST response changes over large excursions. Calibrate the
+        # local control response around the 50%-scale offset used by the matrix,
+        # rather than combining distant 30%/70% ranges into one global affine fit.
+        references = [(.15, .5), (.5, .5), (.85, .5), (.5, .48), (.5, .52)]
         for level, offset in references:
             observations.append(capture_ref("dc", level, offset * full_scale, False))
         profile, verification = fit_playback(observations, full_scale)
