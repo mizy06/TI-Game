@@ -1,8 +1,11 @@
-"""Command server. Stdout contains only the historical five CSV fields."""
+"""Command server. Stdout: type,frequency_hz,vpp_v[,square_duty_pct]."""
 from __future__ import annotations
 
 import argparse
+import hashlib
+import os
 from contextlib import redirect_stderr
+from dataclasses import asdict
 import subprocess
 import sys
 import threading
@@ -10,6 +13,7 @@ import time
 from pathlib import Path
 
 from tools import host_waveform as host
+from tools.acquisition_calibration import load_latest_calibration, save_latest_calibration
 from tools.capture_store import CaptureStore, RecordingSerial
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -69,6 +73,12 @@ def build_api(path=None):
     return host.load_api(str(target.resolve()))
 
 
+def measurement_output(line):
+    """Display only requested measurements; keep the internal result for audits."""
+    fields = line.split(",")
+    return ",".join(fields[:4] if fields[0] == "square" else fields[:3])
+
+
 class Engine:
     def __init__(self, api, output=None):
         self.api = api
@@ -86,15 +96,17 @@ class Engine:
                     record.save()
                 raise
             elapsed = time.perf_counter() - started
+            output = measurement_output(line)
             if record:
+                record.info["display_output"] = output
                 record.result(line, details, elapsed)
-            print(line, file=self.output, flush=True)
+            print(output, file=self.output, flush=True)
         return line, details, elapsed
 
 
 class SerialService:
     """Read unsolicited PB13 frames too, including while RT is running."""
-    def __init__(self, port, store, engine, stderr=None):
+    def __init__(self, port, store, engine, stderr=None, *, parameters_path=None):
         self.store, self.engine = store, engine
         self.stderr = stderr or sys.stderr
         self.raw_port = port
@@ -104,15 +116,50 @@ class SerialService:
         self.request_lock = threading.Lock()
         self.pending = None
         self.pending_error = None
+        self.pending_result = None
         self.pending_started = None
         self.pending_stage = None
+        self.pending_raw = False
+        self.parameters_path = Path(parameters_path if parameters_path is not None else
+                                    store.path.parent / "algorithm_parameters.json").resolve()
+        self.calibration_profile = None
+        self.use_saved_calibration = True
+        try:
+            self.refresh_calibration()
+        except (ValueError, OSError) as error:
+            # Raw RO reference captures can repair a broken parameters file.
+            # Ordinary R must report the error instead of silently going nominal.
+            print(f"R calibration: {error}; run RO to replace the parameters", file=self.stderr, flush=True)
         self.thread = threading.Thread(target=self._reader, name="adc-uart-receiver", daemon=True)
         self.thread.start()
 
-    def _signal(self, error=None):
+    @property
+    def calibration(self):
+        profile = self.calibration_profile
+        return profile.calibration if self.use_saved_calibration and profile is not None else None
+
+    def refresh_calibration(self):
+        profile = load_latest_calibration(self.parameters_path)
+        if profile != self.calibration_profile:
+            self.calibration_profile = profile
+            if profile is not None:
+                print(f"R calibration loaded: {self.parameters_path}; RO at {profile.source['calibrated_utc']}",
+                      file=self.stderr, flush=True)
+            else:
+                print("R calibration: no saved parameters; using nominal board metadata",
+                      file=self.stderr, flush=True)
+        return profile
+
+    def publish_calibration(self, report):
+        profile = save_latest_calibration(self.parameters_path, report)
+        self.calibration_profile = profile
+        return profile
+
+    def _signal(self, error=None, result=None):
         with self.pending_lock:
-            if self.pending is not None:
+            if self.pending is not None and not self.pending.is_set():
                 self.pending_error = error
+                self.pending_result = result
                 self.pending.set()
                 return True
         return False
@@ -136,12 +183,37 @@ class SerialService:
                     payload, meta, record = host.receive_frame(self.port, first_line=line, store=self.store)
                     with self.pending_lock:
                         requested = self.pending_started if self.pending is not None else None
+                        raw_only = self.pending_raw if self.pending is not None else False
                     if requested is not None:
                         record.info["request_to_received_s"] = time.perf_counter() - requested
                         record.save()
-                    self._stage("analyzing ADC frame")
-                    self.engine.process(payload, meta, record)
-                    self._signal()
+                    if raw_only:
+                        self._signal(result=(payload, meta, record))
+                    else:
+                        try:
+                            profile = self.refresh_calibration() if self.use_saved_calibration else None
+                            if profile is not None:
+                                record.info.update(acquisition_calibration=profile.calibration.to_dict(),
+                                    acquisition_calibration_source=profile.source,
+                                    algorithm_parameters_file=str(self.parameters_path))
+                                record.save()
+                                payload, meta = profile.calibration.apply(payload, meta)
+                        except Exception as error:
+                            record.info["calibration_error"] = str(error)
+                            record.save()
+                            raise
+                        if profile is not None:
+                            with (record.path / "samples.calibrated.adc.bin").open("wb") as stream:
+                                stream.write(payload)
+                                stream.flush()
+                                os.fsync(stream.fileno())
+                            record.info.update(analysis_metadata=asdict(meta),
+                                analysis_payload_file="samples.calibrated.adc.bin",
+                                analysis_sha256=hashlib.sha256(payload).hexdigest())
+                            record.save()
+                        self._stage("analyzing ADC frame")
+                        result = self.engine.process(payload, meta, record)
+                        self._signal(result=(*result, meta, record))
                 elif line.startswith("ERR_"):
                     raise RuntimeError(f"board capture failed: {line}")
                 elif line == "CAPTURING":
@@ -161,13 +233,19 @@ class SerialService:
                 if isinstance(error, OSError):
                     break
 
-    def measure(self, timeout=10.):
+    def capture(self, timeout=10.):
+        """Archive a dedicated reference without analysis or measurement stdout."""
+        return self.measure(timeout, return_result=True, raw=True)
+
+    def measure(self, timeout=10., *, return_result=False, raw=False):
         with self.request_lock:
             if not self.thread.is_alive():
                 raise RuntimeError("serial receiver is stopped; restart the server")
             event = threading.Event()
             with self.pending_lock:
                 self.pending, self.pending_error = event, None
+                self.pending_result = None
+                self.pending_raw = raw
                 self.pending_started = time.perf_counter()
                 self.pending_stage = "waiting for board response"
                 deadline = self.pending_started + timeout
@@ -183,10 +261,13 @@ class SerialService:
                                        "received bytes remain archived; this request has ended")
                 if self.pending_error:
                     raise self.pending_error
+                if return_result:
+                    return self.pending_result
             finally:
                 with self.pending_lock:
                     self.pending = self.pending_started = None
                     self.pending_stage = None
+                    self.pending_raw = False
 
     def close(self):
         self.stop.set()
@@ -199,12 +280,15 @@ class SerialService:
 
 def parser():
     p = argparse.ArgumentParser(description="R: external ADC measurement; RT: complete host self-test matrix.")
-    p.add_argument("command", nargs="?", type=str.upper, choices=("R", "RT"))
-    p.add_argument("--port", help="XDS110 UART, e.g. COM6 or /dev/ttyACM0; RT works without hardware")
+    p.add_argument("command", nargs="?", type=str.upper, choices=("R", "RT", "RO"))
+    p.add_argument("--port", help="XDS110 UART, e.g. COM6 or /dev/ttyACM0; RT and the RO "
+                                  "encoding run without hardware")
     p.add_argument("--dll", help="explicit existing host library; default builds automatically when needed")
     p.add_argument("--data-dir", type=Path, default=PROJECT / "data")
+    p.add_argument("--algorithm-parameters", type=Path, default=PROJECT / "algorithm_parameters.json",
+                   help="persistent parameters from the latest successful RO calibration; R loads them automatically")
     p.add_argument("--sample-csv", action="store_true", help="also export all raw sample voltages to CSV (large)")
-    p.add_argument("--verbose", action="store_true", help="also show progress on stderr; errors are always visible, stdout is only five fields")
+    p.add_argument("--verbose", action="store_true", help="also show progress on stderr; stdout is type,frequency,vpp with duty only for square")
     p.add_argument("--suite", choices=("all", "competition"), default="all",
                    help="board-era matrix: 200 preliminary cases plus 96 evaluated challenges")
     p.add_argument("--seed", type=int, default=20261005)
@@ -213,6 +297,15 @@ def parser():
     p.add_argument("--case-id", action="append", default=[], help="repeat a deterministic case ID")
     p.add_argument("--max-cases", type=int, help="explicit short smoke run; does not constitute full coverage")
     p.add_argument("--list-matrix", action="store_true", help="save selected matrix JSON without running")
+    p.add_argument("--ro-host", default="10.11.13.220", help="RO: Siglent SDG6022X-E address")
+    p.add_argument("--ro-port", type=int, default=111, help="RO: VXI-11 portmapper port (111, not the 5025 SCPI socket)")
+    p.add_argument("--ro-channel", type=int, choices=(1, 2), default=1, help="RO: connected output channel")
+    p.add_argument("--ro-timeout", type=float, default=10., help="RO: SCPI/R timeout in seconds")
+    p.add_argument("--ro-settle", type=float, default=.15, help="RO: output settling time in seconds")
+    p.add_argument("--ro-level-mode", choices=("adc", "source"), default="adc",
+                   help="RO: map original ADC codes to this board; source keeps original volts if safe")
+    p.add_argument("--ro-calibrate", choices=("auto", "off"), default="auto",
+                   help="RO: calibrate the connected ADC with independent generator references before the matrix; off uses nominal board metadata")
     return p
 
 
@@ -250,15 +343,25 @@ def run_server(args, store, error_output=None):
             print(f"Matrix: {len(cases)} cases; {store.path/'matrix.json'}", file=sys.stderr)
             return 0
         engine = Engine(build_api(args.dll))
+        # Connection layer: the board link is optional.  A missing or busy UART
+        # must not take the whole server down, because RO only needs the board
+        # for the R leg; its matrix encoding and generator upload run without it.
         if args.port:
             import serial
-            port = serial.Serial(args.port, 115200, timeout=3, write_timeout=3)
-            service = SerialService(port, store, engine, stderr=errors)
+            try:
+                port = serial.Serial(args.port, 115200, timeout=3, write_timeout=3)
+            except Exception as error:
+                print(f"UART {args.port} unavailable: {error}; continuing without the board "
+                      "(R needs the port, RT is host-only, RO will encode and upload only)",
+                      file=errors, flush=True)
+            else:
+                service = SerialService(port, store, engine, stderr=errors,
+                                        parameters_path=args.algorithm_parameters)
 
         def dispatch(command):
             if command == "R":
                 if service is None:
-                    raise ValueError("R requires --port COM6 (use your XDS110 UART port): "
+                    raise ValueError("R requires --port COM6 (your XDS110 UART port): "
                                      "restart with python server.py --port COM6; "
                                      "no ADC frame was acquired")
                 service.measure()
@@ -268,13 +371,18 @@ def run_server(args, store, error_output=None):
                 return run(engine.api, store, engine.process, suite=args.suite, seed=args.seed,
                            random_count=args.random_count, case_ids=args.case_id,
                            max_cases=args.max_cases)
+            if command == "RO":
+                # service may be None: then RO runs the generator encoding without the board.
+                from tools.ro_test import run
+                return run(service, store, args, stderr=errors)
             if command in ("Q", "QUIT", "EXIT"):
                 return None
-            raise ValueError("enter R, RT or Q")
+            raise ValueError("enter R, RT or Q; RO = generator matrix test")
 
         if args.command:
             return dispatch(args.command)
-        print("R = external measurement; RT = host self-test; Q = quit", file=sys.stderr, flush=True)
+        print("R = external measurement; RT = host self-test; "
+              "RO = generator matrix test (board optional); Q = quit", file=sys.stderr, flush=True)
         for line in sys.stdin:
             command = line.strip().upper()
             if not command:
@@ -284,7 +392,7 @@ def run_server(args, store, error_output=None):
                 if code is None:
                     break
                 if code:
-                    print("RT regression failures: see summary.json", file=errors, flush=True)
+                    print(f"{command} regression failures: see summary.json", file=errors, flush=True)
             except Exception as error:
                 print(f"server: {error}", file=errors, flush=True)
         return 0

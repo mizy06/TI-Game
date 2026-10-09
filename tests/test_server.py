@@ -99,7 +99,7 @@ class ServerTests(unittest.TestCase):
                 self.assertEqual(len((record.parent / "samples.csv").read_text().splitlines()), 4097)
             self.assertEqual((store.path / "uart_rx.bin").read_bytes(), response(payload) * 2)
             for line in output.getvalue().splitlines():
-                self.assertEqual(len(line.split(",")), 5)
+                self.assertEqual(len(line.split(",")), 3)
                 self.assertEqual(line.split(",")[0], "sine")
 
     def test_bad_checksum_and_partial_adc_bytes_survive_validation(self):
@@ -151,7 +151,7 @@ class ServerTests(unittest.TestCase):
                     service.measure(timeout=2)
                 finally:
                     service.close()
-                self.assertEqual(output.getvalue(), "unknown,0,0,0,0\n")
+                self.assertEqual(output.getvalue(), "unknown,0,0\n")
                 info = json.loads(next(store.path.glob("uart/*/capture.json")).read_text())
                 self.assertEqual(info["validation"], "valid")
                 self.assertFalse(info["algorithm"]["ok"])
@@ -212,7 +212,7 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(len(result.stdout.splitlines()), 8)
             for line in result.stdout.splitlines():
                 fields = line.split(",")
-                self.assertEqual(len(fields), 5)
+                self.assertEqual(len(fields), 4 if fields[0] == "square" else 3)
                 self.assertIn(fields[0], host.NAMES)
                 self.assertTrue(all(math.isfinite(float(x)) for x in fields[1:]))
             self.assertEqual(result.stderr, "")

@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "acquisition_calibration": {
+    "sample_rate_millihz": 20255658,
+    "adc_scale": 1.003686340321385,
+    "adc_offset_counts": -11.878266834076289,
+    "nominal_metadata": {
+      "sample_rate_millihz": 20000000,
+      "reference_microvolts": 3300000,
+      "gain_ppm": 1000000,
+      "adc_full_scale": 4095
+    }
+  },
+  "calibration_source": {
+    "command": "RO",
+    "calibrated_utc": "2026-10-09T06:50:58.582170+00:00",
+    "calibration_report": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261009T065032.961835Z-4cd080f4\\ro-1791528646819003700\\calibration.json",
+    "calibration_sha256": "cdadee9ea4abeb1397a8c7717be0dcb641c103f0e28fefb6cdae24ab63b03d23"
+  }
+}
