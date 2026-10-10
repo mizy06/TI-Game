@@ -1,0 +1,3 @@
+Data: D:\github\TI-Game-latest\data\20261010T080537.451407Z-30353183
+R = external measurement; RT = host self-test; RO = generator matrix test (board optional); Q = quit
+server: R requires --port COM6 (your XDS110 UART port): restart with python server.py --port COM6; no ADC frame was acquired

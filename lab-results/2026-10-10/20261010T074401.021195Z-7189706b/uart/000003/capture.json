@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "source": "uart",
+  "context": {
+    "raw_header": "DUMP,proto=2,bytes=8192,fnv1a=1245180684,seq=360,fs_millihz=20000000,vref_uv=3300000,gain_ppm=1000000,adc_max=4095,flags=1"
+  },
+  "created_utc": "2026-10-10T07:45:51.650955+00:00",
+  "validation": "valid",
+  "payload_bytes": 8192,
+  "payload_file": "samples.adc.bin",
+  "encoding": "<u2",
+  "metadata": {
+    "sequence": 360,
+    "sample_rate_millihz": 20000000,
+    "reference_microvolts": 3300000,
+    "gain_ppm": 1000000,
+    "adc_full_scale": 4095,
+    "flags": 1,
+    "checksum": 1245180684
+  },
+  "calculated_fnv1a": 1245180684,
+  "sample_count": 4096,
+  "request_to_received_s": 0.9295671999998376,
+  "acquisition_calibration": {
+    "sample_rate_millihz": 20242487,
+    "adc_scale": 1.005337621827577,
+    "adc_offset_counts": -6.304594494046833,
+    "nominal_metadata": {
+      "sample_rate_millihz": 20000000,
+      "reference_microvolts": 3300000,
+      "gain_ppm": 1000000,
+      "adc_full_scale": 4095
+    }
+  },
+  "acquisition_calibration_source": {
+    "command": "RO",
+    "calibrated_utc": "2026-10-10T06:46:56.102855+00:00",
+    "calibration_report": "D:\\github\\TI-Game-latest\\data\\20261010T064642.037145Z-0c8162f9\\ro-1791614804437336000\\calibration.json",
+    "calibration_sha256": "1d2f2234dfae1b5385b3151269144c5244f677b8c6c4e031e2ffbfe25e9d525e"
+  },
+  "algorithm_parameters_file": "D:\\github\\TI-Game-latest\\algorithm_parameters.json",
+  "analysis_metadata": {
+    "sequence": 360,
+    "sample_rate_millihz": 20242487,
+    "reference_microvolts": 3300000,
+    "gain_ppm": 1000000,
+    "adc_full_scale": 4095,
+    "flags": 7,
+    "checksum": 460903008
+  },
+  "analysis_payload_file": "samples.calibrated.adc.bin",
+  "analysis_sha256": "3b630b09b294be706ec9a41c6ab57395ebee1c709bbed0e94d513d6f4c3add6d",
+  "display_output": "RESULT,sawtooth,399.967,2.388,0",
+  "output": "sawtooth,399.967,2.388,0.0,1.666",
+  "algorithm": {
+    "type": 3,
+    "status": 0,
+    "frequency_millihz": 399967,
+    "vpp_millivolts": 2388,
+    "duty_permille": 0,
+    "confidence_permille": 974,
+    "best_score_permille": 974,
+    "second_score_permille": 799,
+    "accepted_cycles": 80,
+    "high_clip_samples": 0,
+    "dc_offset_counts": 2067,
+    "low_clip_samples": 0,
+    "invalid_samples": 0,
+    "algorithm_version": 131330,
+    "sequence": 360,
+    "vpp_microvolts": 2388447,
+    "duty_ppm": 0,
+    "period_q16_samples": 3316800,
+    "vpp_counts_q16": 194238614,
+    "quality_flags": 160,
+    "model_margin_permille": 175,
+    "ok": true,
+    "carrier_result": {
+      "vpp_microvolts": 2387628,
+      "vpp_millivolts": 2388,
+      "vpp_counts_q16": 194171988,
+      "dc_offset_counts": 2067
+    },
+    "envelope_measurement": {
+      "model": "periodic",
+      "extra_frequency_hz": null,
+      "retained_harmonics": [],
+      "residual_rms_counts": 75.54593804253649,
+      "am_depth": 0.0,
+      "candidate_am_depth": 0.00818080282088999,
+      "am_explained_fraction": 0.0019449970286499196,
+      "am_coherence_error_ratio": 0.7586673618590293,
+      "sine_explained_fraction": 0.005463856640464226,
+      "square_rise_fraction": 0.0,
+      "square_fall_fraction": 0.0,
+      "vpp_counts": 2963.846037487947,
+      "midpoint_counts": 2067.2601033275714,
+      "vpp_definition": "reconstructed clean signal peak-to-peak",
+      "dc_definition": "configured source offset (clean envelope midpoint)",
+      "scope": "clean_period"
+    },
+    "dc_sampling_uncertainty_microvolts": 23596
+  },
+  "algorithm_elapsed_s": 0.20329130000027362
+}

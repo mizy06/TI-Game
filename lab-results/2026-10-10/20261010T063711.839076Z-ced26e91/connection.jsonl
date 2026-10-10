@@ -1,0 +1,28 @@
+{"utc": "2026-10-10T06:37:12.087129+00:00", "event": "opened", "request": 0, "received_bytes": 0, "port": "COM10"}
+{"utc": "2026-10-10T06:37:12.938286+00:00", "event": "request_started", "request": 1, "received_bytes": 0, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:37:12.938286+00:00", "event": "command_sent", "request": 1, "received_bytes": 0, "attempt": 1}
+{"utc": "2026-10-10T06:37:13.874459+00:00", "event": "request_complete", "request": 1, "received_bytes": 8343, "elapsed_s": 0.9335458999998991}
+{"utc": "2026-10-10T06:37:14.194037+00:00", "event": "request_started", "request": 2, "received_bytes": 8343, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:37:14.194037+00:00", "event": "command_sent", "request": 2, "received_bytes": 8343, "attempt": 1}
+{"utc": "2026-10-10T06:37:15.120858+00:00", "event": "request_complete", "request": 2, "received_bytes": 16686, "elapsed_s": 0.9323699999999917}
+{"utc": "2026-10-10T06:37:15.455110+00:00", "event": "request_started", "request": 3, "received_bytes": 16686, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:37:15.455878+00:00", "event": "command_sent", "request": 3, "received_bytes": 16686, "attempt": 1}
+{"utc": "2026-10-10T06:37:16.386086+00:00", "event": "request_complete", "request": 3, "received_bytes": 25029, "elapsed_s": 0.9316427000003387}
+{"utc": "2026-10-10T06:37:16.714720+00:00", "event": "request_started", "request": 4, "received_bytes": 25029, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:37:16.716259+00:00", "event": "command_sent", "request": 4, "received_bytes": 25029, "attempt": 1}
+{"utc": "2026-10-10T06:37:17.647395+00:00", "event": "request_complete", "request": 4, "received_bytes": 33371, "elapsed_s": 0.9329430000002503}
+{"utc": "2026-10-10T06:37:18.008449+00:00", "event": "request_started", "request": 5, "received_bytes": 33371, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:37:18.009689+00:00", "event": "command_sent", "request": 5, "received_bytes": 33371, "attempt": 1}
+{"utc": "2026-10-10T06:37:18.939758+00:00", "event": "request_complete", "request": 5, "received_bytes": 41714, "elapsed_s": 0.9312895999996726}
+{"utc": "2026-10-10T06:37:19.291860+00:00", "event": "request_started", "request": 6, "received_bytes": 41714, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:37:19.293126+00:00", "event": "command_sent", "request": 6, "received_bytes": 41714, "attempt": 1}
+{"utc": "2026-10-10T06:37:20.221454+00:00", "event": "request_complete", "request": 6, "received_bytes": 50057, "elapsed_s": 0.9318435000000136}
+{"utc": "2026-10-10T06:37:20.552439+00:00", "event": "request_started", "request": 7, "received_bytes": 50057, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:37:20.552439+00:00", "event": "command_sent", "request": 7, "received_bytes": 50057, "attempt": 1}
+{"utc": "2026-10-10T06:37:21.484567+00:00", "event": "request_complete", "request": 7, "received_bytes": 58400, "elapsed_s": 0.9333726999998362}
+{"utc": "2026-10-10T06:37:21.822469+00:00", "event": "request_started", "request": 8, "received_bytes": 58400, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:37:21.822469+00:00", "event": "command_sent", "request": 8, "received_bytes": 58400, "attempt": 1}
+{"utc": "2026-10-10T06:37:22.747242+00:00", "event": "request_complete", "request": 8, "received_bytes": 66743, "elapsed_s": 0.9317273999999998}
+{"utc": "2026-10-10T06:37:23.112417+00:00", "event": "request_started", "request": 9, "received_bytes": 66743, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:37:23.113536+00:00", "event": "command_sent", "request": 9, "received_bytes": 66743, "attempt": 1}
+{"utc": "2026-10-10T06:37:24.037253+00:00", "event": "request_complete", "request": 9, "received_bytes": 75085, "elapsed_s": 0.9315805000001092}

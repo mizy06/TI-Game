@@ -1,0 +1,4 @@
+{"utc": "2026-10-10T07:08:55.824332+00:00", "event": "opened", "request": 0, "received_bytes": 0, "port": "COM10"}
+{"utc": "2026-10-10T07:08:55.824332+00:00", "event": "request_started", "request": 1, "received_bytes": 0, "timeout_s": 10.0, "raw_reference": false}
+{"utc": "2026-10-10T07:08:55.824332+00:00", "event": "command_sent", "request": 1, "received_bytes": 0, "attempt": 1}
+{"utc": "2026-10-10T07:08:57.438643+00:00", "event": "request_complete", "request": 1, "received_bytes": 8343, "elapsed_s": 1.6083259000006365}

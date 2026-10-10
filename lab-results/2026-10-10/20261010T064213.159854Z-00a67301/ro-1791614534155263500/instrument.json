@@ -1,0 +1,38 @@
+{
+  "identity": "Siglent Technologies,SDG6022X-E,SDG6XFCC900300,6.01.01.37R6",
+  "host": "10.11.13.220",
+  "port": 111,
+  "channel": 1,
+  "transport": "VXI-11",
+  "resource": "TCPIP::10.11.13.220::inst0::INSTR",
+  "vref_v": 3.3,
+  "gain": 1.0,
+  "level_mode": "adc",
+  "board": true,
+  "mode": "full",
+  "acquisition_calibration": {
+    "sample_rate_millihz": 20240742,
+    "adc_scale": 1.001227985184458,
+    "adc_offset_counts": -7.717831566219322,
+    "nominal_metadata": {
+      "sample_rate_millihz": 20000000,
+      "reference_microvolts": 3300000,
+      "gain_ppm": 1000000,
+      "adc_full_scale": 4095
+    }
+  },
+  "algorithm_parameters_file": "D:\\github\\TI-Game-latest\\algorithm_parameters.json",
+  "acquisition_calibration_source": {
+    "command": "RO",
+    "calibrated_utc": "2026-10-10T06:42:25.525964+00:00",
+    "calibration_report": "D:\\github\\TI-Game-latest\\data\\20261010T064213.159854Z-00a67301\\ro-1791614534155263500\\calibration.json",
+    "calibration_sha256": "18bbb07126514e1482370ef052eaa33201322d7c6299ba462ff8d8743f832095"
+  },
+  "generator_calibration": {
+    "amplitude_gain": 1.0266598326236949,
+    "offset_gain": 1.006477592555439,
+    "offset_bias_v": 0.010942932059129218,
+    "offset_origin_v": 1.65,
+    "offset_span_v": 0.06600000000000006
+  }
+}

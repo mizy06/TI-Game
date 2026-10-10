@@ -1,0 +1,14 @@
+Data: D:\github\TI-Game-latest\data\20261010T063441.584175Z-82d9e30a
+R calibration loaded: D:\github\TI-Game-latest\algorithm_parameters.json; RO at 2026-10-09T12:15:09.734912+00:00
+RO: VXI-11 10.11.13.220:111 / inst0
+RO: checking board metadata and calibrating the ADC with independent references
+RO calibration 1/8: dc 0 Hz, offset 0.495 V
+RO calibration 2/8: dc 0 Hz, offset 1.65 V
+RO calibration 3/8: dc 0 Hz, offset 2.805 V
+RO calibration 4/8: sine 100 Hz, offset 1.65 V
+RO calibration 5/8: sine 400 Hz, offset 1.65 V
+RO calibration 6/8: dc 0 Hz, offset 0.99 V
+RO calibration 7/8: dc 0 Hz, offset 2.31 V
+RO calibration 8/8: sine 250 Hz, offset 1.65 V
+RO: {}; summary: D:\github\TI-Game-latest\data\20261010T063441.584175Z-82d9e30a\ro-1791614082820278700\summary.json
+server: calibration sine is absent, too small or clipped; check CH1/CH2, PA25 and GND

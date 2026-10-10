@@ -1,0 +1,58 @@
+{"utc": "2026-10-10T06:42:13.409173+00:00", "event": "opened", "request": 0, "received_bytes": 0, "port": "COM10"}
+{"utc": "2026-10-10T06:42:14.253731+00:00", "event": "request_started", "request": 1, "received_bytes": 0, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:14.257276+00:00", "event": "command_sent", "request": 1, "received_bytes": 0, "attempt": 1}
+{"utc": "2026-10-10T06:42:15.187339+00:00", "event": "request_complete", "request": 1, "received_bytes": 8343, "elapsed_s": 0.9320161000000553}
+{"utc": "2026-10-10T06:42:15.516859+00:00", "event": "request_started", "request": 2, "received_bytes": 8343, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:15.516859+00:00", "event": "command_sent", "request": 2, "received_bytes": 8343, "attempt": 1}
+{"utc": "2026-10-10T06:42:16.448167+00:00", "event": "request_complete", "request": 2, "received_bytes": 16686, "elapsed_s": 0.9321643999996923}
+{"utc": "2026-10-10T06:42:16.779493+00:00", "event": "request_started", "request": 3, "received_bytes": 16686, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:16.780588+00:00", "event": "command_sent", "request": 3, "received_bytes": 16686, "attempt": 1}
+{"utc": "2026-10-10T06:42:17.737212+00:00", "event": "request_complete", "request": 3, "received_bytes": 25029, "elapsed_s": 0.9582835999999588}
+{"utc": "2026-10-10T06:42:18.077916+00:00", "event": "request_started", "request": 4, "received_bytes": 25029, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:18.077916+00:00", "event": "command_sent", "request": 4, "received_bytes": 25029, "attempt": 1}
+{"utc": "2026-10-10T06:42:19.020623+00:00", "event": "request_complete", "request": 4, "received_bytes": 33372, "elapsed_s": 0.9437490000000253}
+{"utc": "2026-10-10T06:42:19.385882+00:00", "event": "request_started", "request": 5, "received_bytes": 33372, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:19.386909+00:00", "event": "command_sent", "request": 5, "received_bytes": 33372, "attempt": 1}
+{"utc": "2026-10-10T06:42:20.328187+00:00", "event": "request_complete", "request": 5, "received_bytes": 41715, "elapsed_s": 0.9431190000000242}
+{"utc": "2026-10-10T06:42:20.686386+00:00", "event": "request_started", "request": 6, "received_bytes": 41715, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:20.686935+00:00", "event": "command_sent", "request": 6, "received_bytes": 41715, "attempt": 1}
+{"utc": "2026-10-10T06:42:21.625065+00:00", "event": "request_complete", "request": 6, "received_bytes": 50057, "elapsed_s": 0.9387716999999611}
+{"utc": "2026-10-10T06:42:21.960151+00:00", "event": "request_started", "request": 7, "received_bytes": 50057, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:21.960151+00:00", "event": "command_sent", "request": 7, "received_bytes": 50057, "attempt": 1}
+{"utc": "2026-10-10T06:42:22.897485+00:00", "event": "request_complete", "request": 7, "received_bytes": 58400, "elapsed_s": 0.9383010000001377}
+{"utc": "2026-10-10T06:42:23.229842+00:00", "event": "request_started", "request": 8, "received_bytes": 58400, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:23.229842+00:00", "event": "command_sent", "request": 8, "received_bytes": 58400, "attempt": 1}
+{"utc": "2026-10-10T06:42:24.166223+00:00", "event": "request_complete", "request": 8, "received_bytes": 66743, "elapsed_s": 0.9425092999999833}
+{"utc": "2026-10-10T06:42:24.532565+00:00", "event": "request_started", "request": 9, "received_bytes": 66743, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:24.533758+00:00", "event": "command_sent", "request": 9, "received_bytes": 66743, "attempt": 1}
+{"utc": "2026-10-10T06:42:25.468471+00:00", "event": "request_complete", "request": 9, "received_bytes": 75086, "elapsed_s": 0.9372518999998647}
+{"utc": "2026-10-10T06:42:26.987662+00:00", "event": "request_started", "request": 10, "received_bytes": 75086, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:26.987662+00:00", "event": "command_sent", "request": 10, "received_bytes": 75086, "attempt": 1}
+{"utc": "2026-10-10T06:42:27.919336+00:00", "event": "request_complete", "request": 10, "received_bytes": 83429, "elapsed_s": 0.9334034000003157}
+{"utc": "2026-10-10T06:42:29.259547+00:00", "event": "request_started", "request": 11, "received_bytes": 83429, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:29.259547+00:00", "event": "command_sent", "request": 11, "received_bytes": 83429, "attempt": 1}
+{"utc": "2026-10-10T06:42:30.200628+00:00", "event": "request_complete", "request": 11, "received_bytes": 91771, "elapsed_s": 0.9420704999997724}
+{"utc": "2026-10-10T06:42:31.566958+00:00", "event": "request_started", "request": 12, "received_bytes": 91771, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:31.568262+00:00", "event": "command_sent", "request": 12, "received_bytes": 91771, "attempt": 1}
+{"utc": "2026-10-10T06:42:32.504390+00:00", "event": "request_complete", "request": 12, "received_bytes": 100113, "elapsed_s": 0.9398036000002321}
+{"utc": "2026-10-10T06:42:33.847682+00:00", "event": "request_started", "request": 13, "received_bytes": 100113, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:33.849433+00:00", "event": "command_sent", "request": 13, "received_bytes": 100113, "attempt": 1}
+{"utc": "2026-10-10T06:42:34.782722+00:00", "event": "request_complete", "request": 13, "received_bytes": 108456, "elapsed_s": 0.9382562000000689}
+{"utc": "2026-10-10T06:42:36.151122+00:00", "event": "request_started", "request": 14, "received_bytes": 108456, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:36.153150+00:00", "event": "command_sent", "request": 14, "received_bytes": 108456, "attempt": 1}
+{"utc": "2026-10-10T06:42:37.090852+00:00", "event": "request_complete", "request": 14, "received_bytes": 116799, "elapsed_s": 0.9411583999999493}
+{"utc": "2026-10-10T06:42:38.447429+00:00", "event": "request_started", "request": 15, "received_bytes": 116799, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:38.447429+00:00", "event": "command_sent", "request": 15, "received_bytes": 116799, "attempt": 1}
+{"utc": "2026-10-10T06:42:39.403522+00:00", "event": "request_complete", "request": 15, "received_bytes": 125142, "elapsed_s": 0.9568804999998974}
+{"utc": "2026-10-10T06:42:40.747873+00:00", "event": "request_started", "request": 16, "received_bytes": 125142, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:40.747873+00:00", "event": "command_sent", "request": 16, "received_bytes": 125142, "attempt": 1}
+{"utc": "2026-10-10T06:42:41.678251+00:00", "event": "request_complete", "request": 16, "received_bytes": 133485, "elapsed_s": 0.9326138999999785}
+{"utc": "2026-10-10T06:42:43.030717+00:00", "event": "request_started", "request": 17, "received_bytes": 133485, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-10T06:42:43.031734+00:00", "event": "command_sent", "request": 17, "received_bytes": 133485, "attempt": 1}
+{"utc": "2026-10-10T06:42:43.959369+00:00", "event": "request_complete", "request": 17, "received_bytes": 141828, "elapsed_s": 0.9342491000002155}
+{"utc": "2026-10-10T06:42:45.326119+00:00", "event": "request_started", "request": 18, "received_bytes": 141828, "timeout_s": 10.0, "raw_reference": false}
+{"utc": "2026-10-10T06:42:45.327162+00:00", "event": "command_sent", "request": 18, "received_bytes": 141828, "attempt": 1}
+{"utc": "2026-10-10T06:42:46.656630+00:00", "event": "request_complete", "request": 18, "received_bytes": 150171, "elapsed_s": 1.3328934000001027}
+{"utc": "2026-10-10T06:42:47.998410+00:00", "event": "request_started", "request": 19, "received_bytes": 150171, "timeout_s": 10.0, "raw_reference": false}
+{"utc": "2026-10-10T06:42:47.998410+00:00", "event": "command_sent", "request": 19, "received_bytes": 150171, "attempt": 1}
+{"utc": "2026-10-10T06:42:49.332102+00:00", "event": "request_complete", "request": 19, "received_bytes": 158514, "elapsed_s": 1.3349926999999298}

@@ -1,0 +1,27 @@
+{
+  "selected": 2,
+  "complete": false,
+  "counts": {},
+  "board": true,
+  "mode": "full",
+  "all_passed": false,
+  "error": "ValueError: ADC did not track the reference DC levels; check the connection",
+  "shutdown_error": "",
+  "failure": {
+    "stage": "calibration reference acquisition",
+    "command": "UART R reference",
+    "error": "ValueError: ADC did not track the reference DC levels; check the connection"
+  },
+  "failed_case": "competition-000001",
+  "waveform_readback": null,
+  "calibration": "calibration.json",
+  "generator_calibration": null,
+  "transport": "VXI-11",
+  "diagnostics": "scpi.jsonl",
+  "not_run": [
+    "competition-000001",
+    "competition-000002"
+  ],
+  "wall_time_s": 11.251122399999986,
+  "note": "Real instrument/UART test. Original RT matrix is retained; adc mode scales source volts to this board. Evaluation uses board metadata and, when enabled, independent acquisition calibration; replay truth remains unchanged."
+}

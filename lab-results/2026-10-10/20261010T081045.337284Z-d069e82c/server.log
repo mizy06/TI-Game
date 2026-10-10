@@ -1,0 +1,9 @@
+Data: D:\github\TI-Game-latest\data\20261010T081045.337284Z-d069e82c
+R calibration loaded: D:\github\TI-Game-latest\algorithm_parameters.json; RO at 2026-10-10T06:46:56.102855+00:00
+R = external measurement; RT = host self-test; RO = generator matrix test (board optional); Q = quit
+measurement rejected: status=1
+measurement rejected: status=1
+measurement rejected: status=4
+measurement rejected: status=4
+measurement rejected: status=4
+server: enter R, RT or Q; RO = generator matrix test

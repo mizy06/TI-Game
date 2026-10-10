@@ -1,0 +1,622 @@
+Data: D:\github\TI-Game-latest\data\20261010T064642.037145Z-0c8162f9
+R calibration loaded: D:\github\TI-Game-latest\algorithm_parameters.json; RO at 2026-10-10T06:42:25.525964+00:00
+RO: VXI-11 10.11.13.220:111 / inst0
+RO: checking board metadata and calibrating the ADC with independent references
+RO calibration 1/8: dc 0 Hz, offset 0.495 V
+RO calibration 2/8: dc 0 Hz, offset 1.65 V
+RO calibration 3/8: dc 0 Hz, offset 2.805 V
+RO calibration 4/8: sine 100 Hz, offset 1.65 V
+RO calibration 5/8: sine 400 Hz, offset 1.65 V
+RO calibration 6/8: dc 0 Hz, offset 0.99 V
+RO calibration 7/8: dc 0 Hz, offset 2.31 V
+RO calibration 8/8: sine 250 Hz, offset 1.65 V
+RO calibration OK: sample rate 20242.5 Hz, ADC scale 1.0053376, offset -6.30459 counts
+RO calibration saved for R: D:\github\TI-Game-latest\algorithm_parameters.json
+RO: checking independent ARB voltage references
+RO ARB calibration 1/8: fit dc, expected DC 0.494995 V, AMP 3.3 V, OFST 1.65 V
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+RO ARB calibration 2/8: fit dc, expected DC 1.65 V, AMP 3.3 V, OFST 1.65 V
+RO ARB calibration 3/8: fit dc, expected DC 2.80501 V, AMP 3.3 V, OFST 1.65 V
+RO ARB calibration 4/8: fit dc, expected DC 1.584 V, AMP 3.3 V, OFST 1.584 V
+RO ARB calibration 5/8: fit dc, expected DC 1.716 V, AMP 3.3 V, OFST 1.716 V
+RO ARB calibration 6/8: check dc, expected DC 0.98999 V, AMP 3.22247 V, OFST 1.63034 V
+RO ARB calibration 7/8: check dc, expected DC 2.31001 V, AMP 3.22247 V, OFST 1.63034 V
+RO ARB calibration 8/8: check sine, expected DC 1.65 V, AMP 3.22247 V, OFST 1.63034 V
+RO ARB calibration OK: amplitude gain 1.0240595, offset gain 1.0120637, offset bias -1.1249e-05 V
+RO 1/296 competition-000001: uploading and verifying waveform
+开始测试
+RO 1/296 competition-000001: PASS
+RO 2/296 competition-000002: uploading and verifying waveform
+RO 2/296 competition-000002: PASS
+RO 3/296 competition-000003: uploading and verifying waveform
+RO 3/296 competition-000003: PASS
+RO 4/296 competition-000004: uploading and verifying waveform
+RO 4/296 competition-000004: PASS
+RO 5/296 competition-000005: uploading and verifying waveform
+RO 5/296 competition-000005: PASS
+RO 6/296 competition-000006: uploading and verifying waveform
+RO 6/296 competition-000006: PASS
+RO 7/296 competition-000007: uploading and verifying waveform
+RO 7/296 competition-000007: PASS
+RO 8/296 competition-000008: uploading and verifying waveform
+RO 8/296 competition-000008: PASS
+RO 9/296 competition-000009: uploading and verifying waveform
+RO 9/296 competition-000009: PASS
+RO 10/296 competition-000010: uploading and verifying waveform
+RO 10/296 competition-000010: PASS
+RO 11/296 competition-000011: uploading and verifying waveform
+RO 11/296 competition-000011: PASS
+RO 12/296 competition-000012: uploading and verifying waveform
+RO 12/296 competition-000012: PASS
+RO 13/296 competition-000013: uploading and verifying waveform
+RO 13/296 competition-000013: PASS
+RO 14/296 competition-000014: uploading and verifying waveform
+RO 14/296 competition-000014: PASS
+RO 15/296 competition-000015: uploading and verifying waveform
+RO 15/296 competition-000015: PASS
+RO 16/296 competition-000016: uploading and verifying waveform
+RO 16/296 competition-000016: PASS
+RO 17/296 competition-000017: uploading and verifying waveform
+RO 17/296 competition-000017: PASS
+RO 18/296 competition-000018: uploading and verifying waveform
+RO 18/296 competition-000018: PASS
+RO 19/296 competition-000019: uploading and verifying waveform
+RO 19/296 competition-000019: PASS
+RO 20/296 competition-000020: uploading and verifying waveform
+RO 20/296 competition-000020: PASS
+RO 21/296 competition-000021: uploading and verifying waveform
+RO 21/296 competition-000021: PASS
+RO 22/296 competition-000022: uploading and verifying waveform
+RO 22/296 competition-000022: PASS
+RO 23/296 competition-000023: uploading and verifying waveform
+RO 23/296 competition-000023: PASS
+RO 24/296 competition-000024: uploading and verifying waveform
+RO 24/296 competition-000024: PASS
+RO 25/296 competition-000025: uploading and verifying waveform
+RO 25/296 competition-000025: PASS
+RO 26/296 competition-000026: uploading and verifying waveform
+RO 26/296 competition-000026: PASS
+RO 27/296 competition-000027: uploading and verifying waveform
+RO 27/296 competition-000027: PASS
+RO 28/296 competition-000028: uploading and verifying waveform
+RO 28/296 competition-000028: PASS
+RO 29/296 competition-000029: uploading and verifying waveform
+RO 29/296 competition-000029: PASS
+RO 30/296 competition-000030: uploading and verifying waveform
+RO 30/296 competition-000030: PASS
+RO 31/296 competition-000031: uploading and verifying waveform
+RO 31/296 competition-000031: PASS
+RO 32/296 competition-000032: uploading and verifying waveform
+RO 32/296 competition-000032: PASS
+RO 33/296 competition-000033: uploading and verifying waveform
+RO 33/296 competition-000033: PASS
+RO 34/296 competition-000034: uploading and verifying waveform
+RO 34/296 competition-000034: PASS
+RO 35/296 competition-000035: uploading and verifying waveform
+RO 35/296 competition-000035: PASS
+RO 36/296 competition-000036: uploading and verifying waveform
+RO 36/296 competition-000036: PASS
+RO 37/296 competition-000037: uploading and verifying waveform
+RO 37/296 competition-000037: PASS
+RO 38/296 competition-000038: uploading and verifying waveform
+RO 38/296 competition-000038: PASS
+RO 39/296 competition-000039: uploading and verifying waveform
+RO 39/296 competition-000039: PASS
+RO 40/296 competition-000040: uploading and verifying waveform
+RO 40/296 competition-000040: PASS
+RO 41/296 competition-000041: uploading and verifying waveform
+RO 41/296 competition-000041: PASS
+RO 42/296 competition-000042: uploading and verifying waveform
+RO 42/296 competition-000042: PASS
+RO 43/296 competition-000043: uploading and verifying waveform
+RO 43/296 competition-000043: PASS
+RO 44/296 competition-000044: uploading and verifying waveform
+RO 44/296 competition-000044: PASS
+RO 45/296 competition-000045: uploading and verifying waveform
+RO 45/296 competition-000045: PASS
+RO 46/296 competition-000046: uploading and verifying waveform
+RO 46/296 competition-000046: PASS
+RO 47/296 competition-000047: uploading and verifying waveform
+RO 47/296 competition-000047: PASS
+RO 48/296 competition-000048: uploading and verifying waveform
+RO 48/296 competition-000048: PASS
+RO 49/296 competition-000049: uploading and verifying waveform
+RO 49/296 competition-000049: PASS
+RO 50/296 competition-000050: uploading and verifying waveform
+RO 50/296 competition-000050: PASS
+RO 51/296 competition-000051: uploading and verifying waveform
+RO 51/296 competition-000051: PASS
+RO 52/296 competition-000052: uploading and verifying waveform
+RO 52/296 competition-000052: PASS
+RO 53/296 competition-000053: uploading and verifying waveform
+RO 53/296 competition-000053: PASS
+RO 54/296 competition-000054: uploading and verifying waveform
+RO 54/296 competition-000054: PASS
+RO 55/296 competition-000055: uploading and verifying waveform
+RO 55/296 competition-000055: PASS
+RO 56/296 competition-000056: uploading and verifying waveform
+RO 56/296 competition-000056: PASS
+RO 57/296 competition-000057: uploading and verifying waveform
+RO 57/296 competition-000057: PASS
+RO 58/296 competition-000058: uploading and verifying waveform
+RO 58/296 competition-000058: PASS
+RO 59/296 competition-000059: uploading and verifying waveform
+RO 59/296 competition-000059: PASS
+RO 60/296 competition-000060: uploading and verifying waveform
+RO 60/296 competition-000060: PASS
+RO 61/296 competition-000061: uploading and verifying waveform
+RO 61/296 competition-000061: PASS
+RO 62/296 competition-000062: uploading and verifying waveform
+RO 62/296 competition-000062: PASS
+RO 63/296 competition-000063: uploading and verifying waveform
+RO 63/296 competition-000063: PASS
+RO 64/296 competition-000064: uploading and verifying waveform
+RO 64/296 competition-000064: PASS
+RO 65/296 competition-000065: uploading and verifying waveform
+RO 65/296 competition-000065: PASS
+RO 66/296 competition-000066: uploading and verifying waveform
+RO 66/296 competition-000066: PASS
+RO 67/296 competition-000067: uploading and verifying waveform
+RO 67/296 competition-000067: PASS
+RO 68/296 competition-000068: uploading and verifying waveform
+RO 68/296 competition-000068: PASS
+RO 69/296 competition-000069: uploading and verifying waveform
+RO 69/296 competition-000069: PASS
+RO 70/296 competition-000070: uploading and verifying waveform
+RO 70/296 competition-000070: PASS
+RO 71/296 competition-000071: uploading and verifying waveform
+RO 71/296 competition-000071: PASS
+RO 72/296 competition-000072: uploading and verifying waveform
+RO 72/296 competition-000072: PASS
+RO 73/296 competition-000073: uploading and verifying waveform
+RO 73/296 competition-000073: PASS
+RO 74/296 competition-000074: uploading and verifying waveform
+RO 74/296 competition-000074: PASS
+RO 75/296 competition-000075: uploading and verifying waveform
+RO 75/296 competition-000075: PASS
+RO 76/296 competition-000076: uploading and verifying waveform
+RO 76/296 competition-000076: PASS
+RO 77/296 competition-000077: uploading and verifying waveform
+RO 77/296 competition-000077: PASS
+RO 78/296 competition-000078: uploading and verifying waveform
+RO 78/296 competition-000078: PASS
+RO 79/296 competition-000079: uploading and verifying waveform
+RO 79/296 competition-000079: PASS
+RO 80/296 competition-000080: uploading and verifying waveform
+RO 80/296 competition-000080: PASS
+RO 81/296 competition-000081: uploading and verifying waveform
+RO 81/296 competition-000081: PASS
+RO 82/296 competition-000082: uploading and verifying waveform
+RO 82/296 competition-000082: PASS
+RO 83/296 competition-000083: uploading and verifying waveform
+RO 83/296 competition-000083: PASS
+RO 84/296 competition-000084: uploading and verifying waveform
+RO 84/296 competition-000084: PASS
+RO 85/296 competition-000085: uploading and verifying waveform
+RO 85/296 competition-000085: PASS
+RO 86/296 competition-000086: uploading and verifying waveform
+RO 86/296 competition-000086: PASS
+RO 87/296 competition-000087: uploading and verifying waveform
+RO 87/296 competition-000087: PASS
+RO 88/296 competition-000088: uploading and verifying waveform
+RO 88/296 competition-000088: PASS
+RO 89/296 competition-000089: uploading and verifying waveform
+RO 89/296 competition-000089: PASS
+RO 90/296 competition-000090: uploading and verifying waveform
+RO 90/296 competition-000090: PASS
+RO 91/296 competition-000091: uploading and verifying waveform
+RO 91/296 competition-000091: PASS
+RO 92/296 competition-000092: uploading and verifying waveform
+RO 92/296 competition-000092: PASS
+RO 93/296 competition-000093: uploading and verifying waveform
+RO 93/296 competition-000093: PASS
+RO 94/296 competition-000094: uploading and verifying waveform
+RO 94/296 competition-000094: PASS
+RO 95/296 competition-000095: uploading and verifying waveform
+RO 95/296 competition-000095: PASS
+RO 96/296 competition-000096: uploading and verifying waveform
+RO 96/296 competition-000096: PASS
+RO 97/296 competition-000097: uploading and verifying waveform
+RO 97/296 competition-000097: PASS
+RO 98/296 competition-000098: uploading and verifying waveform
+RO 98/296 competition-000098: PASS
+RO 99/296 competition-000099: uploading and verifying waveform
+RO 99/296 competition-000099: PASS
+RO 100/296 competition-000100: uploading and verifying waveform
+RO 100/296 competition-000100: PASS
+RO 101/296 competition-000101: uploading and verifying waveform
+RO 101/296 competition-000101: PASS
+RO 102/296 competition-000102: uploading and verifying waveform
+RO 102/296 competition-000102: PASS
+RO 103/296 competition-000103: uploading and verifying waveform
+RO 103/296 competition-000103: PASS
+RO 104/296 competition-000104: uploading and verifying waveform
+RO 104/296 competition-000104: PASS
+RO 105/296 competition-000105: uploading and verifying waveform
+RO 105/296 competition-000105: PASS
+RO 106/296 competition-000106: uploading and verifying waveform
+RO 106/296 competition-000106: PASS
+RO 107/296 competition-000107: uploading and verifying waveform
+RO 107/296 competition-000107: PASS
+RO 108/296 competition-000108: uploading and verifying waveform
+RO 108/296 competition-000108: PASS
+RO 109/296 competition-000109: uploading and verifying waveform
+RO 109/296 competition-000109: PASS
+RO 110/296 competition-000110: uploading and verifying waveform
+RO 110/296 competition-000110: PASS
+RO 111/296 competition-000111: uploading and verifying waveform
+RO 111/296 competition-000111: PASS
+RO 112/296 competition-000112: uploading and verifying waveform
+RO 112/296 competition-000112: PASS
+RO 113/296 competition-000113: uploading and verifying waveform
+RO 113/296 competition-000113: PASS
+RO 114/296 competition-000114: uploading and verifying waveform
+RO 114/296 competition-000114: PASS
+RO 115/296 competition-000115: uploading and verifying waveform
+RO 115/296 competition-000115: PASS
+RO 116/296 competition-000116: uploading and verifying waveform
+RO 116/296 competition-000116: PASS
+RO 117/296 competition-000117: uploading and verifying waveform
+RO 117/296 competition-000117: PASS
+RO 118/296 competition-000118: uploading and verifying waveform
+RO 118/296 competition-000118: PASS
+RO 119/296 competition-000119: uploading and verifying waveform
+RO 119/296 competition-000119: PASS
+RO 120/296 competition-000120: uploading and verifying waveform
+RO 120/296 competition-000120: PASS
+RO 121/296 competition-000121: uploading and verifying waveform
+RO 121/296 competition-000121: PASS
+RO 122/296 competition-000122: uploading and verifying waveform
+RO 122/296 competition-000122: PASS
+RO 123/296 competition-000123: uploading and verifying waveform
+RO 123/296 competition-000123: PASS
+RO 124/296 competition-000124: uploading and verifying waveform
+RO 124/296 competition-000124: PASS
+RO 125/296 competition-000125: uploading and verifying waveform
+RO 125/296 competition-000125: PASS
+RO 126/296 competition-000126: uploading and verifying waveform
+RO 126/296 competition-000126: PASS
+RO 127/296 competition-000127: uploading and verifying waveform
+RO 127/296 competition-000127: PASS
+RO 128/296 competition-000128: uploading and verifying waveform
+RO 128/296 competition-000128: PASS
+RO 129/296 competition-000129: uploading and verifying waveform
+RO 129/296 competition-000129: PASS
+RO 130/296 competition-000130: uploading and verifying waveform
+RO 130/296 competition-000130: PASS
+RO 131/296 competition-000131: uploading and verifying waveform
+RO 131/296 competition-000131: PASS
+RO 132/296 competition-000132: uploading and verifying waveform
+RO 132/296 competition-000132: PASS
+RO 133/296 competition-000133: uploading and verifying waveform
+RO 133/296 competition-000133: PASS
+RO 134/296 competition-000134: uploading and verifying waveform
+RO 134/296 competition-000134: PASS
+RO 135/296 competition-000135: uploading and verifying waveform
+RO 135/296 competition-000135: PASS
+RO 136/296 competition-000136: uploading and verifying waveform
+RO 136/296 competition-000136: PASS
+RO 137/296 competition-000137: uploading and verifying waveform
+RO 137/296 competition-000137: PASS
+RO 138/296 competition-000138: uploading and verifying waveform
+RO 138/296 competition-000138: PASS
+RO 139/296 competition-000139: uploading and verifying waveform
+RO 139/296 competition-000139: PASS
+RO 140/296 competition-000140: uploading and verifying waveform
+RO 140/296 competition-000140: PASS
+RO 141/296 competition-000141: uploading and verifying waveform
+RO 141/296 competition-000141: PASS
+RO 142/296 competition-000142: uploading and verifying waveform
+RO 142/296 competition-000142: PASS
+RO 143/296 competition-000143: uploading and verifying waveform
+RO 143/296 competition-000143: PASS
+RO 144/296 competition-000144: uploading and verifying waveform
+RO 144/296 competition-000144: PASS
+RO 145/296 competition-000145: uploading and verifying waveform
+RO 145/296 competition-000145: PASS
+RO 146/296 competition-000146: uploading and verifying waveform
+RO 146/296 competition-000146: PASS
+RO 147/296 competition-000147: uploading and verifying waveform
+RO 147/296 competition-000147: PASS
+RO 148/296 competition-000148: uploading and verifying waveform
+RO 148/296 competition-000148: PASS
+RO 149/296 competition-000149: uploading and verifying waveform
+RO 149/296 competition-000149: PASS
+RO 150/296 competition-000150: uploading and verifying waveform
+RO 150/296 competition-000150: PASS
+RO 151/296 competition-000151: uploading and verifying waveform
+RO 151/296 competition-000151: PASS
+RO 152/296 competition-000152: uploading and verifying waveform
+RO 152/296 competition-000152: PASS
+RO 153/296 competition-000153: uploading and verifying waveform
+RO 153/296 competition-000153: PASS
+RO 154/296 competition-000154: uploading and verifying waveform
+RO 154/296 competition-000154: PASS
+RO 155/296 competition-000155: uploading and verifying waveform
+RO 155/296 competition-000155: PASS
+RO 156/296 competition-000156: uploading and verifying waveform
+RO 156/296 competition-000156: PASS
+RO 157/296 competition-000157: uploading and verifying waveform
+RO 157/296 competition-000157: PASS
+RO 158/296 competition-000158: uploading and verifying waveform
+RO 158/296 competition-000158: PASS
+RO 159/296 competition-000159: uploading and verifying waveform
+RO 159/296 competition-000159: PASS
+RO 160/296 competition-000160: uploading and verifying waveform
+RO 160/296 competition-000160: PASS
+RO 161/296 competition-000161: uploading and verifying waveform
+RO 161/296 competition-000161: PASS
+RO 162/296 competition-000162: uploading and verifying waveform
+RO 162/296 competition-000162: PASS
+RO 163/296 competition-000163: uploading and verifying waveform
+RO 163/296 competition-000163: PASS
+RO 164/296 competition-000164: uploading and verifying waveform
+RO 164/296 competition-000164: PASS
+RO 165/296 competition-000165: uploading and verifying waveform
+RO 165/296 competition-000165: PASS
+RO 166/296 competition-000166: uploading and verifying waveform
+RO 166/296 competition-000166: PASS
+RO 167/296 competition-000167: uploading and verifying waveform
+RO 167/296 competition-000167: PASS
+RO 168/296 competition-000168: uploading and verifying waveform
+RO 168/296 competition-000168: PASS
+RO 169/296 competition-000169: uploading and verifying waveform
+RO 169/296 competition-000169: PASS
+RO 170/296 competition-000170: uploading and verifying waveform
+RO 170/296 competition-000170: PASS
+RO 171/296 competition-000171: uploading and verifying waveform
+RO 171/296 competition-000171: PASS
+RO 172/296 competition-000172: uploading and verifying waveform
+RO 172/296 competition-000172: PASS
+RO 173/296 competition-000173: uploading and verifying waveform
+RO 173/296 competition-000173: PASS
+RO 174/296 competition-000174: uploading and verifying waveform
+RO 174/296 competition-000174: PASS
+RO 175/296 competition-000175: uploading and verifying waveform
+RO 175/296 competition-000175: PASS
+RO 176/296 competition-000176: uploading and verifying waveform
+RO 176/296 competition-000176: PASS
+RO 177/296 competition-000177: uploading and verifying waveform
+RO 177/296 competition-000177: PASS
+RO 178/296 competition-000178: uploading and verifying waveform
+RO 178/296 competition-000178: PASS
+RO 179/296 competition-000179: uploading and verifying waveform
+RO 179/296 competition-000179: PASS
+RO 180/296 competition-000180: uploading and verifying waveform
+RO 180/296 competition-000180: PASS
+RO 181/296 competition-000181: uploading and verifying waveform
+RO 181/296 competition-000181: PASS
+RO 182/296 competition-000182: uploading and verifying waveform
+RO 182/296 competition-000182: PASS
+RO 183/296 competition-000183: uploading and verifying waveform
+RO 183/296 competition-000183: PASS
+RO 184/296 competition-000184: uploading and verifying waveform
+RO 184/296 competition-000184: PASS
+RO 185/296 competition-000185: uploading and verifying waveform
+RO 185/296 competition-000185: PASS
+RO 186/296 competition-000186: uploading and verifying waveform
+RO 186/296 competition-000186: PASS
+RO 187/296 competition-000187: uploading and verifying waveform
+RO 187/296 competition-000187: PASS
+RO 188/296 competition-000188: uploading and verifying waveform
+RO 188/296 competition-000188: PASS
+RO 189/296 competition-000189: uploading and verifying waveform
+RO 189/296 competition-000189: PASS
+RO 190/296 competition-000190: uploading and verifying waveform
+RO 190/296 competition-000190: PASS
+RO 191/296 competition-000191: uploading and verifying waveform
+RO 191/296 competition-000191: PASS
+RO 192/296 competition-000192: uploading and verifying waveform
+RO 192/296 competition-000192: PASS
+RO 193/296 competition-000193: uploading and verifying waveform
+RO 193/296 competition-000193: PASS
+RO 194/296 competition-000194: uploading and verifying waveform
+RO 194/296 competition-000194: PASS
+RO 195/296 competition-000195: uploading and verifying waveform
+RO 195/296 competition-000195: PASS
+RO 196/296 competition-000196: uploading and verifying waveform
+RO 196/296 competition-000196: PASS
+RO 197/296 competition-000197: uploading and verifying waveform
+RO 197/296 competition-000197: PASS
+RO 198/296 competition-000198: uploading and verifying waveform
+RO 198/296 competition-000198: PASS
+RO 199/296 competition-000199: uploading and verifying waveform
+RO 199/296 competition-000199: PASS
+RO 200/296 competition-000200: uploading and verifying waveform
+RO 200/296 competition-000200: PASS
+RO 201/296 competition-000201: uploading and verifying waveform
+RO 201/296 competition-000201: PASS
+RO 202/296 competition-000202: uploading and verifying waveform
+RO 202/296 competition-000202: PASS
+RO 203/296 competition-000203: uploading and verifying waveform
+RO 203/296 competition-000203: PASS
+RO 204/296 competition-000204: uploading and verifying waveform
+RO 204/296 competition-000204: PASS
+RO 205/296 competition-000205: uploading and verifying waveform
+RO 205/296 competition-000205: PASS
+RO 206/296 competition-000206: uploading and verifying waveform
+RO 206/296 competition-000206: PASS
+RO 207/296 competition-000207: uploading and verifying waveform
+RO 207/296 competition-000207: PASS
+RO 208/296 competition-000208: uploading and verifying waveform
+RO 208/296 competition-000208: PASS
+RO 209/296 competition-000209: uploading and verifying waveform
+RO 209/296 competition-000209: PASS
+RO 210/296 competition-000210: uploading and verifying waveform
+RO 210/296 competition-000210: PASS
+RO 211/296 competition-000211: uploading and verifying waveform
+RO 211/296 competition-000211: PASS
+RO 212/296 competition-000212: uploading and verifying waveform
+RO 212/296 competition-000212: PASS
+RO 213/296 competition-000213: uploading and verifying waveform
+RO 213/296 competition-000213: PASS
+RO 214/296 competition-000214: uploading and verifying waveform
+RO 214/296 competition-000214: PASS
+RO 215/296 competition-000215: uploading and verifying waveform
+RO 215/296 competition-000215: PASS
+RO 216/296 competition-000216: uploading and verifying waveform
+RO 216/296 competition-000216: PASS
+RO 217/296 competition-000217: uploading and verifying waveform
+RO 217/296 competition-000217: PASS
+RO 218/296 competition-000218: uploading and verifying waveform
+RO 218/296 competition-000218: PASS
+RO 219/296 competition-000219: uploading and verifying waveform
+RO 219/296 competition-000219: PASS
+RO 220/296 competition-000220: uploading and verifying waveform
+RO 220/296 competition-000220: PASS
+RO 221/296 competition-000221: uploading and verifying waveform
+RO 221/296 competition-000221: PASS
+RO 222/296 competition-000222: uploading and verifying waveform
+RO 222/296 competition-000222: PASS
+RO 223/296 competition-000223: uploading and verifying waveform
+RO 223/296 competition-000223: PASS
+RO 224/296 competition-000224: uploading and verifying waveform
+RO 224/296 competition-000224: PASS
+RO 225/296 competition-000225: uploading and verifying waveform
+RO 225/296 competition-000225: PASS
+RO 226/296 competition-000226: uploading and verifying waveform
+RO 226/296 competition-000226: PASS
+RO 227/296 competition-000227: uploading and verifying waveform
+RO 227/296 competition-000227: PASS
+RO 228/296 competition-000228: uploading and verifying waveform
+RO 228/296 competition-000228: PASS
+RO 229/296 competition-000229: uploading and verifying waveform
+RO 229/296 competition-000229: PASS
+RO 230/296 competition-000230: uploading and verifying waveform
+RO 230/296 competition-000230: PASS
+RO 231/296 competition-000231: uploading and verifying waveform
+RO 231/296 competition-000231: PASS
+RO 232/296 competition-000232: uploading and verifying waveform
+RO 232/296 competition-000232: PASS
+RO 233/296 competition-000233: uploading and verifying waveform
+RO 233/296 competition-000233: PASS
+RO 234/296 competition-000234: uploading and verifying waveform
+RO 234/296 competition-000234: PASS
+RO 235/296 competition-000235: uploading and verifying waveform
+RO 235/296 competition-000235: PASS
+RO 236/296 competition-000236: uploading and verifying waveform
+RO 236/296 competition-000236: PASS
+RO 237/296 competition-000237: uploading and verifying waveform
+RO 237/296 competition-000237: PASS
+RO 238/296 competition-000238: uploading and verifying waveform
+RO 238/296 competition-000238: PASS
+RO 239/296 competition-000239: uploading and verifying waveform
+RO 239/296 competition-000239: PASS
+RO 240/296 competition-000240: uploading and verifying waveform
+RO 240/296 competition-000240: PASS
+RO 241/296 competition-000241: uploading and verifying waveform
+RO 241/296 competition-000241: PASS
+RO 242/296 competition-000242: uploading and verifying waveform
+RO 242/296 competition-000242: PASS
+RO 243/296 competition-000243: uploading and verifying waveform
+RO 243/296 competition-000243: PASS
+RO 244/296 competition-000244: uploading and verifying waveform
+RO 244/296 competition-000244: PASS
+RO 245/296 competition-000245: uploading and verifying waveform
+RO 245/296 competition-000245: PASS
+RO 246/296 competition-000246: uploading and verifying waveform
+RO 246/296 competition-000246: PASS
+RO 247/296 competition-000247: uploading and verifying waveform
+RO 247/296 competition-000247: PASS
+RO 248/296 competition-000248: uploading and verifying waveform
+RO 248/296 competition-000248: PASS
+RO 249/296 competition-000249: uploading and verifying waveform
+RO 249/296 competition-000249: PASS
+RO 250/296 competition-000250: uploading and verifying waveform
+RO 250/296 competition-000250: PASS
+RO 251/296 competition-000251: uploading and verifying waveform
+RO 251/296 competition-000251: PASS
+RO 252/296 competition-000252: uploading and verifying waveform
+RO 252/296 competition-000252: PASS
+RO 253/296 competition-000253: uploading and verifying waveform
+RO 253/296 competition-000253: PASS
+RO 254/296 competition-000254: uploading and verifying waveform
+RO 254/296 competition-000254: PASS
+RO 255/296 competition-000255: uploading and verifying waveform
+RO 255/296 competition-000255: PASS
+RO 256/296 competition-000256: uploading and verifying waveform
+RO 256/296 competition-000256: PASS
+RO 257/296 competition-000257: uploading and verifying waveform
+RO 257/296 competition-000257: PASS
+RO 258/296 competition-000258: uploading and verifying waveform
+RO 258/296 competition-000258: PASS
+RO 259/296 competition-000259: uploading and verifying waveform
+RO 259/296 competition-000259: PASS
+RO 260/296 competition-000260: uploading and verifying waveform
+RO 260/296 competition-000260: PASS
+RO 261/296 competition-000261: uploading and verifying waveform
+RO 261/296 competition-000261: PASS
+RO 262/296 competition-000262: uploading and verifying waveform
+RO 262/296 competition-000262: PASS
+RO 263/296 competition-000263: uploading and verifying waveform
+RO 263/296 competition-000263: PASS
+RO 264/296 competition-000264: uploading and verifying waveform
+RO 264/296 competition-000264: PASS
+RO 265/296 competition-000265: uploading and verifying waveform
+RO 265/296 competition-000265: PASS
+RO 266/296 competition-000266: uploading and verifying waveform
+RO 266/296 competition-000266: PASS
+RO 267/296 competition-000267: uploading and verifying waveform
+RO 267/296 competition-000267: PASS
+RO 268/296 competition-000268: uploading and verifying waveform
+RO 268/296 competition-000268: PASS
+RO 269/296 competition-000269: uploading and verifying waveform
+RO 269/296 competition-000269: PASS
+RO 270/296 competition-000270: uploading and verifying waveform
+RO 270/296 competition-000270: PASS
+RO 271/296 competition-000271: uploading and verifying waveform
+RO 271/296 competition-000271: PASS
+RO 272/296 competition-000272: uploading and verifying waveform
+RO 272/296 competition-000272: PASS
+RO 273/296 competition-000273: uploading and verifying waveform
+RO 273/296 competition-000273: PASS
+RO 274/296 competition-000274: uploading and verifying waveform
+RO 274/296 competition-000274: PASS
+RO 275/296 competition-000275: uploading and verifying waveform
+RO 275/296 competition-000275: PASS
+RO 276/296 competition-000276: uploading and verifying waveform
+RO 276/296 competition-000276: PASS
+RO 277/296 competition-000277: uploading and verifying waveform
+RO 277/296 competition-000277: PASS
+RO 278/296 competition-000278: uploading and verifying waveform
+RO 278/296 competition-000278: PASS
+RO 279/296 competition-000279: uploading and verifying waveform
+RO 279/296 competition-000279: PASS
+RO 280/296 competition-000280: uploading and verifying waveform
+RO 280/296 competition-000280: PASS
+RO 281/296 competition-000281: uploading and verifying waveform
+RO 281/296 competition-000281: PASS
+RO 282/296 competition-000282: uploading and verifying waveform
+RO 282/296 competition-000282: PASS
+RO 283/296 competition-000283: uploading and verifying waveform
+RO 283/296 competition-000283: PASS
+RO 284/296 competition-000284: uploading and verifying waveform
+RO 284/296 competition-000284: PASS
+RO 285/296 competition-000285: uploading and verifying waveform
+RO 285/296 competition-000285: PASS
+RO 286/296 competition-000286: uploading and verifying waveform
+RO 286/296 competition-000286: PASS
+RO 287/296 competition-000287: uploading and verifying waveform
+RO 287/296 competition-000287: PASS
+RO 288/296 competition-000288: uploading and verifying waveform
+RO 288/296 competition-000288: PASS
+RO 289/296 competition-000289: uploading and verifying waveform
+RO 289/296 competition-000289: PASS
+RO 290/296 competition-000290: uploading and verifying waveform
+RO 290/296 competition-000290: PASS
+RO 291/296 competition-000291: uploading and verifying waveform
+RO 291/296 competition-000291: PASS
+RO 292/296 competition-000292: uploading and verifying waveform
+RO 292/296 competition-000292: PASS
+RO 293/296 competition-000293: uploading and verifying waveform
+RO 293/296 competition-000293: PASS
+RO 294/296 competition-000294: uploading and verifying waveform
+RO 294/296 competition-000294: PASS
+RO 295/296 competition-000295: uploading and verifying waveform
+RO 295/296 competition-000295: PASS
+RO 296/296 competition-000296: uploading and verifying waveform
+RO 296/296 competition-000296: PASS
+RO: {'completed': 296, 'passed': 296}; summary: D:\github\TI-Game-latest\data\20261010T064642.037145Z-0c8162f9\ro-1791614804437336000\summary.json

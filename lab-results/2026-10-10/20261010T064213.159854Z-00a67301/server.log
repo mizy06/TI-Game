@@ -1,0 +1,34 @@
+Data: D:\github\TI-Game-latest\data\20261010T064213.159854Z-00a67301
+R calibration loaded: D:\github\TI-Game-latest\algorithm_parameters.json; RO at 2026-10-09T12:15:09.734912+00:00
+RO: VXI-11 10.11.13.220:111 / inst0
+RO: checking board metadata and calibrating the ADC with independent references
+RO calibration 1/8: dc 0 Hz, offset 0.495 V
+RO calibration 2/8: dc 0 Hz, offset 1.65 V
+RO calibration 3/8: dc 0 Hz, offset 2.805 V
+RO calibration 4/8: sine 100 Hz, offset 1.65 V
+RO calibration 5/8: sine 400 Hz, offset 1.65 V
+RO calibration 6/8: dc 0 Hz, offset 0.99 V
+RO calibration 7/8: dc 0 Hz, offset 2.31 V
+RO calibration 8/8: sine 250 Hz, offset 1.65 V
+RO calibration OK: sample rate 20240.7 Hz, ADC scale 1.001228, offset -7.71783 counts
+RO calibration saved for R: D:\github\TI-Game-latest\algorithm_parameters.json
+RO: checking independent ARB voltage references
+RO ARB calibration 1/8: fit dc, expected DC 0.494995 V, AMP 3.3 V, OFST 1.65 V
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+RO ARB calibration 2/8: fit dc, expected DC 1.65 V, AMP 3.3 V, OFST 1.65 V
+RO ARB calibration 3/8: fit dc, expected DC 2.80501 V, AMP 3.3 V, OFST 1.65 V
+RO ARB calibration 4/8: fit dc, expected DC 1.584 V, AMP 3.3 V, OFST 1.584 V
+RO ARB calibration 5/8: fit dc, expected DC 1.716 V, AMP 3.3 V, OFST 1.716 V
+RO ARB calibration 6/8: check dc, expected DC 0.98999 V, AMP 3.21431 V, OFST 1.62851 V
+RO ARB calibration 7/8: check dc, expected DC 2.31001 V, AMP 3.21431 V, OFST 1.62851 V
+RO ARB calibration 8/8: check sine, expected DC 1.65 V, AMP 3.21431 V, OFST 1.62851 V
+RO ARB calibration OK: amplitude gain 1.0266598, offset gain 1.0064776, offset bias 0.0109429 V
+RO 1/2 competition-000001: uploading and verifying waveform
+开始测试
+RO 1/2 competition-000001: PASS
+RO 2/2 competition-000002: uploading and verifying waveform
+RO 2/2 competition-000002: PASS
+RO: {'completed': 2, 'passed': 2}; summary: D:\github\TI-Game-latest\data\20261010T064213.159854Z-00a67301\ro-1791614534155263500\summary.json
