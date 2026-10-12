@@ -5,7 +5,11 @@
  * measuring the physical clock, reference voltage or analogue front end.
  * flags bit 0 = contiguous, bit 1 = calibrated clock, bit 2 = calibrated Vref.
  */
-#define ACQ_SAMPLE_COUNT             (4096U)
+#define ACQ_SAMPLE_COUNT             (8192U)
+#define ACQ_PROTOCOL_VERSION         (3U)
+/* SCOMP0/1 register count; SysConfig retains sampling-clock divide-by-2.
+ * Leave ample analogue settling time within each 50 us timer interval. */
+#define ACQ_ADC_SAMPLE_TIMER_COUNT   (32U)
 #define ACQ_ADC_FULL_SCALE           (4095U)
 #define ACQ_SAMPLE_RATE_MILLIHZ      (20000000UL)
 #define ACQ_REFERENCE_MICROVOLTS     (3300000UL)

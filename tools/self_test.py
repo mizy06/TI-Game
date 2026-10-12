@@ -311,10 +311,10 @@ def evaluate(case, line, details, elapsed, facts=None):
     truth = (facts or {}).get("truth", {"frequency_hz": case.frequency_hz,
         "vpp_v": case.vpp_v, "dc_v": case.dc_v,
         "duty_pct": case.duty*100 if case.wave == "square" else 0.})
-    measured = {"frequency_hz": details["frequency_millihz"]/1000,
-        "vpp_v": details["vpp_microvolts"]/1e6,
-        "duty_pct": details["duty_ppm"]/10000 if case.wave == "square" else 0.,
-        "dc_v": details["dc_offset_counts"]*case.vref_v/(4095*case.gain)}
+    measured = {"frequency_hz": details.get("frequency_hz", details["frequency_millihz"]/1000),
+        "vpp_v": details.get("vpp_v", details["vpp_microvolts"]/1e6),
+        "duty_pct": details.get("duty_fraction", details["duty_ppm"]/1e6)*100 if case.wave == "square" else 0.,
+        "dc_v": details.get("dc_offset_v", details["dc_offset_counts"]*case.vref_v/(4095*case.gain))}
     signed = {"frequency_bias_pct": (measured["frequency_hz"]/truth["frequency_hz"]-1)*100,
         "vpp_bias_pct": (measured["vpp_v"]/truth["vpp_v"]-1)*100,
         "duty_bias_pp": measured["duty_pct"]-truth["duty_pct"],

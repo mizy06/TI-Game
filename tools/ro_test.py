@@ -889,6 +889,7 @@ def run(service, store, args, stderr):
     results, counts = [], Counter()
     started, completed = time.perf_counter(), False
     error_text, failed_case = "", None
+    calibration_snapshot = playback_snapshot = None
     previous_calibration_mode = service.use_saved_calibration if measured else None
     if not measured:
         print("RO: no board attached; encoding and uploading the matrix, R is not sent",
@@ -901,8 +902,8 @@ def run(service, store, args, stderr):
                 if measured:
                     if getattr(args, "ro_calibrate", "auto") == "auto":
                         service.use_saved_calibration = True
-                        calibrate_link(service, store, args, stderr, instrument, report, vref, gain)
-                        calibrate_playback(service, store, args, stderr, instrument, report, vref, gain)
+                        calibration_snapshot = calibrate_link(service, store, args, stderr, instrument, report, vref, gain)
+                        playback_snapshot = calibrate_playback(service, store, args, stderr, instrument, report, vref, gain)
                     else:
                         service.use_saved_calibration = False
                 _run_cases(service, store, args, stderr, instrument, journal, report,
@@ -917,6 +918,12 @@ def run(service, store, args, stderr):
         if measured:
             service.use_saved_calibration = previous_calibration_mode
         generator.trace = None
+        # Close the report with the verified snapshots, just like the result
+        # bundle, rather than leaving a streamed intermediate capture state.
+        if isinstance(calibration_snapshot, dict):
+            atomic_json(report / "calibration.json", calibration_snapshot)
+        if isinstance(playback_snapshot, dict):
+            atomic_json(report / "generator_calibration.json", playback_snapshot)
         columns = ["case_id", "wave", "verdict", "output", "frequency_error_pct",
                    "vpp_error_pct", "duty_error_pp", "dc_error_v", "capture"]
         table = io.StringIO(newline="")

@@ -148,12 +148,14 @@ class CalibrationTests(unittest.TestCase):
                             for entry in entries:
                                 capture = store.path / entry["capture"]
                                 raw = (capture / "samples.adc.bin").read_bytes()
-                                adjusted = (capture / "samples.calibrated.adc.bin").read_bytes()
+                                adjusted = (capture / "samples.calibrated.f64.bin").read_bytes()
                                 archive = json.loads((capture / "capture.json").read_text())
                                 self.assertEqual(archive["metadata"]["sample_rate_millihz"], 20000000)
                                 self.assertEqual(archive["metadata"]["checksum"], host.fnv1a(raw))
                                 self.assertEqual(entry["metadata"], archive["analysis_metadata"])
-                                self.assertEqual(entry["metadata"]["checksum"], host.fnv1a(adjusted))
+                                self.assertEqual(entry["metadata"]["checksum"], host.fnv1a(raw))
+                                exact = (np.frombuffer(raw, dtype="<u2").astype(float)-profile.calibration.adc_offset_counts)/profile.calibration.adc_scale
+                                np.testing.assert_array_equal(np.frombuffer(adjusted, dtype="<f8"), exact)
                                 self.assertEqual(archive["acquisition_calibration_source"], profile.source)
                                 self.assertNotEqual(raw, adjusted)
                             # A fresh competition server shares only the saved parameters.

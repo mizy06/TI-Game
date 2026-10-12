@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import os
 from contextlib import redirect_stderr
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -136,6 +134,7 @@ class SerialService:
         self.pending_started = None
         self.pending_stage = None
         self.pending_raw = False
+        self.drop_until_ready = False
         self.parameters_path = Path(parameters_path if parameters_path is not None else
                                     store.path.parent / "algorithm_parameters.json").resolve()
         self.calibration_profile = None
@@ -259,30 +258,23 @@ class SerialService:
                     if requested is not None:
                         record.info["request_to_received_s"] = time.perf_counter() - requested
                         record.save()
+                    if self.drop_until_ready:
+                        record.info["expired_request"] = True
+                        record.save()
+                        # receive_frame already consumed this block's READY.
+                        self.drop_until_ready = False
+                        continue
                     if raw_only:
                         self._signal(result=(payload, meta, record))
                     else:
                         try:
                             profile = self.refresh_calibration() if self.use_saved_calibration else None
-                            if profile is not None:
-                                record.info.update(acquisition_calibration=profile.calibration.to_dict(),
-                                    acquisition_calibration_source=profile.source,
-                                    algorithm_parameters_file=str(self.parameters_path))
-                                record.save()
-                                payload, meta = profile.calibration.apply(payload, meta)
+                            from tools.precision_batch import prepare_analysis
+                            payload, meta = prepare_analysis(payload, meta, record, profile, self.parameters_path)
                         except Exception as error:
                             record.info["calibration_error"] = str(error)
                             record.save()
                             raise
-                        if profile is not None:
-                            with (record.path / "samples.calibrated.adc.bin").open("wb") as stream:
-                                stream.write(payload)
-                                stream.flush()
-                                os.fsync(stream.fileno())
-                            record.info.update(analysis_metadata=asdict(meta),
-                                analysis_payload_file="samples.calibrated.adc.bin",
-                                analysis_sha256=hashlib.sha256(payload).hexdigest())
-                            record.save()
                         self._stage("analyzing ADC frame")
                         result = self.engine.process(payload, meta, record)
                         self._signal(result=(*result, meta, record))
@@ -291,6 +283,8 @@ class SerialService:
                 elif line == "CAPTURING":
                     self._stage("board ADC/DMA capture")
                 elif line in ("READY", "") or line.startswith(("TI-CUP ", "ADC=", "READY:")):
+                    if line == "READY":
+                        self.drop_until_ready = False
                     continue
                 else:
                     raise ValueError(f"unexpected board response: {line}")
@@ -348,6 +342,8 @@ class SerialService:
                 if not event.wait(max(0., deadline - time.perf_counter())):
                     with self.pending_lock:
                         stage = self.pending_stage
+                        if raw:
+                            self.drop_until_ready = True
                     if stage == "waiting for board response":
                         self.reconnect_needed = callable(getattr(self.raw_port, "open", None))
                     self._connection_event("request_timeout", stage=stage,
@@ -407,6 +403,10 @@ def parser():
                    help="RO: map original ADC codes to this board; source keeps original volts if safe")
     p.add_argument("--ro-calibrate", choices=("auto", "off"), default="auto",
                    help="RO: calibrate the connected ADC with independent generator references before the matrix; off uses nominal board metadata")
+    p.add_argument("--r-frames", type=int, default=4,
+                   help="R only: average 1 to 8 separately fitted stationary frames; RT/RO keep one frame per case")
+    p.add_argument("--r-timeout", type=float, default=15.,
+                   help="R total capture/analysis/archive deadline, 0 < value <= 15 s")
     return p
 
 
@@ -414,6 +414,8 @@ def main(argv=None):
     args = parser().parse_args(argv)
     if args.seed < 0 or args.random_count < 0 or (args.max_cases is not None and args.max_cases < 1):
         parser().error("seed/random-count must be nonnegative; max-cases must be positive")
+    if not 1 <= args.r_frames <= 8 or not 0 < args.r_timeout <= 15:
+        parser().error("r-frames must be 1..8 and r-timeout must be (0, 15] seconds")
     try:
         store = CaptureStore(args.data_dir, args.sample_csv)
         with (store.path / "server.log").open("w", encoding="utf-8", buffering=1) as diagnostics:
@@ -465,7 +467,8 @@ def run_server(args, store, error_output=None):
                     raise ValueError("R requires --port COM6 (your XDS110 UART port): "
                                      "restart with python server.py --port COM6; "
                                      "no ADC frame was acquired")
-                service.measure()
+                from tools.precision_batch import measure_batch
+                measure_batch(service, args.r_frames, args.r_timeout)
                 return 0
             if command == "RT":
                 from tools.self_test import run

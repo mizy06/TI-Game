@@ -95,8 +95,8 @@ class EnvelopeTests(unittest.TestCase):
         self.api.ti_waveform_analyze_frame_with_algorithm.restype = ctypes.c_bool
         self.assertTrue(self.api.ti_waveform_analyze_frame_with_algorithm(
             ctypes.byref(frame), ctypes.byref(stage), 3))
-        self.assertEqual(result["frequency_millihz"], stage.frequency_millihz)
-        self.assertLess(abs(result["frequency_millihz"]/1000/case.frequency_hz-1), .0002)
+        self.assertEqual(result["c_timing_result"]["frequency_millihz"], stage.frequency_millihz)
+        self.assertLess(abs(result["c_timing_result"]["frequency_millihz"]/1000/case.frequency_hz-1), .0002)
         self.assertTrue(result["quality_flags"] & (1 << 6))
 
 

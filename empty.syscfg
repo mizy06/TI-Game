@@ -34,9 +34,8 @@ ADC121.adcMem0trig         = "DL_ADC12_TRIGGER_MODE_TRIGGER_NEXT";
 ADC121.repeatMode          = true;
 ADC121.powerDownMode       = "DL_ADC12_POWER_DOWN_MODE_MANUAL";
 ADC121.subChanID           = 1;
-/* One half-word DMA transfer is generated for each MEM0 conversion.  FIFO is
- * intentionally left disabled: the classifier consumes one uint16_t sample
- * per timer event and the 32 KB SRAM budget does not allow a second buffer. */
+/* One half-word DMA transfer per MEM0 conversion. FIFO stays disabled;
+ * the acquisition-only firmware stores one contiguous 8192-sample block. */
 ADC121.configureDMA       = true;
 ADC121.enableFIFO         = false;
 ADC121.enableDMA          = true;

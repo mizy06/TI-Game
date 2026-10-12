@@ -1,4 +1,4 @@
-/* MSPM0G3507 acquisition firmware: 4096 ADC samples via TIMA0 + DMA_CH0.
+/* MSPM0G3507 acquisition firmware: 8192 ADC samples via TIMA0 + DMA_CH0.
  * Classification and all physical-unit calculations run on the host. */
 #include "ti_msp_dl_config.h"
 #include "acquisition_config.h"
@@ -14,6 +14,12 @@ static uint32_t g_frame_sequence;
 #error "DMA transfer size must fit the 16-bit transfer counter"
 #endif
 #define CAPTURE_TIMEOUT_MS (500U)
+#if CPUCLK_FREQ != 32000000U
+#error "Acquisition-only finals firmware requires the default 32 MHz clock"
+#endif
+#if ACQ_ADC_SAMPLE_TIMER_COUNT < 1U || ACQ_ADC_SAMPLE_TIMER_COUNT > 64U
+#error "ADC sample timer count must stay within the 20 kS/s timing budget"
+#endif
 #define UART_RX_ERROR_MASK (DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR | \
                             DL_UART_MAIN_INTERRUPT_BREAK_ERROR | \
                             DL_UART_MAIN_INTERRUPT_PARITY_ERROR | \
@@ -61,7 +67,7 @@ static bool uart_rx_error_pending(void)
     return true;
 }
 
-/* DUMP v2: metadata, LE16 payload, FNV-1a over the exact transmitted bytes. */
+/* DUMP v3: bounded block length, LE16 payload, exact-byte FNV-1a. */
 static uint32_t frame_fnv1a(void)
 {
     uint32_t hash = 2166136261U;
@@ -77,7 +83,9 @@ static uint32_t frame_fnv1a(void)
 static void dump_adc_frame(void)
 {
     uint32_t i;
-    uart_put_string("DUMP,proto=2,bytes=");
+    uart_put_string("DUMP,proto=");
+    uart_put_u32(ACQ_PROTOCOL_VERSION);
+    uart_put_string(",bytes=");
     uart_put_u32(ACQ_SAMPLE_COUNT * 2U);
     uart_put_string(",fnv1a=");
     uart_put_u32(frame_fnv1a());
@@ -225,14 +233,19 @@ static bool capture_samples(void)
 int main(void)
 {
     SYSCFG_DL_init();
+    DL_TimerA_stopCounter(TIMER_0_INST);
+    DL_ADC12_disableConversions(ADC12_0_INST);
+    DL_ADC12_setSampleTime0(ADC12_0_INST, ACQ_ADC_SAMPLE_TIMER_COUNT);
+    DL_ADC12_setSampleTime1(ADC12_0_INST, ACQ_ADC_SAMPLE_TIMER_COUNT);
+    DL_ADC12_enableConversions(ADC12_0_INST);
     DL_UART_Main_disableLoopbackMode(UART_0_INST);
     DL_GPIO_initDigitalInputFeatures(GPIO_GRP_0_PIN_0_IOMUX,
                                      DL_GPIO_INVERSION_DISABLE,
                                      DL_GPIO_RESISTOR_PULL_UP,
                                      DL_GPIO_HYSTERESIS_ENABLE,
                                      DL_GPIO_WAKEUP_DISABLE);
-    uart_put_string("\r\nTI-CUP ADC DMA HOST V2\r\n");
-    uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS=20000Hz, N=4096\r\n");
+    uart_put_string("\r\nTI-CUP ADC DMA HOST V3\r\n");
+    uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS=20000Hz, N=8192, MCLK=32MHz, SCOMP=32\r\n");
     uart_put_string("READY: server R -> raw ADC frame; RT runs on host\r\n");
     for (;;) {
         bool from_button = wait_for_trigger();

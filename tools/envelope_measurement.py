@@ -55,7 +55,7 @@ def _shape(kind, phase, duty, rise=0., fall=0.):
     return values
 
 
-def reconstruct(samples, sample_rate_hz, frequency_hz, kind, duty=.5):
+def reconstruct(samples, sample_rate_hz, frequency_hz, kind, duty=.5, timing=None):
     """Return Vpp/counts, midpoint/counts and serializable model diagnostics."""
     values = np.asarray(samples, dtype=float)
     time = np.arange(len(values))/sample_rate_hz
@@ -95,6 +95,11 @@ def reconstruct(samples, sample_rate_hz, frequency_hz, kind, duty=.5):
         # Fit each edge independently; unequal ramps must not become harmonic
         # distortion or create spurious narrowband residuals.
         parameters = [phase, duty, .03, .03]
+        joint_edges = bool(timing and timing.get("template_accepted") and
+                           "phase_at_sample_zero" in timing)
+        if joint_edges:
+            parameters = [timing["phase_at_sample_zero"], duty,
+                timing["square_rise_fraction"], timing["square_fall_fraction"]]
 
         def edge_loss(trial):
             basis = np.column_stack((np.ones(len(values)), _shape(kind,
@@ -102,7 +107,7 @@ def reconstruct(samples, sample_rate_hz, frequency_hz, kind, duty=.5):
             _, residual = fit_record(basis)
             return float(residual@residual)
 
-        for _ in range(3):
+        for _ in range(0 if joint_edges else 3):
             for index, width in ((0, .02), (1, .02), (2, .10), (3, .10)):
                 lower, upper = parameters[index]-width, parameters[index]+width
                 if index == 1:
@@ -156,14 +161,20 @@ def reconstruct(samples, sample_rate_hz, frequency_hz, kind, duty=.5):
     # Dense periodic reconstruction preserves continuous carrier extrema. For
     # a time-varying signal, the defined measurement covers this actual record.
     grid = np.arange(4096)/(4096*frequency_hz)
-    periodic_signal = design(grid)@coefficients
-    midpoint = float((periodic_signal.max()+periodic_signal.min())/2)
-    initial_vpp = float(np.ptp(periodic_signal))
+    from tools.precision_measurement import continuous_extrema
+    knots = ([.25-phase, .75-phase] if kind == 2 else [-phase] if kind == 3
+        else [-rise/2-phase, rise/2-phase, duty-fall/2-phase, duty+fall/2-phase]
+        if kind == 1 else [])
+    low, high = continuous_extrema(lambda t: design(t)@coefficients,
+                                  1/frequency_hz, knots)
+    midpoint = (high+low)/2
+    initial_vpp = high-low
     residual = values-basis@coefficients
     residual[~fit_mask] = 0.
     residual_energy = float(residual@residual)
     if initial_vpp <= 0 or residual_energy <= 1e-12:
-        return initial_vpp, midpoint, {"model": "periodic", "retained_harmonics": []}
+        return initial_vpp, midpoint, {"model": "periodic", "retained_harmonics": [],
+            "square_rise_fraction": rise, "square_fall_fraction": fall}
 
     # Find an independent sinusoidal residual using the data alone. FFT is just
     # a seed; joint regression removes finite-window leakage from the carrier.
@@ -249,6 +260,8 @@ def reconstruct(samples, sample_rate_hz, frequency_hz, kind, duty=.5):
             periodic_coefficients[columns] = 0.
     if model == "periodic":
         clean = design(grid)@periodic_coefficients
+        low, high = continuous_extrema(lambda t: design(t)@periodic_coefficients,
+                                      1/frequency_hz, knots)
     else:
         record_basis = design(time)
         clean = record_basis@periodic_coefficients
@@ -258,7 +271,8 @@ def reconstruct(samples, sample_rate_hz, frequency_hz, kind, duty=.5):
             carrier = record_basis@original_coefficients-midpoint
             clean += carrier*(coefficients[-2]*np.sin(TAU*extra*time)
                              +coefficients[-1]*np.cos(TAU*extra*time))
-    return float(np.ptp(clean)), float((clean.max()+clean.min())/2), {
+        low, high = float(clean.min()), float(clean.max())
+    return high-low, (high+low)/2, {
         "model": model, "extra_frequency_hz": extra,
         "retained_harmonics": retained,
         "residual_rms_counts": float(np.sqrt(np.mean(residual*residual))),
@@ -272,9 +286,12 @@ def reconstruct(samples, sample_rate_hz, frequency_hz, kind, duty=.5):
 
 def refine(payload, metadata, result):
     """Update the same output fields used by both R and RT; retain the C result."""
-    vpp, midpoint, diagnostics = reconstruct(np.frombuffer(payload, dtype="<u2"),
-        metadata.sample_rate_millihz/1000, result["frequency_millihz"]/1000,
-        result["type"], result["duty_ppm"]/1e6)
+    samples = (np.frombuffer(payload, dtype="<u2").astype(float)-metadata.adc_offset_counts)/metadata.adc_scale
+    vpp, midpoint, diagnostics = reconstruct(samples,
+        metadata.sample_rate_hz_exact or metadata.sample_rate_millihz/1000,
+        result.get("frequency_hz", result["frequency_millihz"]/1000),
+        result["type"], result.get("duty_fraction", result["duty_ppm"]/1e6),
+        timing=result.get("precision_timing"))
     if not (math.isfinite(vpp) and math.isfinite(midpoint) and vpp > 0):
         raise ValueError("envelope reconstruction did not produce a finite signal")
     factor = metadata.reference_microvolts*1e6/(metadata.adc_full_scale*metadata.gain_ppm)
@@ -282,6 +299,8 @@ def refine(payload, metadata, result):
         ("vpp_microvolts", "vpp_millivolts", "vpp_counts_q16", "dc_offset_counts")}
     result["vpp_counts_q16"] = int(round(vpp*65536))
     result["vpp_microvolts"] = int(round(vpp*factor))
+    result["vpp_v"] = vpp*factor/1e6
+    result["dc_offset_v"] = midpoint*factor/1e6
     result["vpp_millivolts"] = int((result["vpp_microvolts"]+500)//1000)
     result["dc_offset_counts"] = int(round(np.clip(midpoint, 0, metadata.adc_full_scale)))
     result["quality_flags"] |= 1 << 7

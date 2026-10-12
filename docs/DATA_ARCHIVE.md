@@ -8,7 +8,7 @@
 | `<会话>/server.log` | 启动、RT 进度/结论、命令/传输/算法错误 |
 | `<会话>/uart_rx.bin` | 完整收到的 UART 字节，包括横幅、帧头、载荷、帧尾、错误行和坏字节 |
 | `<会话>/uart/<编号>/samples.adc.bin` | 实际接收的 ADC 载荷，uint16 小端；部分接收也原样保留，包括奇数字节尾 |
-| `<会话>/uart/<编号>/capture.json` | 线上帧头、元数据、校验状态、样本长度、算法全部字段、原五列输出 |
+| `<会话>/uart/<编号>/capture.json` | 线上帧头、元数据、校验状态、样本长度、算法全部字段、内部五列 output、比赛格式 display_output |
 | `<会话>/rt/<编号>/samples.adc.bin` | 合成题目的 ADC 原始输入，同样完整落盘 |
 | `<会话>/rt/<编号>/capture.json` | 生成参数/真值、实际噪声、元数据、结果、误差及通过判定 |
 | `<会话>/rt-<运行编号>/matrix.json` | 本次所选题目完整参数清单 |
@@ -19,7 +19,7 @@
 
 接收字节先写 UART 原始文件并 flush/fsync，然后交给解析器；分块 ADC 载荷也落盘并同步，再验证协议和调用算法。JSON 使用临时文件 + 原子替换。进程突然终止时，可从原始字节恢复；capture.json 的 validation 若仍为 receiving，应按未完成处理，实际长度以 binary 文件为准。无法解析的帧头可能没有可拆分的 ADC 载荷，但整段字节仍保存在 uart_rx.bin。
 
-协议有效帧 validation 为 valid，传输损坏或截断为 invalid。算法拒识仍是传输有效输入：validation=valid，algorithm.ok=false，输出为 unknown。合成坏元数据题的原始生成帧完整保存，由算法进行元数据拒识。
+协议有效帧 validation 为 valid，传输损坏或截断为 invalid。算法拒识仍是传输有效输入：validation=valid，algorithm.ok=false，内部 output 为 unknown，display_output 为空。合成坏元数据题的原始生成帧完整保存，由算法进行元数据拒识。
 
 没有 reset_input_buffer 丢弃数据的操作；后台接收线程处理主动按键上传及 RT 期间上传。帧序号重启重复不会覆盖文件。收到错误数据不会调用算法；异常时也不会以一行伪测量替代错误。
 
@@ -69,6 +69,36 @@ python tools/verify_rt_archive.py data/<会话>/rt-<运行编号>
 
 `generated.truth.dc_v` 严格等于 `context.case.dc_v` 设置偏置。`algorithm` 中 Vpp/DC 为 R/RT 完整流程的最终结果；`carrier_result` 是原 C 阶段数值，`envelope_measurement` 保留模型、相干性、残差及连续包络计数。CSV、JSONL、JSON 和逐帧 self_test 都使用最终内部精度值；独立检查工具同时检查设置偏置真值的一致性。
 
-`validation/rt/` 为完整默认 RT，`validation/seed_20261006/` 为另一种子完整 RT，`validation/bias_controls/` 保留 96 项关掉噪声和 INL 的独立对照，包括全部 ADC 和逐帧诊断。可运行 `python tools/audit_bias_controls.py` 重现对照。
-
 运行结束时逐帧 capture.json、CSV 和 JSONL 都从完整已完成快照原子定稿，再自动执行一致性检查；存档核对失败使运行失败。持续写入时每项仍 fsync，异常/中断继续保留已完成结果。聚合条目中的 capture_info 是可核对的完整逐帧快照，可在外部同步或读取导致文件缺失时恢复记录，而无需重算算法。
+
+## 校准与 RO 报告
+
+正常 R 先保存原始帧，再加载匹配的 ADC 校准。原 `samples.adc.bin` / `metadata` / checksum 不改写；有效数据另存 `samples.calibrated.adc.bin`、`analysis_metadata`、`analysis_payload_file` 与 `analysis_sha256`。`acquisition_calibration_source` 和 `algorithm_parameters_file` 记录采用的持久参数。复算使用成对的样本与元数据，已校准样本不能再次 apply。逐样点 CSV 仍导出原始样本和线上元数据。
+
+RO 报告位于 `<会话>/ro-<编号>/`：
+
+| 路径 | 内容 |
+| --- | --- |
+| `matrix.json` / `instrument.json` | 原矩阵、仪器身份、映射设置与校准来源 |
+| `calibration.json` | ADC 独立参考、原始捕获路径、校准参数与验证 |
+| `generator_calibration.json` / `generator-references/` | ARB 校准与验证、参考 DAC 编码和实际配置 |
+| `<题目 ID>/rt.adc.bin` | 原 RT ADC 数字样本 |
+| `<题目 ID>/generator.i16.bin` / `encoding.json` | 上传 DAC 编码、回放真值及配置回读 |
+| `results.csv` / `results.jsonl` / `results.json` | 实采完整结果、误差、PASS/FAIL 和 UART 帧路径 |
+| `summary.json` / `scpi.jsonl` | 完成状态、计数、未完成项、关闭输出错误及仪器通信诊断 |
+
+RO 结果的 `metadata` 是算法使用的有效元数据，`wire_metadata` 是板端原值；逐帧 capture.json 的 `metadata` 始终对应原始载荷。无板卡模式的 verdict 为 ENCODED，不能作为真实测量通过的证据。
+
+## 随工程保留的验证数据
+
+`validation/rt/` 保存本次完整 296 项 RT 的会话、所有 ADC 与结果；`validation/latest_ro.zip` 原样压缩保存最近完整实机 RO 会话（2026-10-09 20:14:52，北京时间创建），包含全部 UART、原始及校准 ADC、矩阵、DAC 编码、两种校准和结果。
+
+可在工程外解压 RO，例如 PowerShell：
+
+```powershell
+Expand-Archive -LiteralPath validation/latest_ro.zip -DestinationPath ../TI-game-ro-review
+```
+
+归档保持原会话目录和报告相对路径。部分诊断字段包含采集时的绝对路径，用于来源追踪；分析时按解压位置定位同名会话。`algorithm_parameters.json` 的 calibration_report 也是来源字符串，R 加载参数不要求该历史路径仍存在。
+
+运行时仍保存全部数据，不设置自动裁剪。新采集会增大目录，长期实验可直接用 `--data-dir` 写到工程外。

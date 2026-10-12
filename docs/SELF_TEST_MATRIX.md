@@ -1,6 +1,6 @@
-# 板载算法时期测试矩阵
+# 296 项主机矩阵与噪声级联矩阵
 
-`tools/self_test.py` 恢复了板载算法时期最后使用的固定矩阵。它现在由主机生成 ADC 帧，再通过与实采 `R` 命令相同的完整主机算法处理；板端只负责采样、DMA 和 UART 上传。
+`tools/self_test.py` 保留原有固定 296 项矩阵，由主机生成 ADC 帧，经与实采 `R` 相同的完整主机算法处理；RO 回放同一矩阵并通过 R 实采。板端只负责采样、DMA 和 UART 上传。
 
 ## 主机自激矩阵
 
@@ -13,9 +13,9 @@
 
 误差按内部 Hz/uV/ppm/ADC counts 计算，终端舍入值不参与验收。每例记录带符号误差、绝对误差、门限、判定和失败原因。
 
-四类波形为 `sine`、`square`、`triangle`、`sawtooth`。矩阵覆盖固定频率、幅值、偏置、相位、方波 duty、采样率、参考电压、增益和强弱噪声 profile。挑战项完整恢复削顶、交越失真、独立二/三次谐波、调幅、相干干扰、五次谐波和 INL 参数，全部给出 PASS / FAIL。Vpp 真值针对加入失真后的无噪声信号，DC 真值严格等于 `Case.dc_v` 设置偏置，不再按失真均值或总 Vpp 的占空比修正改写真值；定义保存在每帧 generated.truth 中。
+四类波形为 `sine`、`square`、`triangle`、`sawtooth`。矩阵覆盖固定频率、幅值、偏置、相位、方波 duty、采样率、参考电压、增益和强弱噪声 profile。挑战项覆盖削顶、交越失真、独立二/三次谐波、调幅、相干干扰、五次谐波和 INL 参数，全部给出 PASS / FAIL。Vpp 真值针对加入失真后的无噪声信号，DC 真值严格等于 `Case.dc_v` 设置偏置；定义保存在每帧 generated.truth 中。
 
-RT 门限保持修复前数值：频率 1%，Vpp 初赛 8% / 挑战 10%，方波占空比 2.5 个百分点，偏置 max(20 mV, 5% Vpp)。没有放宽门限来制造全通过。白噪声保留全带宽；低通与高通使用各自明确的频带。
+RT 判定门限：频率 1%，Vpp 初赛 8% / 挑战 10%，方波占空比 2.5 个百分点，偏置 max(20 mV, 5% Vpp)，算法耗时初赛 10 s / 挑战 15 s。白噪声保留全带宽；低通与高通使用各自明确的频带。
 
 ```bash
 python server.py RT
@@ -24,7 +24,7 @@ python server.py RT --case-id competition-000101 --case-id competition-000263
 python server.py --list-matrix
 ```
 
-`--random-count` 为旧命令兼容参数，恢复后的矩阵固定为 296 项，不再追加随机题、边沿题、培训题或拒识题集。`--max-cases` 只适合短冒烟运行，不能替代完整矩阵。
+`--random-count` 为旧命令兼容参数，矩阵固定为 296 项。`--max-cases` 只适合短冒烟运行，不能替代完整矩阵。
 
 ## 噪声级联矩阵
 
@@ -39,4 +39,4 @@ powershell -ExecutionPolicy Bypass -File tools/build_host_waveform.ps1
 python tools/noise_cascade_matrix.py --library tools/waveform_analyzer_host.dll
 ```
 
-每一项仍保存确定性 seed、波形真值、级联各阶段结果和失败详情，便于定位算法回归。所有阈值是项目工程门限，不代表尚未公布的官方评分标准。
+每一项仍保存确定性 seed、波形真值、级联各阶段结果和失败详情，便于定位算法回归。阈值均为项目工程门限。

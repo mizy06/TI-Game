@@ -1,7 +1,7 @@
 """Acquire raw ADC frames over UART and run the v2 cascade on the computer.
 
 Output on stdout: type,frequency_hz,vpp_v,duty_pct,dc_offset_v.
-The firmware sends DUMP protocol v2, including the measured acquisition metadata.
+The firmware sends DUMP v3 (8192 samples); legacy v2 (4096) remains readable.
 """
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from pathlib import Path
 
 SAMPLES = 4096
 PAYLOAD_BYTES = SAMPLES * 2
+MAX_PAYLOAD_BYTES = 8192 * 2
 ABI_VERSION = 0x00020102
 NAMES = ("sine", "square", "triangle", "sawtooth", "unknown")
 ROOT = Path(__file__).resolve().parent
@@ -64,6 +65,12 @@ class Metadata:
     adc_full_scale: int
     flags: int
     checksum: int
+    # Host-only exact calibration; never transmitted or passed through the ABI.
+    sample_rate_hz_exact: float | None = None
+    adc_scale: float = 1.
+    adc_offset_counts: float = 0.
+    payload_bytes: int = PAYLOAD_BYTES
+    protocol_version: int = 2
 
 
 def fnv1a(data: bytes) -> int:
@@ -107,14 +114,16 @@ def parse_header(line: str) -> Metadata:
     keys = {"proto", "bytes", "fnv1a", "seq", "fs_millihz", "vref_uv",
             "gain_ppm", "adc_max", "flags"}
     if parts[0] != "DUMP" or len(parts) != len(keys) + 1:
-        raise ValueError("unsupported DUMP header; flash host protocol v2 firmware")
+        raise ValueError("unsupported DUMP header; flash host protocol v2/v3 firmware")
     fields = {}
     for part in parts[1:]:
         key, sep, value = part.partition("=")
         if sep != "=" or key in fields or key not in keys:
             raise ValueError("malformed DUMP header")
         fields[key] = value
-    if _uint(fields, "proto", 2, 2) != 2 or _uint(fields, "bytes", PAYLOAD_BYTES, PAYLOAD_BYTES) != PAYLOAD_BYTES:
+    protocol = _uint(fields, "proto", 2, 3)
+    size = _uint(fields, "bytes", PAYLOAD_BYTES, MAX_PAYLOAD_BYTES)
+    if size not in (PAYLOAD_BYTES, MAX_PAYLOAD_BYTES) or (protocol == 2 and size != PAYLOAD_BYTES):
         raise ValueError("unexpected DUMP protocol or byte count")
     return Metadata(_uint(fields, "seq", 0, 0xffffffff),
                     _uint(fields, "fs_millihz", 1, 100000000),
@@ -122,7 +131,8 @@ def parse_header(line: str) -> Metadata:
                     _uint(fields, "gain_ppm", 1, 10000000),
                     _uint(fields, "adc_max", 4095, 4095),
                     _uint(fields, "flags", 0, 15),
-                    _uint(fields, "fnv1a", 0, 0xffffffff))
+                    _uint(fields, "fnv1a", 0, 0xffffffff),
+                    payload_bytes=size, protocol_version=protocol)
 
 
 def receive_frame(port, *, first_line=None, store=None):
@@ -139,7 +149,7 @@ def receive_frame(port, *, first_line=None, store=None):
                 meta = parse_header(line)
                 if record:
                     record.set_metadata(meta)
-                payload = read_exact(port, PAYLOAD_BYTES,
+                payload = read_exact(port, meta.payload_bytes,
                                      record.append if record else None)
                 # Consume the trailer even on a checksum failure to allow resync.
                 end, ready = read_line(port), read_line(port)
@@ -153,7 +163,7 @@ def receive_frame(port, *, first_line=None, store=None):
                 return payload, meta, record
             except Exception as error:
                 if record:
-                    if record.info["payload_bytes"] == PAYLOAD_BYTES:
+                    if record.info["payload_bytes"] in (PAYLOAD_BYTES, MAX_PAYLOAD_BYTES):
                         record.info["calculated_fnv1a"] = fnv1a(record.payload.read_bytes())
                     record.fail(error)
                 raise
@@ -185,25 +195,74 @@ def load_api(path: str):
 
 
 def analyze(dll, payload: bytes, meta: Metadata) -> tuple[str, dict]:
-    if len(payload) != PAYLOAD_BYTES:
+    # Small regressions are slower with a large BLAS thread pool. This also
+    # keeps the contest latency predictable on many-core laptops.
+    from threadpoolctl import threadpool_limits
+    with threadpool_limits(limits=1, user_api="blas"):
+        return _analyze(dll, payload, meta)
+
+
+def _analyze(dll, payload: bytes, meta: Metadata) -> tuple[str, dict]:
+    if len(payload) != meta.payload_bytes or len(payload) not in (PAYLOAD_BYTES, MAX_PAYLOAD_BYTES):
         raise ValueError("incomplete ADC payload")
-    values = (ctypes.c_uint16 * SAMPLES)(*struct.unpack(f"<{SAMPLES}H", payload))
+    import numpy as np
+    raw = np.frombuffer(payload, dtype="<u2")
+    classification = raw
+    if np.all(raw <= meta.adc_full_scale) and (meta.adc_scale != 1. or meta.adc_offset_counts != 0.):
+        # Preserve the legacy C classifier's calibrated near-rail thresholds.
+        # This temporary integer copy is NEVER the precision measurement input.
+        classification = np.clip(np.rint((raw.astype(float)-meta.adc_offset_counts)/meta.adc_scale),
+                                 0, meta.adc_full_scale).astype("<u2")
+        classification[raw == 0] = 0
+        classification[raw == meta.adc_full_scale] = meta.adc_full_scale
+    values = (ctypes.c_uint16 * SAMPLES).from_buffer_copy(classification[:SAMPLES].tobytes())
     frame = Frame(values, SAMPLES, meta.adc_full_scale,
-                  meta.sample_rate_millihz, meta.reference_microvolts,
+                  int(round(meta.sample_rate_hz_exact*1000)) if meta.sample_rate_hz_exact else meta.sample_rate_millihz, meta.reference_microvolts,
                   meta.gain_ppm, meta.sequence, meta.flags)
     result = Result()
     ok = bool(dll.ti_waveform_analyze_frame(ctypes.byref(frame), ctypes.byref(result)))
     details = {name: int(getattr(result, name)) for name, _ in Result._fields_}
     details["ok"] = ok
+    details["host_pipeline_version"] = "3.0.0"
+    details["classification_sample_count"] = SAMPLES
+    details["measurement_sample_count"] = int(len(raw))
+    details["raw_high_rail_samples"] = int(np.count_nonzero(raw == meta.adc_full_scale))
+    details["raw_low_rail_samples"] = int(np.count_nonzero(raw == 0))
+    if np.any(raw > meta.adc_full_scale):
+        details.update(ok=False, status=6, invalid_samples=int(np.count_nonzero(raw > meta.adc_full_scale)))
+        return "unknown,0,0,0,0", details
+    if len(raw) > SAMPLES:
+        guard = max(1, meta.adc_full_scale//1024)
+        details["high_clip_samples"] = int(np.count_nonzero(classification >= meta.adc_full_scale-guard))
+        details["low_clip_samples"] = int(np.count_nonzero(classification <= guard))
+        if np.count_nonzero(classification >= meta.adc_full_scale-guard) > len(raw)//20:
+            details.update(ok=False, status=2)
+            return "unknown,0,0,0,0", details
+        if np.count_nonzero(classification <= guard) > len(raw)//20:
+            details.update(ok=False, status=5)
+            return "unknown,0,0,0,0", details
     if not ok:
         return "unknown,0,0,0,0", details
     if result.algorithm_version != ABI_VERSION or result.sequence != meta.sequence or not 0 <= result.type < len(NAMES) - 1:
         raise RuntimeError("host algorithm returned incompatible result")
     from tools.envelope_measurement import refine
+    from tools.precision_measurement import refine_timing
+    fs = meta.sample_rate_hz_exact or meta.sample_rate_millihz/1000
+    samples = (np.frombuffer(payload, dtype="<u2").astype(float)-meta.adc_offset_counts)/meta.adc_scale
+    frequency, duty, timing = refine_timing(samples, fs,
+        details["frequency_millihz"]/1000, result.type, details["duty_ppm"]/1e6)
+    details["frequency_hz"] = frequency
+    details["duty_fraction"] = duty if result.type == 1 else 0.
+    details["precision_timing"] = timing
     refine(payload, meta, details)
-    duty = details["duty_permille"] / 10 if details["type"] == 1 else 0
+    details["c_timing_result"] = {"frequency_millihz": details["frequency_millihz"],
+        "duty_ppm": details["duty_ppm"]}
+    details["frequency_millihz"] = int(round(frequency*1000))
+    details["duty_ppm"] = int(round(details["duty_fraction"]*1e6))
+    details["duty_permille"] = int(round(details["duty_fraction"]*1000))
+    duty_pct = details["duty_fraction"]*100
     # The DC estimate is measured at the ADC pin; undo the front-end gain.
-    offset = details["dc_offset_counts"] * meta.reference_microvolts / (meta.adc_full_scale * meta.gain_ppm)
+    offset = details["dc_offset_v"]
     if result.type == 3:
         # With an abrupt saw reset between ADC samples, exact integer-period
         # sampling cannot identify sub-sample reset time independently of DC.
@@ -211,8 +270,8 @@ def analyze(dll, payload: bytes, meta: Metadata) -> tuple[str, dict]:
         details["dc_sampling_uncertainty_microvolts"] = int(round(
             details["vpp_microvolts"] * result.frequency_millihz /
             (2 * meta.sample_rate_millihz)))
-    return ((f"{NAMES[result.type]},{result.frequency_millihz / 1000:.3f},"
-             f"{details['vpp_millivolts'] / 1000:.3f},{duty:.1f},{offset:.3f}"), details)
+    return ((f"{NAMES[result.type]},{frequency:.9f},"
+             f"{details['vpp_v']:.9f},{duty_pct:.7f},{offset:.9f}"), details)
 
 
 def classify(dll, payload: bytes, meta: Metadata) -> str:
@@ -226,7 +285,7 @@ def main() -> int:
     argv = sys.argv[1:]
     if "--loop" in argv:
         argv.remove("--loop")
-    elif not any(arg.upper() in ("R", "RT") for arg in argv):
+    elif not any(arg.upper() in ("R", "RT", "RO") for arg in argv):
         argv.insert(0, "R")
     return server_main(argv)
 

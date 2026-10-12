@@ -23,7 +23,7 @@ def signature(meta):
 
 def counts(payload):
     import numpy as np
-    if len(payload) != host.PAYLOAD_BYTES:
+    if len(payload) not in (host.PAYLOAD_BYTES, host.MAX_PAYLOAD_BYTES):
         raise ValueError("calibration requires a complete ADC frame")
     data = np.frombuffer(payload, dtype="<u2").astype(float)
     if np.any(data > 4095):
@@ -53,7 +53,13 @@ def sine_period(payload):
     period = float(np.polyfit(np.arange(len(crossings)), crossings, 1)[0])
     if period <= 0 or float(np.max(np.abs(intervals / period - 1))) > .03:
         raise ValueError("calibration sine periods are unstable; check the input signal")
-    return period
+    from tools.precision_measurement import harmonic_frequency
+    from threadpoolctl import threadpool_limits
+    with threadpool_limits(limits=1, user_api="blas"):
+        frequency, diagnostic = harmonic_frequency(data, 20000., 20000./period, highest=3)
+    if not diagnostic["accepted"]:
+        raise ValueError("calibration sine fit failed")
+    return 20000./frequency
 
 
 @dataclass(frozen=True)
@@ -62,6 +68,7 @@ class AcquisitionCalibration:
     adc_scale: float
     adc_offset_counts: float
     nominal_metadata: dict
+    sample_rate_hz_exact: float | None = None
 
     def __post_init__(self):
         nominal = self.nominal_metadata
@@ -72,6 +79,21 @@ class AcquisitionCalibration:
                 nominal["adc_full_scale"] != 4095 or any(v <= 0 for v in nominal.values()) or
                 not .8 <= self.sample_rate_millihz / nominal["sample_rate_millihz"] <= 1.2):
             raise ValueError("invalid acquisition calibration or implausible hardware response")
+        if self.sample_rate_hz_exact is not None and (
+                type(self.sample_rate_hz_exact) not in (int, float) or
+                not math.isfinite(self.sample_rate_hz_exact) or
+                abs(self.sample_rate_hz_exact-self.sample_rate_millihz/1000) > .000501):
+            raise ValueError("exact sampling rate disagrees with compatibility metadata")
+
+    def apply_exact(self, payload, meta):
+        """Keep wire codes bit-for-bit; apply the affine model only in float64."""
+        if signature(meta) != self.nominal_metadata:
+            raise ValueError("board metadata changed since calibration; run RO calibration again")
+        counts(payload)  # Validate codes before tagging the physical conversion.
+        return payload, replace(meta, sample_rate_millihz=self.sample_rate_millihz,
+            sample_rate_hz_exact=self.sample_rate_hz_exact or self.sample_rate_millihz/1000,
+            adc_scale=self.adc_scale, adc_offset_counts=self.adc_offset_counts,
+            flags=meta.flags | 6)
 
     def apply(self, payload, meta):
         import numpy as np
@@ -89,7 +111,10 @@ class AcquisitionCalibration:
         return result, effective
 
     def to_dict(self):
-        return asdict(self)
+        value = asdict(self)
+        if value["sample_rate_hz_exact"] is None:
+            del value["sample_rate_hz_exact"]  # Preserve old schema-1 checksums.
+        return value
 
     @classmethod
     def from_dict(cls, value):
@@ -194,7 +219,7 @@ def fit_calibration(observations):
     if max(abs(r / rate - 1) for r in rates) > .0015:
         raise ValueError("reference tones disagree on the ADC timebase; check the input signal")
     calibration = AcquisitionCalibration(round(rate * 1000), float(slope / nominal_codes_per_volt),
-                                         float(offset), nominal)
+                                         float(offset), nominal, sample_rate_hz_exact=rate)
     full_scale_v = nominal["reference_microvolts"] / nominal["gain_ppm"]
     voltage_limit = max(.005, .002 * full_scale_v)
     residual = float(np.max(np.abs((means - offset) / slope - volts)))
@@ -222,6 +247,8 @@ def fit_calibration(observations):
             verification.append({"reference": ref, "sample_rate_error_fraction": error,
                                  "amplitude_v": span})
     return calibration, {"dc_fit_max_error_v": residual, "reference_sample_rates_hz": rates,
+                         "reference_rate_spread_ppm": float(np.ptp(rates)/rate*1e6),
+                         "absolute_accuracy_verified": False,
                          "independent_checks": verification,
                          "note": "Dedicated generator references only; matrix results are not fitted. "
                                  "Voltage calibration is relative to the generator; clipped data stay clipped."}
