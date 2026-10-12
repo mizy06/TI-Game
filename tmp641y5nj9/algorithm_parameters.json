@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "acquisition_calibration": {
+    "sample_rate_millihz": 20260000,
+    "adc_scale": 1.016,
+    "adc_offset_counts": -33.0,
+    "nominal_metadata": {
+      "sample_rate_millihz": 20000000,
+      "reference_microvolts": 3300000,
+      "gain_ppm": 1000000,
+      "adc_full_scale": 4095
+    }
+  },
+  "calibration_source": {
+    "command": "RO",
+    "calibrated_utc": "2026-10-12T11:46:01.687201+00:00",
+    "calibration_report": "/workspace/scratch/63f60d92de6c/work/TI-game-finals/tmp641y5nj9/ro-latest/calibration.json",
+    "calibration_sha256": "20138ad1fff34ab033d6260cf59133945169730a4cf806e94a1dc602b4db9891"
+  }
+}

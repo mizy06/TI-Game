@@ -1,4 +1,4 @@
-"""Acquire raw ADC frames over UART and run the v2 cascade on the computer.
+"""Acquire ADC frames and run the independent unified estimator on the computer.
 
 Output on stdout: type,frequency_hz,vpp_v,duty_pct,dc_offset_v.
 The firmware sends DUMP v3 (8192 samples); legacy v2 (4096) remains readable.
@@ -194,7 +194,66 @@ def load_api(path: str):
     return dll
 
 
-def analyze(dll, payload: bytes, meta: Metadata) -> tuple[str, dict]:
+def analyze(dll, payload: bytes, meta: Metadata, *, config=None) -> tuple[str, dict]:
+    """The retained DLL argument is ignored; no C stage supplies any seed."""
+    import numpy as np
+    from tools.unified_solver import estimate
+    if len(payload) != meta.payload_bytes or len(payload) not in (PAYLOAD_BYTES, MAX_PAYLOAD_BYTES):
+        raise ValueError("incomplete ADC payload")
+    raw = np.frombuffer(payload, dtype="<u2")
+    details = {name: 0 for name, _ in Result._fields_}
+    details.update(ok=False, type=4, algorithm_version=0x00040000,
+        sequence=meta.sequence, host_pipeline_version="4.0.0",
+        classification_sample_count=len(raw), measurement_sample_count=len(raw),
+        frequency_hz=0., vpp_v=0., duty_fraction=0., dc_offset_v=0.)
+    def reject(status, reason):
+        details.update(status=status, rejection_reason=reason)
+        return "unknown,0,0,0,0", details
+    fs = meta.sample_rate_hz_exact if meta.sample_rate_hz_exact is not None else meta.sample_rate_millihz/1000
+    if (not np.isfinite(fs) or fs <= 0 or meta.adc_full_scale != 4095 or
+            meta.reference_microvolts <= 0 or meta.gain_ppm <= 0 or
+            not np.isfinite(meta.adc_scale) or meta.adc_scale <= 0 or
+            not np.isfinite(meta.adc_offset_counts)):
+        return reject(6, "invalid acquisition metadata")
+    if not meta.flags & 1:
+        return reject(6, "noncontiguous acquisition")
+    details["invalid_samples"] = int(np.count_nonzero(raw > meta.adc_full_scale))
+    if details["invalid_samples"]:
+        return reject(6, "invalid ADC code")
+    details["raw_high_rail_samples"] = int(np.count_nonzero(raw == 4095))
+    details["raw_low_rail_samples"] = int(np.count_nonzero(raw == 0))
+    details["high_clip_samples"] = int(np.count_nonzero(raw >= 4092))
+    details["low_clip_samples"] = int(np.count_nonzero(raw <= 3))
+    if details["high_clip_samples"] > len(raw)//20:
+        return reject(2, "high rail saturation")
+    if details["low_clip_samples"] > len(raw)//20:
+        return reject(5, "low rail saturation")
+    samples = (raw.astype(float)-meta.adc_offset_counts)/meta.adc_scale
+    if np.percentile(samples, 98)-np.percentile(samples, 2) < 8:
+        return reject(1, "insufficient dynamic range")
+    try:
+        result = estimate(samples, fs, config)
+    except ValueError as error:
+        return reject(7, str(error))
+    unit = meta.reference_microvolts/(meta.adc_full_scale*meta.gain_ppm)
+    f, vpp, duty, dc = result["frequency_hz"], result["vpp"]*unit, result["duty_fraction"], result["dc"]*unit
+    kind = result["type"]
+    flags = (0 if meta.flags & 2 else 1) | (0 if meta.flags & 4 else 2)
+    if kind == 3:
+        flags |= 1 << 5  # ramp/jump ratio, amplitude extrapolated to reset
+    details.update(ok=True, status=0, type=kind, frequency_hz=f, vpp_v=vpp,
+        duty_fraction=duty, dc_offset_v=dc, frequency_millihz=round(f*1000),
+        vpp_microvolts=round(vpp*1e6), vpp_millivolts=round(vpp*1000),
+        duty_ppm=round(duty*1e6), duty_permille=round(duty*1000),
+        dc_offset_counts=round(result["dc"]), period_q16_samples=round(fs/f*65536),
+        vpp_counts_q16=round(result["vpp"]*65536),
+        accepted_cycles=int(len(raw)*f/fs), quality_flags=flags,
+        unified_solver=result["diagnostics"])
+    return f"{NAMES[kind]},{f:.9f},{vpp:.9f},{duty*100:.7f},{dc:.9f}", details
+
+
+def analyze_legacy(dll, payload: bytes, meta: Metadata) -> tuple[str, dict]:
+    """Archived 3.0 pipeline, for comparison only; never called by R/RO/RT."""
     # Small regressions are slower with a large BLAS thread pool. This also
     # keeps the contest latency predictable on many-core laptops.
     from threadpoolctl import threadpool_limits

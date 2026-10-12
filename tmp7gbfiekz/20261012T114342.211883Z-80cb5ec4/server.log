@@ -1,0 +1,4 @@
+Data: /workspace/scratch/63f60d92de6c/work/TI-game-finals/tmp7gbfiekz/20261012T114342.211883Z-80cb5ec4
+R = external measurement; RT = host self-test; RO = generator matrix test (board optional); Q = quit
+server: enter R, RT or Q; RO = generator matrix test
+server: R requires --port COM6 (your XDS110 UART port): restart with python server.py --port COM6; no ADC frame was acquired

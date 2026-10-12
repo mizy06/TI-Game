@@ -33,7 +33,7 @@ def prepare_analysis(payload, meta, record, profile, parameters_path):
     return payload, meta
 
 
-def measure_batch(service, frames=4, timeout=15.):
+def measure_batch(service, frames=1, timeout=15.):
     """Average stable blocks without inventing sample times across UART gaps."""
     from tools.waveform_server import measurement_output
     started = time.perf_counter()
@@ -50,7 +50,14 @@ def measure_batch(service, frames=4, timeout=15.):
         payload, meta = prepare_analysis(payload, meta, record, profile, service.parameters_path)
         with engine.lock:
             t = time.perf_counter()
-            line, details = host.analyze(engine.api, payload, meta)
+            from tools.unified_solver import SolverConfig
+            remaining = deadline-time.perf_counter()
+            if remaining <= 0:
+                raise TimeoutError('R analysis deadline exhausted; no RESULT emitted')
+            from dataclasses import replace
+            config = engine.config or SolverConfig()
+            line, details = host.analyze(engine.api, payload, meta,
+                config=replace(config,max_seconds=min(config.max_seconds,remaining)))
             record.info.update(display_output='', batch_member=index+1)
             record.result(line, details, time.perf_counter()-t)
         if not details['ok']:

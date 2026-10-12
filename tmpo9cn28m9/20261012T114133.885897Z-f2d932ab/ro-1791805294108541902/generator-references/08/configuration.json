@@ -1,0 +1,87 @@
+{
+  "requested": {
+    "amplitude_v": 3.3,
+    "offset_v": 1.65,
+    "sample_rate_hz": 20000.0,
+    "loop_frequency_hz": 5.0
+  },
+  "sent": {
+    "amplitude_v": 3.299980637908727,
+    "offset_v": 1.650003085585684,
+    "sample_rate_hz": 20000.0,
+    "loop_frequency_hz": 5.0,
+    "requested_amplitude_v": 3.3,
+    "requested_offset_v": 1.65,
+    "generator_calibration": {
+      "amplitude_gain": 1.0000058673348111,
+      "offset_gain": 0.9999440440907363,
+      "offset_bias_v": 8.924183725778079e-05,
+      "offset_origin_v": 1.65,
+      "offset_span_v": 0.06600000000000006
+    },
+    "readback": {
+      "arb": [
+        "INDEX",
+        "0",
+        "NAME",
+        "RO_C1"
+      ],
+      "rate": [
+        "MODE",
+        "TARB",
+        "VALUE",
+        "20000.0",
+        "INTER",
+        "HOLD"
+      ],
+      "wave": [
+        "WVTP",
+        "ARB",
+        "FRQ",
+        "250.0HZ",
+        "AMP",
+        "3.29998063791V",
+        "OFST",
+        "1.65000308559V"
+      ],
+      "output": [
+        "OFF",
+        "LOAD",
+        "HZ",
+        "PLRT",
+        "NOR"
+      ],
+      "waveform": {
+        "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8000B, TYPE, 6, ",
+        "header_bytes": 66,
+        "declared_bytes": 8000,
+        "position": "USER",
+        "waveform_name": "RO_C1.bin",
+        "waveform_type": "6",
+        "response_bytes": 8067,
+        "received_body_bytes": 8001,
+        "framing": "raw",
+        "payload_bytes": 8000,
+        "sha256": "c4c289676080acbabcd66b91038c587a6eed1e3dc75db02230ffd38f4206d18e",
+        "uploaded_bytes": 8000,
+        "uploaded_sha256": "c4c289676080acbabcd66b91038c587a6eed1e3dc75db02230ffd38f4206d18e",
+        "payload_prefix_hex": "000003030206f708de0bb20e6f1110149216f018271b331d111fbe2037227a23",
+        "uploaded_prefix_hex": "000003030206f708de0bb20e6f1110149216f018271b331d111fbe2037227a23",
+        "verified": true,
+        "bytes": 8000,
+        "readback_bytes": 8000,
+        "repetitions": 1,
+        "query": "WVDT? user,RO_C1",
+        "query_attempts": []
+      },
+      "transport": "VXI-11"
+    }
+  },
+  "reference": {
+    "wave": "sine",
+    "dc_v": 1.65,
+    "vpp_v": 0.989989928891873,
+    "frequency_hz": 250.0
+  },
+  "validation": true
+}

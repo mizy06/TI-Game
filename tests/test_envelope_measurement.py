@@ -20,7 +20,9 @@ class EnvelopeTests(unittest.TestCase):
 
     def measure(self, case):
         payload, metadata, facts = generate(case)
-        line, result = host.analyze(self.api, payload, metadata)
+        # Historical envelope/distortion semantics remain covered explicitly.
+        # New R measures the basic pre-noise carrier; see test_unified_solver.
+        line, result = host.analyze_legacy(self.api, payload, metadata)
         self.assertTrue(result["ok"], (case, line))
         self.assertEqual(result["type"], host.NAMES.index(case.wave))
         self.assertEqual(facts["truth"]["dc_v"], case.dc_v)

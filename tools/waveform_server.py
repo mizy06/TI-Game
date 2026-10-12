@@ -83,9 +83,10 @@ def measurement_output(line):
 
 
 class Engine:
-    def __init__(self, api, output=None, stderr=None):
+    def __init__(self, api, output=None, stderr=None, config=None):
         self.api = api
-        self.lock = threading.Lock()  # C cascade owns shared, non-reentrant workspaces.
+        self.config = config
+        self.lock = threading.Lock()  # Serialize output and acquisition records.
         self.output = output or sys.stdout
         self.stderr = stderr or sys.stderr
 
@@ -93,7 +94,7 @@ class Engine:
         with self.lock:
             started = time.perf_counter()
             try:
-                line, details = host.analyze(self.api, payload, meta)
+                line, details = host.analyze(self.api, payload, meta, config=self.config)
             except Exception as error:
                 if record:
                     record.info["algorithm_error"] = str(error)
@@ -403,10 +404,14 @@ def parser():
                    help="RO: map original ADC codes to this board; source keeps original volts if safe")
     p.add_argument("--ro-calibrate", choices=("auto", "off"), default="auto",
                    help="RO: calibrate the connected ADC with independent generator references before the matrix; off uses nominal board metadata")
-    p.add_argument("--r-frames", type=int, default=4,
+    p.add_argument("--r-frames", type=int, default=1,
                    help="R only: average 1 to 8 separately fitted stationary frames; RT/RO keep one frame per case")
     p.add_argument("--r-timeout", type=float, default=15.,
                    help="R total capture/analysis/archive deadline, 0 < value <= 15 s")
+    p.add_argument("--solver-fmin", type=float, default=0., help="search lower Hz; 0 uses 4 cycles/frame")
+    p.add_argument("--solver-fmax", type=float, default=0., help="search upper Hz; 0 uses fs/12")
+    p.add_argument("--solver-starts", type=int, default=4, help="independent frequency starting points")
+    p.add_argument("--solver-seconds", type=float, default=5., help="per-frame solver budget, at most 12 s")
     return p
 
 
@@ -416,6 +421,12 @@ def main(argv=None):
         parser().error("seed/random-count must be nonnegative; max-cases must be positive")
     if not 1 <= args.r_frames <= 8 or not 0 < args.r_timeout <= 15:
         parser().error("r-frames must be 1..8 and r-timeout must be (0, 15] seconds")
+    import math
+    if (not all(math.isfinite(x) for x in (args.solver_fmin,args.solver_fmax,args.solver_seconds)) or
+            min(args.solver_fmin,args.solver_fmax)<0 or args.solver_starts<1 or
+            not 0 < args.solver_seconds <= 12 or
+            (args.solver_fmax and args.solver_fmin >= args.solver_fmax)):
+        parser().error("invalid unified solver range or budget")
     try:
         store = CaptureStore(args.data_dir, args.sample_csv)
         with (store.path / "server.log").open("w", encoding="utf-8", buffering=1) as diagnostics:
@@ -445,7 +456,10 @@ def run_server(args, store, error_output=None):
             atomic_json(store.path / "matrix.json", {"seed": args.seed, "cases": [asdict(c) for c in cases]})
             print(f"Matrix: {len(cases)} cases; {store.path/'matrix.json'}", file=sys.stderr)
             return 0
-        engine = Engine(build_api(args.dll), stderr=errors)
+        from tools.unified_solver import SolverConfig
+        engine = Engine(build_api(args.dll) if args.dll else None, stderr=errors,
+            config=SolverConfig(frequency_min_hz=args.solver_fmin,frequency_max_hz=args.solver_fmax,
+                starts=args.solver_starts,max_seconds=args.solver_seconds))
         # Connection layer: the board link is optional.  A missing or busy UART
         # must not take the whole server down, because RO only needs the board
         # for the R leg; its matrix encoding and generator upload run without it.

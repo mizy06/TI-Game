@@ -51,7 +51,7 @@ class PrecisionPipelineTests(unittest.TestCase):
         _,d=host.analyze(self.api,received,meta)
         self.assertTrue(d['ok'])
         self.assertEqual(d['measurement_sample_count'],8192)
-        self.assertEqual(d['classification_sample_count'],4096)
+        self.assertEqual(d['classification_sample_count'],8192)
         self.assertLess(abs(d['frequency_hz']/f-1),1e-6)
         # A fault in the second half must not hide behind the 4096-point C seed.
         raw[7000]=4096

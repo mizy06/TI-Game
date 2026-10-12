@@ -1,0 +1,39 @@
+{
+  "identity": "Siglent Technologies,SDG6022X-E,SDG6XFCC900300,6.01.01.37R6",
+  "host": "127.0.0.1",
+  "port": 57911,
+  "channel": 1,
+  "transport": "VXI-11",
+  "resource": "TCPIP::127.0.0.1::inst0::INSTR",
+  "vref_v": 3.3,
+  "gain": 1.0,
+  "level_mode": "adc",
+  "board": true,
+  "mode": "full",
+  "acquisition_calibration": {
+    "sample_rate_millihz": 20239993,
+    "adc_scale": 1.0159993234072473,
+    "adc_offset_counts": -32.99657040550548,
+    "nominal_metadata": {
+      "sample_rate_millihz": 20000000,
+      "reference_microvolts": 3300000,
+      "gain_ppm": 1000000,
+      "adc_full_scale": 4095
+    },
+    "sample_rate_hz_exact": 20239.992945622518
+  },
+  "algorithm_parameters_file": "/workspace/scratch/63f60d92de6c/work/TI-game-finals/tmp53kgfme3/algorithm_parameters.json",
+  "acquisition_calibration_source": {
+    "command": "RO",
+    "calibrated_utc": "2026-10-12T12:02:45.966140+00:00",
+    "calibration_report": "/workspace/scratch/63f60d92de6c/work/TI-game-finals/tmp53kgfme3/20261012T120244.393419Z-bf28a390/ro-1791806564651414899/calibration.json",
+    "calibration_sha256": "777cdb291cab629f21131286623210f145bfce39d5b398d8fa0628d96e43246e"
+  },
+  "generator_calibration": {
+    "amplitude_gain": 1.0000058673348111,
+    "offset_gain": 0.9999440440907363,
+    "offset_bias_v": 8.924183725778079e-05,
+    "offset_origin_v": 1.65,
+    "offset_span_v": 0.06600000000000006
+  }
+}

@@ -2,13 +2,12 @@
 import math
 import struct
 import sys
-import threading
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools import host_waveform as host
-from tools.waveform_server import build_api, measurement_output
+from tools.waveform_server import measurement_output
 
 
 def main():
@@ -19,11 +18,7 @@ def main():
         sequence=1, sample_rate_millihz=20000000,
         reference_microvolts=3300000, gain_ppm=1000000,
         adc_full_scale=4095, flags=1, checksum=host.fnv1a(payload))
-    api = build_api()
-    # A shared application must use one common lock for every C invocation.
-    algorithm_lock = threading.Lock()
-    with algorithm_lock:
-        internal_line, details = host.analyze(api, payload, metadata)
+    internal_line, details = host.analyze(None, payload, metadata)
     if not details["ok"]:
         raise RuntimeError(f"measurement rejected: status={details['status']}")
     print(measurement_output(internal_line))

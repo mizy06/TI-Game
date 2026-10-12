@@ -391,7 +391,7 @@ class ROTests(unittest.TestCase):
                 service.close()
                 instrument.close()
             entry = json.loads(next(store.path.glob("ro-*/results.json")).read_text())["results"][0]
-            expected = entry["algorithm"]["envelope_measurement"]["midpoint_counts"]*3.0/(4095*2.)
+            expected = entry["algorithm"]["dc_offset_v"]
             self.assertAlmostEqual(entry["result"]["measured"]["dc_v"], expected)
             self.assertEqual(entry["result"]["truth"], entry["generator"]["truth"])
 

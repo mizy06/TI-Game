@@ -1,0 +1,177 @@
+{"time_ns": 1791805239559654042, "stage": "connect", "command": "127.0.0.1:59605 portmapper / inst0", "event": "start"}
+{"time_ns": 1791805239561094770, "stage": "connect", "command": "127.0.0.1:59605 portmapper / inst0", "event": "ok", "duration_s": 0.0014177230000314012}
+{"time_ns": 1791805239561114420, "stage": "identify instrument", "command": "*IDN?", "event": "start"}
+{"time_ns": 1791805239561321652, "stage": "identify instrument", "command": "*IDN?", "event": "ok", "duration_s": 0.00019877900012943428, "response": "Siglent Technologies,SDG6022X-E,SDG6XFCC900300,6.01.01.37R6"}
+{"time_ns": 1791805239561397386, "stage": "initialize output", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1791805239561478217, "stage": "initialize output", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 7.32510000034381e-05}
+{"time_ns": 1791805239561489675, "stage": "initialize output", "command": "C1:OUTP LOAD,HZ,PLRT,NOR", "event": "start"}
+{"time_ns": 1791805239561537507, "stage": "initialize output", "command": "C1:OUTP LOAD,HZ,PLRT,NOR", "event": "ok", "duration_s": 4.3055000105596264e-05}
+{"time_ns": 1791805239561545038, "stage": "initialize output", "command": "C1:MDWV STATE,OFF", "event": "start"}
+{"time_ns": 1791805239561587642, "stage": "initialize output", "command": "C1:MDWV STATE,OFF", "event": "ok", "duration_s": 3.7846999930479797e-05}
+{"time_ns": 1791805239561594092, "stage": "initialize output", "command": "C1:SWWV STATE,OFF", "event": "start"}
+{"time_ns": 1791805239561634783, "stage": "initialize output", "command": "C1:SWWV STATE,OFF", "event": "ok", "duration_s": 3.626400007306074e-05}
+{"time_ns": 1791805239561640632, "stage": "initialize output", "command": "C1:BTWV STATE,OFF", "event": "start"}
+{"time_ns": 1791805239561677728, "stage": "initialize output", "command": "C1:BTWV STATE,OFF", "event": "ok", "duration_s": 3.3490000078018056e-05}
+{"time_ns": 1791805239561683667, "stage": "initialize output", "command": "C1:NOISE_ADD STATE,OFF", "event": "start"}
+{"time_ns": 1791805239561721724, "stage": "initialize output", "command": "C1:NOISE_ADD STATE,OFF", "event": "ok", "duration_s": 3.4110999877157155e-05}
+{"time_ns": 1791805239561728544, "stage": "initialize output", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805239561810948, "stage": "initialize output", "command": "*OPC?", "event": "ok", "duration_s": 7.786800006215344e-05, "response": "1"}
+{"time_ns": 1791805239562210930, "stage": "prepare waveform", "command": "competition-000001", "event": "case_begin", "case_id": "competition-000001"}
+{"time_ns": 1791805239562225142, "stage": "upload waveform", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1791805239562421317, "stage": "upload waveform", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.00018989600016539043}
+{"time_ns": 1791805239562432344, "stage": "upload waveform", "command": "C1:BSWV WVTP,ARB", "event": "start"}
+{"time_ns": 1791805239562691634, "stage": "upload waveform", "command": "C1:BSWV WVTP,ARB", "event": "ok", "duration_s": 0.00025394200019945856}
+{"time_ns": 1791805239562703071, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,19760,INTER,HOLD", "event": "start"}
+{"time_ns": 1791805239562838545, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,19760,INTER,HOLD", "event": "ok", "duration_s": 0.00013016599996262812}
+{"time_ns": 1791805239562893297, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,19760,INTER,HOLD", "event": "binary_upload", "bytes": 8300, "sha256": "8e698f9d997f6e32f9ce2f2dbc2fa97c8c5b38920e2b108d575dc8c33cb7c8fd"}
+{"time_ns": 1791805239562901730, "stage": "upload waveform", "command": "C1:WVDT WVNM,RO_C1,FREQ,4.76144578313,AMPL,3.3,OFST,1.65,PHASE,0,WAVEDATA,<8300 binary bytes>", "event": "start"}
+{"time_ns": 1791805239563294511, "stage": "upload waveform", "command": "C1:WVDT WVNM,RO_C1,FREQ,4.76144578313,AMPL,3.3,OFST,1.65,PHASE,0,WAVEDATA,<8300 binary bytes>", "event": "ok", "duration_s": 0.00038729300013073953}
+{"time_ns": 1791805239563304016, "stage": "upload waveform", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805239563390366, "stage": "upload waveform", "command": "*OPC?", "event": "ok", "duration_s": 7.78469998294895e-05, "response": "1"}
+{"time_ns": 1791805239563399830, "stage": "configure TrueArb", "command": "C1:ARWV NAME,RO_C1", "event": "start"}
+{"time_ns": 1791805239563441793, "stage": "configure TrueArb", "command": "C1:ARWV NAME,RO_C1", "event": "ok", "duration_s": 3.771699994103983e-05}
+{"time_ns": 1791805239563448804, "stage": "configure TrueArb", "command": "C1:SRATE MODE,TARB,VALUE,19760,INTER,HOLD", "event": "start"}
+{"time_ns": 1791805239563493661, "stage": "configure TrueArb", "command": "C1:SRATE MODE,TARB,VALUE,19760,INTER,HOLD", "event": "ok", "duration_s": 4.094100017937308e-05}
+{"time_ns": 1791805239563500431, "stage": "configure TrueArb", "command": "C1:BSWV AMP,3.3,OFST,1.65", "event": "start"}
+{"time_ns": 1791805239563544618, "stage": "configure TrueArb", "command": "C1:BSWV AMP,3.3,OFST,1.65", "event": "ok", "duration_s": 4.018000004180067e-05}
+{"time_ns": 1791805239563550417, "stage": "configure TrueArb", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805239563625399, "stage": "configure TrueArb", "command": "*OPC?", "event": "ok", "duration_s": 7.08769998709613e-05, "response": "1"}
+{"time_ns": 1791805239563632410, "stage": "configure TrueArb", "command": "C1:ARWV?", "event": "start"}
+{"time_ns": 1791805239563710538, "stage": "configure TrueArb", "command": "C1:ARWV?", "event": "ok", "duration_s": 7.401099992421223e-05, "response": "C1:ARWV INDEX,0,NAME,RO_C1"}
+{"time_ns": 1791805239563771920, "stage": "configure TrueArb", "command": "C1:SRATE?", "event": "start"}
+{"time_ns": 1791805239563876337, "stage": "configure TrueArb", "command": "C1:SRATE?", "event": "ok", "duration_s": 9.848800004874647e-05, "response": "C1:SRATE MODE,TARB,VALUE,19760.0,INTER,HOLD"}
+{"time_ns": 1791805239563927324, "stage": "configure TrueArb", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1791805239564029067, "stage": "configure TrueArb", "command": "C1:BSWV?", "event": "ok", "duration_s": 9.660599994276708e-05, "response": "C1:BSWV WVTP,ARB,FRQ,5.0HZ,AMP,3.3V,OFST,1.65V"}
+{"time_ns": 1791805239564224441, "stage": "configure TrueArb", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1791805239564390822, "stage": "configure TrueArb", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.00015794700016158458, "response": "C1:OUTP OFF,LOAD,HZ,PLRT,NOR"}
+{"time_ns": 1791805239564445985, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "start"}
+{"time_ns": 1791805239565153770, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "waveform_header", "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8300B, TYPE, 6, ", "header_bytes": 66, "declared_bytes": 8300, "position": "USER", "waveform_name": "RO_C1.bin", "waveform_type": "6"}
+{"time_ns": 1791805239565607142, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "ok", "duration_s": 0.0011452139999619249, "bytes": 8367, "sha256": "c742a36162fd0f06b42fd0c85c98ebee380768e459a99d521e120d6c4e845679"}
+{"time_ns": 1791805239565671419, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "waveform_verified", "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8300B, TYPE, 6, ", "header_bytes": 66, "declared_bytes": 8300, "position": "USER", "waveform_name": "RO_C1.bin", "waveform_type": "6", "response_bytes": 8367, "received_body_bytes": 8301, "framing": "raw", "payload_bytes": 8300, "sha256": "8e698f9d997f6e32f9ce2f2dbc2fa97c8c5b38920e2b108d575dc8c33cb7c8fd", "uploaded_bytes": 8300, "uploaded_sha256": "8e698f9d997f6e32f9ce2f2dbc2fa97c8c5b38920e2b108d575dc8c33cb7c8fd", "payload_prefix_hex": "f188f188e188e188e188d188d188c188c188b188a18891889188818871886188", "uploaded_prefix_hex": "f188f188e188e188e188d188d188c188c188b188a18891889188818871886188", "verified": true, "bytes": 8300, "readback_bytes": 8300, "repetitions": 1, "query": "WVDT? user,RO_C1", "query_attempts": []}
+{"time_ns": 1791805239565814434, "stage": "enable output", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1791805239565956278, "stage": "enable output", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.000131397999894034}
+{"time_ns": 1791805239565967645, "stage": "enable output", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805239566182038, "stage": "enable output", "command": "*OPC?", "event": "ok", "duration_s": 0.00020821299995077425, "response": "1"}
+{"time_ns": 1791805239566195638, "stage": "enable output", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1791805239566279194, "stage": "enable output", "command": "C1:OUTP?", "event": "ok", "duration_s": 7.801700007803447e-05, "response": "C1:OUTP ON,LOAD,HZ,PLRT,NOR"}
+{"time_ns": 1791805239566570062, "stage": "R acquisition", "command": "UART R", "event": "start", "case_id": "competition-000001"}
+{"time_ns": 1791805240035074292, "stage": "R acquisition", "command": "UART R", "event": "ok", "case_id": "competition-000001"}
+{"time_ns": 1791805240036109621, "stage": "prepare waveform", "command": "competition-000002", "event": "case_begin", "case_id": "competition-000002"}
+{"time_ns": 1791805240036128739, "stage": "upload waveform", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1791805240036416813, "stage": "upload waveform", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0002801519999593438}
+{"time_ns": 1791805240036432106, "stage": "upload waveform", "command": "C1:BSWV WVTP,ARB", "event": "start"}
+{"time_ns": 1791805240036769544, "stage": "upload waveform", "command": "C1:BSWV WVTP,ARB", "event": "ok", "duration_s": 0.0003303880000657955}
+{"time_ns": 1791805240036783775, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,19997,INTER,HOLD", "event": "start"}
+{"time_ns": 1791805240036962204, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,19997,INTER,HOLD", "event": "ok", "duration_s": 0.0001720490001844155}
+{"time_ns": 1791805240036989184, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,19997,INTER,HOLD", "event": "binary_upload", "bytes": 8388, "sha256": "781926db02635edab605fd87286defc3c4f0daddf3203cc7fa41170c500c697b"}
+{"time_ns": 1791805240036997467, "stage": "upload waveform", "command": "C1:WVDT WVNM,RO_C1,FREQ,4.76800190749,AMPL,3.3,OFST,1.65,PHASE,0,WAVEDATA,<8388 binary bytes>", "event": "start"}
+{"time_ns": 1791805240037566584, "stage": "upload waveform", "command": "C1:WVDT WVNM,RO_C1,FREQ,4.76800190749,AMPL,3.3,OFST,1.65,PHASE,0,WAVEDATA,<8388 binary bytes>", "event": "ok", "duration_s": 0.0005629570000564854}
+{"time_ns": 1791805240037580434, "stage": "upload waveform", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805240037733945, "stage": "upload waveform", "command": "*OPC?", "event": "ok", "duration_s": 0.00014768300002288015, "response": "1"}
+{"time_ns": 1791805240037744591, "stage": "configure TrueArb", "command": "C1:ARWV NAME,RO_C1", "event": "start"}
+{"time_ns": 1791805240037796109, "stage": "configure TrueArb", "command": "C1:ARWV NAME,RO_C1", "event": "ok", "duration_s": 4.618999992089812e-05}
+{"time_ns": 1791805240037805503, "stage": "configure TrueArb", "command": "C1:SRATE MODE,TARB,VALUE,19997,INTER,HOLD", "event": "start"}
+{"time_ns": 1791805240037874517, "stage": "configure TrueArb", "command": "C1:SRATE MODE,TARB,VALUE,19997,INTER,HOLD", "event": "ok", "duration_s": 6.438699983846163e-05}
+{"time_ns": 1791805240037888678, "stage": "configure TrueArb", "command": "C1:BSWV AMP,3.3,OFST,1.65", "event": "start"}
+{"time_ns": 1791805240037971673, "stage": "configure TrueArb", "command": "C1:BSWV AMP,3.3,OFST,1.65", "event": "ok", "duration_s": 7.380100009868329e-05}
+{"time_ns": 1791805240037978303, "stage": "configure TrueArb", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805240038105615, "stage": "configure TrueArb", "command": "*OPC?", "event": "ok", "duration_s": 0.00012254400007805089, "response": "1"}
+{"time_ns": 1791805240038112846, "stage": "configure TrueArb", "command": "C1:ARWV?", "event": "start"}
+{"time_ns": 1791805240038210463, "stage": "configure TrueArb", "command": "C1:ARWV?", "event": "ok", "duration_s": 9.307999994234706e-05, "response": "C1:ARWV INDEX,0,NAME,RO_C1"}
+{"time_ns": 1791805240038235771, "stage": "configure TrueArb", "command": "C1:SRATE?", "event": "start"}
+{"time_ns": 1791805240038403703, "stage": "configure TrueArb", "command": "C1:SRATE?", "event": "ok", "duration_s": 0.00016223500006162794, "response": "C1:SRATE MODE,TARB,VALUE,19997.0,INTER,HOLD"}
+{"time_ns": 1791805240038421741, "stage": "configure TrueArb", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1791805240038559768, "stage": "configure TrueArb", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.00013293000006342481, "response": "C1:BSWV WVTP,ARB,FRQ,5.0HZ,AMP,3.3V,OFST,1.65V"}
+{"time_ns": 1791805240038590204, "stage": "configure TrueArb", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1791805240038703795, "stage": "configure TrueArb", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.00010819299996001064, "response": "C1:OUTP OFF,LOAD,HZ,PLRT,NOR"}
+{"time_ns": 1791805240038726229, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "start"}
+{"time_ns": 1791805240039057618, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "waveform_header", "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8388B, TYPE, 6, ", "header_bytes": 66, "declared_bytes": 8388, "position": "USER", "waveform_name": "RO_C1.bin", "waveform_type": "6"}
+{"time_ns": 1791805240039971073, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "ok", "duration_s": 0.0012280590001410019, "bytes": 8455, "sha256": "064d3d4db4d0dc892d6ba76a3eda7ffb68f05f5755ccdf4891f6b163a339ff7a"}
+{"time_ns": 1791805240040041749, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "waveform_verified", "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8388B, TYPE, 6, ", "header_bytes": 66, "declared_bytes": 8388, "position": "USER", "waveform_name": "RO_C1.bin", "waveform_type": "6", "response_bytes": 8455, "received_body_bytes": 8389, "framing": "raw", "payload_bytes": 8388, "sha256": "781926db02635edab605fd87286defc3c4f0daddf3203cc7fa41170c500c697b", "uploaded_bytes": 8388, "uploaded_sha256": "781926db02635edab605fd87286defc3c4f0daddf3203cc7fa41170c500c697b", "payload_prefix_hex": "4e756e758e75ae75ce75fe751e763e765e768e76ae76ce76ff761f773f776f77", "uploaded_prefix_hex": "4e756e758e75ae75ce75fe751e763e765e768e76ae76ce76ff761f773f776f77", "verified": true, "bytes": 8388, "readback_bytes": 8388, "repetitions": 1, "query": "WVDT? user,RO_C1", "query_attempts": []}
+{"time_ns": 1791805240040278826, "stage": "enable output", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1791805240040379277, "stage": "enable output", "command": "C1:OUTP ON", "event": "ok", "duration_s": 8.796299994173751e-05}
+{"time_ns": 1791805240040391756, "stage": "enable output", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805240040483474, "stage": "enable output", "command": "*OPC?", "event": "ok", "duration_s": 8.586900003137998e-05, "response": "1"}
+{"time_ns": 1791805240040492357, "stage": "enable output", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1791805240040574040, "stage": "enable output", "command": "C1:OUTP?", "event": "ok", "duration_s": 7.692599979236547e-05, "response": "C1:OUTP ON,LOAD,HZ,PLRT,NOR"}
+{"time_ns": 1791805240040815163, "stage": "R acquisition", "command": "UART R", "event": "start", "case_id": "competition-000002"}
+{"time_ns": 1791805240602954039, "stage": "R acquisition", "command": "UART R", "event": "ok", "case_id": "competition-000002"}
+{"time_ns": 1791805240604633487, "stage": "prepare waveform", "command": "competition-000003", "event": "case_begin", "case_id": "competition-000003"}
+{"time_ns": 1791805240604652215, "stage": "upload waveform", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1791805240604905186, "stage": "upload waveform", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0002448089999234071}
+{"time_ns": 1791805240604923563, "stage": "upload waveform", "command": "C1:BSWV WVTP,ARB", "event": "start"}
+{"time_ns": 1791805240605095081, "stage": "upload waveform", "command": "C1:BSWV WVTP,ARB", "event": "ok", "duration_s": 0.00016346600000360922}
+{"time_ns": 1791805240605114300, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,20000,INTER,HOLD", "event": "start"}
+{"time_ns": 1791805240605226910, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,20000,INTER,HOLD", "event": "ok", "duration_s": 0.00010532800001783471}
+{"time_ns": 1791805240605252518, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,20000,INTER,HOLD", "event": "binary_upload", "bytes": 8456, "sha256": "a617825b5715da2a67351a7664cda9cc5792ee6a8aa0add2f062f9ca96e92e2e"}
+{"time_ns": 1791805240605260621, "stage": "upload waveform", "command": "C1:WVDT WVNM,RO_C1,FREQ,4.73036896878,AMPL,3.3,OFST,1.65,PHASE,0,WAVEDATA,<8456 binary bytes>", "event": "start"}
+{"time_ns": 1791805240605746482, "stage": "upload waveform", "command": "C1:WVDT WVNM,RO_C1,FREQ,4.73036896878,AMPL,3.3,OFST,1.65,PHASE,0,WAVEDATA,<8456 binary bytes>", "event": "ok", "duration_s": 0.0004800929998509673}
+{"time_ns": 1791805240605761705, "stage": "upload waveform", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805240605942206, "stage": "upload waveform", "command": "*OPC?", "event": "ok", "duration_s": 0.00017419200003132573, "response": "1"}
+{"time_ns": 1791805240605953764, "stage": "configure TrueArb", "command": "C1:ARWV NAME,RO_C1", "event": "start"}
+{"time_ns": 1791805240606018181, "stage": "configure TrueArb", "command": "C1:ARWV NAME,RO_C1", "event": "ok", "duration_s": 5.913900008636119e-05}
+{"time_ns": 1791805240606028727, "stage": "configure TrueArb", "command": "C1:SRATE MODE,TARB,VALUE,20000,INTER,HOLD", "event": "start"}
+{"time_ns": 1791805240606077460, "stage": "configure TrueArb", "command": "C1:SRATE MODE,TARB,VALUE,20000,INTER,HOLD", "event": "ok", "duration_s": 4.400600005283195e-05}
+{"time_ns": 1791805240606085753, "stage": "configure TrueArb", "command": "C1:BSWV AMP,3.3,OFST,1.65", "event": "start"}
+{"time_ns": 1791805240606219053, "stage": "configure TrueArb", "command": "C1:BSWV AMP,3.3,OFST,1.65", "event": "ok", "duration_s": 0.00012871400008407363}
+{"time_ns": 1791805240606227336, "stage": "configure TrueArb", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805240606313836, "stage": "configure TrueArb", "command": "*OPC?", "event": "ok", "duration_s": 8.187299999917741e-05, "response": "1"}
+{"time_ns": 1791805240606322729, "stage": "configure TrueArb", "command": "C1:ARWV?", "event": "start"}
+{"time_ns": 1791805240606695720, "stage": "configure TrueArb", "command": "C1:ARWV?", "event": "ok", "duration_s": 0.00036677100001725194, "response": "C1:ARWV INDEX,0,NAME,RO_C1"}
+{"time_ns": 1791805240606734369, "stage": "configure TrueArb", "command": "C1:SRATE?", "event": "start"}
+{"time_ns": 1791805240606841189, "stage": "configure TrueArb", "command": "C1:SRATE?", "event": "ok", "duration_s": 9.83679999535525e-05, "response": "C1:SRATE MODE,TARB,VALUE,20000.0,INTER,HOLD"}
+{"time_ns": 1791805240606890794, "stage": "configure TrueArb", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1791805240607019978, "stage": "configure TrueArb", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.00012161300014668086, "response": "C1:BSWV WVTP,ARB,FRQ,5.0HZ,AMP,3.3V,OFST,1.65V"}
+{"time_ns": 1791805240607050755, "stage": "configure TrueArb", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1791805240607146499, "stage": "configure TrueArb", "command": "C1:OUTP?", "event": "ok", "duration_s": 9.007500011648517e-05, "response": "C1:OUTP OFF,LOAD,HZ,PLRT,NOR"}
+{"time_ns": 1791805240607174110, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "start"}
+{"time_ns": 1791805240607414022, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "waveform_header", "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8456B, TYPE, 6, ", "header_bytes": 66, "declared_bytes": 8456, "position": "USER", "waveform_name": "RO_C1.bin", "waveform_type": "6"}
+{"time_ns": 1791805240607907024, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "ok", "duration_s": 0.000715026000079888, "bytes": 8523, "sha256": "7ac54a77409809143904ffaaef95a2e9d7361f44d897ad880d033071561d4737"}
+{"time_ns": 1791805240607974004, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "waveform_verified", "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8456B, TYPE, 6, ", "header_bytes": 66, "declared_bytes": 8456, "position": "USER", "waveform_name": "RO_C1.bin", "waveform_type": "6", "response_bytes": 8523, "received_body_bytes": 8457, "framing": "raw", "payload_bytes": 8456, "sha256": "a617825b5715da2a67351a7664cda9cc5792ee6a8aa0add2f062f9ca96e92e2e", "uploaded_bytes": 8456, "uploaded_sha256": "a617825b5715da2a67351a7664cda9cc5792ee6a8aa0add2f062f9ca96e92e2e", "payload_prefix_hex": "290df90ce90ad90ad9092909a807c80618078805c804d804e803e803f8015800", "uploaded_prefix_hex": "290df90ce90ad90ad9092909a807c80618078805c804d804e803e803f8015800", "verified": true, "bytes": 8456, "readback_bytes": 8456, "repetitions": 1, "query": "WVDT? user,RO_C1", "query_attempts": []}
+{"time_ns": 1791805240608131572, "stage": "enable output", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1791805240608220205, "stage": "enable output", "command": "C1:OUTP ON", "event": "ok", "duration_s": 7.910900012575439e-05}
+{"time_ns": 1791805240608231772, "stage": "enable output", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805240608318763, "stage": "enable output", "command": "*OPC?", "event": "ok", "duration_s": 8.115199989333632e-05, "response": "1"}
+{"time_ns": 1791805240608327787, "stage": "enable output", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1791805240608407948, "stage": "enable output", "command": "C1:OUTP?", "event": "ok", "duration_s": 7.539300008829741e-05, "response": "C1:OUTP ON,LOAD,HZ,PLRT,NOR"}
+{"time_ns": 1791805240608832066, "stage": "R acquisition", "command": "UART R", "event": "start", "case_id": "competition-000003"}
+{"time_ns": 1791805241122609694, "stage": "R acquisition", "command": "UART R", "event": "ok", "case_id": "competition-000003"}
+{"time_ns": 1791805241123688007, "stage": "prepare waveform", "command": "competition-000051", "event": "case_begin", "case_id": "competition-000051"}
+{"time_ns": 1791805241123704211, "stage": "upload waveform", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1791805241123945485, "stage": "upload waveform", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.00023309099992729898}
+{"time_ns": 1791805241123959486, "stage": "upload waveform", "command": "C1:BSWV WVTP,ARB", "event": "start"}
+{"time_ns": 1791805241124064774, "stage": "upload waveform", "command": "C1:BSWV WVTP,ARB", "event": "ok", "duration_s": 9.871899987956567e-05}
+{"time_ns": 1791805241124078144, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,19760,INTER,HOLD", "event": "start"}
+{"time_ns": 1791805241124159547, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,19760,INTER,HOLD", "event": "ok", "duration_s": 7.538399995610234e-05}
+{"time_ns": 1791805241124183643, "stage": "upload waveform", "command": "C1:SRATE MODE,TARB,VALUE,19760,INTER,HOLD", "event": "binary_upload", "bytes": 8300, "sha256": "0623cc3c1a0cae2874ff3c894b87ca3ca0ce4a01d9bcc91c3205d95f03d1b87e"}
+{"time_ns": 1791805241124191815, "stage": "upload waveform", "command": "C1:WVDT WVNM,RO_C1,FREQ,4.76144578313,AMPL,3.3,OFST,1.65,PHASE,0,WAVEDATA,<8300 binary bytes>", "event": "start"}
+{"time_ns": 1791805241124566309, "stage": "upload waveform", "command": "C1:WVDT WVNM,RO_C1,FREQ,4.76144578313,AMPL,3.3,OFST,1.65,PHASE,0,WAVEDATA,<8300 binary bytes>", "event": "ok", "duration_s": 0.00036891500008096045}
+{"time_ns": 1791805241124577856, "stage": "upload waveform", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805241124679419, "stage": "upload waveform", "command": "*OPC?", "event": "ok", "duration_s": 9.569400003783812e-05, "response": "1"}
+{"time_ns": 1791805241124689374, "stage": "configure TrueArb", "command": "C1:ARWV NAME,RO_C1", "event": "start"}
+{"time_ns": 1791805241124733581, "stage": "configure TrueArb", "command": "C1:ARWV NAME,RO_C1", "event": "ok", "duration_s": 3.9259000004676636e-05}
+{"time_ns": 1791805241124744868, "stage": "configure TrueArb", "command": "C1:SRATE MODE,TARB,VALUE,19760,INTER,HOLD", "event": "start"}
+{"time_ns": 1791805241124789856, "stage": "configure TrueArb", "command": "C1:SRATE MODE,TARB,VALUE,19760,INTER,HOLD", "event": "ok", "duration_s": 4.051099995194818e-05}
+{"time_ns": 1791805241124797367, "stage": "configure TrueArb", "command": "C1:BSWV AMP,3.3,OFST,1.65", "event": "start"}
+{"time_ns": 1791805241124845940, "stage": "configure TrueArb", "command": "C1:BSWV AMP,3.3,OFST,1.65", "event": "ok", "duration_s": 4.43169999471138e-05}
+{"time_ns": 1791805241124868654, "stage": "configure TrueArb", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805241124960543, "stage": "configure TrueArb", "command": "*OPC?", "event": "ok", "duration_s": 8.745200011617271e-05, "response": "1"}
+{"time_ns": 1791805241124968715, "stage": "configure TrueArb", "command": "C1:ARWV?", "event": "start"}
+{"time_ns": 1791805241125050748, "stage": "configure TrueArb", "command": "C1:ARWV?", "event": "ok", "duration_s": 7.774699997753487e-05, "response": "C1:ARWV INDEX,0,NAME,RO_C1"}
+{"time_ns": 1791805241125070047, "stage": "configure TrueArb", "command": "C1:SRATE?", "event": "start"}
+{"time_ns": 1791805241125166382, "stage": "configure TrueArb", "command": "C1:SRATE?", "event": "ok", "duration_s": 9.097699989979446e-05, "response": "C1:SRATE MODE,TARB,VALUE,19760.0,INTER,HOLD"}
+{"time_ns": 1791805241125181084, "stage": "configure TrueArb", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1791805241125261976, "stage": "configure TrueArb", "command": "C1:BSWV?", "event": "ok", "duration_s": 7.638500005668902e-05, "response": "C1:BSWV WVTP,ARB,FRQ,5.0HZ,AMP,3.3V,OFST,1.65V"}
+{"time_ns": 1791805241125289708, "stage": "configure TrueArb", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1791805241125372302, "stage": "configure TrueArb", "command": "C1:OUTP?", "event": "ok", "duration_s": 7.81169999299891e-05, "response": "C1:OUTP OFF,LOAD,HZ,PLRT,NOR"}
+{"time_ns": 1791805241125392503, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "start"}
+{"time_ns": 1791805241125933637, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "waveform_header", "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8300B, TYPE, 6, ", "header_bytes": 66, "declared_bytes": 8300, "position": "USER", "waveform_name": "RO_C1.bin", "waveform_type": "6"}
+{"time_ns": 1791805241126545018, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "ok", "duration_s": 0.0011373119998552284, "bytes": 8367, "sha256": "bf0d26815bc983248816c271a1994eb108368beaf064baa65ecec6fa1abcf105"}
+{"time_ns": 1791805241126608353, "stage": "verify waveform bytes", "command": "WVDT? user,RO_C1", "event": "waveform_verified", "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8300B, TYPE, 6, ", "header_bytes": 66, "declared_bytes": 8300, "position": "USER", "waveform_name": "RO_C1.bin", "waveform_type": "6", "response_bytes": 8367, "received_body_bytes": 8301, "framing": "raw", "payload_bytes": 8300, "sha256": "0623cc3c1a0cae2874ff3c894b87ca3ca0ce4a01d9bcc91c3205d95f03d1b87e", "uploaded_bytes": 8300, "uploaded_sha256": "0623cc3c1a0cae2874ff3c894b87ca3ca0ce4a01d9bcc91c3205d95f03d1b87e", "payload_prefix_hex": "0183018301830183018301830183018301830183018301830183018301830183", "uploaded_prefix_hex": "0183018301830183018301830183018301830183018301830183018301830183", "verified": true, "bytes": 8300, "readback_bytes": 8300, "repetitions": 1, "query": "WVDT? user,RO_C1", "query_attempts": []}
+{"time_ns": 1791805241126749886, "stage": "enable output", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1791805241126839050, "stage": "enable output", "command": "C1:OUTP ON", "event": "ok", "duration_s": 8.043100001486891e-05}
+{"time_ns": 1791805241126877488, "stage": "enable output", "command": "*OPC?", "event": "start"}
+{"time_ns": 1791805241127054815, "stage": "enable output", "command": "*OPC?", "event": "ok", "duration_s": 0.00016831399989314377, "response": "1"}
+{"time_ns": 1791805241127067464, "stage": "enable output", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1791805241127163268, "stage": "enable output", "command": "C1:OUTP?", "event": "ok", "duration_s": 9.088699994208582e-05, "response": "C1:OUTP ON,LOAD,HZ,PLRT,NOR"}
+{"time_ns": 1791805241127413345, "stage": "R acquisition", "command": "UART R", "event": "start", "case_id": "competition-000051"}
