@@ -1,52 +1,41 @@
-# TI 杯决赛统一求解器 4.0.0
+# TI 算法替换包 6.0
 
-MSPM0G3507 负责 ADC / DMA / UART，电脑用独立的多起点变量投影最小二乘完成分类和测量。R、RO、RT 默认均使用 `tools/unified_solver.py`，**不调用原 C 分类器、不从三级算法取得类别或初值**。旧 C 源码和 `analyze_legacy()` 只保留作历史验证与对照。默认分析一帧全部 8192 点，兼容旧 4096 点 DUMP v2。
+适用于本次上传的原 4.0 工程，或已完整应用此前 5.0 替换包的工程。仅更新三个算法相关文件，附安装、备份、回滚和可复现验证。**全输出百万分之一仍未实现**，请先阅读 `docs/ALGORITHM_REPORT.md` 的完整数值与失败记录。
 
-此版本没有证实全部结果达到 1 ppm；同周期循环噪声、锁相方波边沿和未知时基存在不可辨识反例。完整实测软件结果、遗漏检查和失败案例见 [决赛报告](docs/FINALS_UNIFIED_REPORT.md)。工程不是已经验收的单片机独立参赛程序：手册要求单片机输出结果，尚无电脑计算可获准的明确条款。
+解压后执行，路径指向含 `tools`、`server.py`、`algorithm_parameters.json` 的原工程根目录：
 
-## 使用
-
-```powershell
-python -m pip install -r requirements.txt
-python server.py R --port COM6
-python server.py RT
-python -m tools.finals_matrix --compare
+```bash
+python install_patch.py --project "C:/your/path/TI-game-finals" --check
+python install_patch.py --project "C:/your/path/TI-game-finals"
 ```
 
-交互模式：`python server.py --port COM6`，键入 R / RO / RT / Q。R 默认一帧，总期限 15 秒，保留原始 ADC、校准输入和完整诊断。RO 沿用原独立硬件校准与发生器回放流程，RT 保留原 296 项矩阵。新决赛矩阵用上面的 `finals_matrix` 命令单独运行；它不会连接发生器。
+安装器核对全部原文件身份，只替换 `tools/unified_solver.py`、`tools/host_waveform.py`、`tools/waveform_server.py`。原文件保存在工程的 `algorithm-backup-before-6.0`；原固件、协议和校准参数不被修改。请先停止服务器。若原文件已被自行编辑，安装器拒绝覆盖，请在与对应已交付版本一致的工程副本中应用。
 
-新的可选参数：
-
-```powershell
-python server.py R --port COM6 --solver-starts 8 --solver-seconds 10
-python server.py R --port COM6 --solver-fmin 100 --solver-fmax 400
-python server.py R --port COM6 --r-frames 2
+```bash
+python install_patch.py --project "C:/your/path/TI-game-finals" --rollback
 ```
 
-频率 100–400 Hz 是手册初赛范围。应在最终范围公布后再设置 `--solver-fmin` / `--solver-fmax`。未指定时，默认下限为帧内至少四周期，上限为采样率的十二分之一；这描述实现范围，不代表决赛承诺。多帧分别拟合，绝不跨 UART 间隙拼接；同相位循环噪声不随帧数自动消失。超时拒绝输出，不提前提交部分结果。
+回滚恢复安装前的 4.0 或 5.0 三个文件，也先检查哈希。重复安装不再写入。若已有备份来自另一源版本，安装器拒绝复用该备份，避免覆盖以前的回滚记录。
 
-输出格式沿用：
+运行沿用原依赖 NumPy、SciPy、threadpoolctl、pyserial；未增加第三方依赖：
 
-```text
-RESULT,sine,237.193000000,1.500000000,0
-RESULT,square,237.193000000,1.500000000,63.1730000
+```bash
+python server.py --port COM6 --solver-starts 2 --solver-seconds 10 --r-frames 1 --r-timeout 15
 ```
 
-以上仅为格式示例。幅值定义为拟合的基本波形在噪声叠加前的峰峰值；不会将拟合残差里的任意谐波自动算入源幅值。方波 duty 定义为上升和下降边沿中点之间的高电平时间占比；手册没有详细定义非零边沿的 duty，赛前需确认。
+COM6 换为实际串口。默认两起点、单帧计算预算 10 秒；R 的采集、计算和存档仍总计 15 秒，超时不提交 RESULT。软件测量不能替代实板验收；目前仍是电脑计算，单片机输出要求的参赛许可尚未确认。
 
-## 固件与校准
+新版本以 5.0 为模型选择基线，增加无需知道回放周期的带外投影参数估计、两段时间窗验证和锯齿重置区间处理。窄带证据不足、白噪声、正弦同频幅值重合或边沿时序不确定时，这个额外观测模型不被接受。`SolverConfig(bandlimited_refine=False)` 可单独关闭它，用于对照。
 
-采集固件未修改。仍为 32 MHz、20 kS/s、8192 点、115200 8-N-1；导入原 CCS 项目，使用对应 MSPM0 SDK 和 SysConfig 编译。没有新增实板 `.out`，没有实际烧录或重新校准。上传包中的 `algorithm_parameters.json` 原样保留，只适用于原板卡与前端。更换板卡或采集配置后重新 RO 标定；无校准诊断可指定 `--algorithm-parameters algorithm_parameters.uncalibrated.json`。
+在补丁目录中验证：
 
-没有通过 PC 软件测试推断真实 ADC 的 INL、参考电压、时钟温漂、串口驱动时延或 SRAM / DMA 实板行为。`docs/ENGINEERING.md` 为原 3.0 历史说明；当前实现以本文件和 `FINALS_UNIFIED_REPORT.md` 为准。
-
-## 验证
-
-```powershell
-python -m unittest discover -s tests -p "test*.py" -v
-python -m tools.finals_matrix --compare
+```bash
+python checks/run_checks.py --project "C:/your/path/TI-game-finals"
+python checks/verify_update.py --project "C:/your/path/TI-game-finals" --scope paired
+python checks/verify_update.py --project "C:/your/path/TI-game-finals" --scope fresh
+python checks/verify_update.py --project "C:/your/path/TI-game-finals" --scope regression296
+python checks/counterexamples.py
+python checks/test_installer.py --zip "C:/your/path/TI-game-finals-unified-4.0.zip"
 ```
 
-Linux 完整检查：`bash tests/run_all_checks.sh`，包含 C 警告检查、历史 C 单元测试、库重建、Python 回归和语法检查。重建历史 C 对照库需要 C 编译器；正常 R 不需要 DLL 或 C 编译器。历史 envelope 测试明确调用旧路径，不代表新路径能够恢复任意 AM、削顶或谐波失真。
-
-新增文件：`tools/unified_solver.py`、`tools/finals_matrix.py`、`tests/test_unified_solver.py`、`docs/FINALS_UNIFIED_REPORT.md`。`validation/finals_4.0/` 保存新矩阵、两两覆盖审计、逐项结果、旧算法对照和不可辨识反例；`validation/finals_4.0_original_matrix/` 保存原矩阵的新算法完整回放证据。
+历史矩阵和本轮冻结后的新矩阵、各项误差、输入指纹、覆盖审计、测试结果及研究依据均在包中。原始 ADC 和完整工程不重复打包；固定种子可重新生成 ADC。`checks/baseline5.py` 仅供验证脚本对照，生产求解器不调用它。

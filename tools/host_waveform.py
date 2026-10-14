@@ -202,8 +202,8 @@ def analyze(dll, payload: bytes, meta: Metadata, *, config=None) -> tuple[str, d
         raise ValueError("incomplete ADC payload")
     raw = np.frombuffer(payload, dtype="<u2")
     details = {name: 0 for name, _ in Result._fields_}
-    details.update(ok=False, type=4, algorithm_version=0x00040000,
-        sequence=meta.sequence, host_pipeline_version="4.0.0",
+    details.update(ok=False, type=4, algorithm_version=0x00060000,
+        sequence=meta.sequence, host_pipeline_version="6.0.0",
         classification_sample_count=len(raw), measurement_sample_count=len(raw),
         frequency_hz=0., vpp_v=0., duty_fraction=0., dc_offset_v=0.)
     def reject(status, reason):
@@ -232,7 +232,7 @@ def analyze(dll, payload: bytes, meta: Metadata, *, config=None) -> tuple[str, d
     if np.percentile(samples, 98)-np.percentile(samples, 2) < 8:
         return reject(1, "insufficient dynamic range")
     try:
-        result = estimate(samples, fs, config)
+        result = estimate(samples, fs, config, quantization_step=1/meta.adc_scale)
     except ValueError as error:
         return reject(7, str(error))
     unit = meta.reference_microvolts/(meta.adc_full_scale*meta.gain_ppm)

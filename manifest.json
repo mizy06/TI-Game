@@ -1,0 +1,22 @@
+{
+  "version": "6.0.0",
+  "base": "Uploaded 4.0 or exact released 5.0",
+  "backup_directory": "algorithm-backup-before-6.0",
+  "files": {
+    "tools/unified_solver.py": "c3750146dbadb0b4415894f2ae441334292c2e8a5d9b4cf5fc5f080292436f24",
+    "tools/host_waveform.py": "8a7f40e5a258b4e0635ffa3993e422e79adf8e567be94ad8432e12c378d61ab7",
+    "tools/waveform_server.py": "408beb39127e81fd12463175cbab8015a3ac6b5f57ebf6d4cd67be4ec9569bac"
+  },
+  "source_versions": {
+    "4.0.0": {
+      "tools/unified_solver.py": "7966fbbcc26b4ad993489c7f65ee05a131258e14ef6adf7c8ac0c701cdd10df8",
+      "tools/host_waveform.py": "1152f6b5b34af1f7965d5b68dd48a5659f811d6c97f7b653519f0e560ecdb27b",
+      "tools/waveform_server.py": "a455a3f5d57b8e9a3c50bf91564ab8d88829e534a537770a0198dcad07ff0248"
+    },
+    "5.0.0": {
+      "tools/unified_solver.py": "02d05f5250abb205102006a08ded3535627306917aa1f6f23e82379a61a0ffff",
+      "tools/host_waveform.py": "f1a6b29bb4028f1ce9dd574e0ab54ad6f90702de9b9a2a8237e08c7203e02cfd",
+      "tools/waveform_server.py": "408beb39127e81fd12463175cbab8015a3ac6b5f57ebf6d4cd67be4ec9569bac"
+    }
+  }
+}

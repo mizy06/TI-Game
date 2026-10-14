@@ -410,8 +410,8 @@ def parser():
                    help="R total capture/analysis/archive deadline, 0 < value <= 15 s")
     p.add_argument("--solver-fmin", type=float, default=0., help="search lower Hz; 0 uses 4 cycles/frame")
     p.add_argument("--solver-fmax", type=float, default=0., help="search upper Hz; 0 uses fs/12")
-    p.add_argument("--solver-starts", type=int, default=4, help="independent frequency starting points")
-    p.add_argument("--solver-seconds", type=float, default=5., help="per-frame solver budget, at most 12 s")
+    p.add_argument("--solver-starts", type=int, default=2, help="independent frequency starting points")
+    p.add_argument("--solver-seconds", type=float, default=10., help="per-frame solver budget, at most 12 s")
     return p
 
 
