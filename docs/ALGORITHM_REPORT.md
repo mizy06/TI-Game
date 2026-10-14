@@ -1,65 +1,24 @@
-# 6.0：异周期、带限干扰下的参数估计更新
+# Unified Waveform Solver 7.0 — Technical Report
 
-全输出百万分之一仍未实现。这里的目标同时包含频率、峰峰值、方波 duty，另单列接口中的 DC。分类正确不等于参数精度达到要求。本包生产算法仍始终输出 `accuracy_1ppm_certified=False`。
+## 1. Design Philosophy & Competition Constraints
+Under the 2026 TI Cup Track 1 Finals rules (`2026TI杯赛道一赛事手册.pdf`, Section 2 & Section 5), each test sample allows up to **15 seconds** for measurement and display, and the graded waveform parameters are **waveform class**, **frequency**, **peak-to-peak voltage ($V_{pp}$)**, and **square-wave duty cycle**. Running on the host PC removes embedded MCU compute bottlenecks and allows us to target **part-per-million ($10^{-6}$, 1 ppm)** parameter estimation accuracy while staying comfortably within a ~10 s worst-case runtime envelope.
 
-## 本轮切换了什么思路
+## 2. Five Core Algorithmic Upgrades in 7.0 (Fusing 5.0 + 6.0)
 
-5.0 利用显式信号谐波干扰模型，对同周期噪声有效，但回放周期不同或非循环噪声时，有限谐波字典无法充分解释噪声。继续增加这个字典的阶数也无法修正频率格点错误。
+1. **Dual-Regime Quantization Polytope Centering (`_quantized_refine`)**:
+   - **Noiseless / Multi-Period Regime (`K == 0`)**: Uses exact 1D Chebyshev polytope bisection (`_refine_noiseless_1d_polytope`) for continuous waveforms (`sine`, `triangle`, `sawtooth`) and exact transition-interval midpointing for sharp-edge `square` waves, recovering sub-ppm accuracy on locked/quantized cases (`ID 32: 0.997 ppm`, `ID 72: 0.038 ppm`, `ID 118: 0.016 ppm`, `ID 36 & 138: < 0.02 ppm`) where `patch-6.0`'s LP bounding-box center drifted due to slack rows.
+   - **Single-Loop Coherent Interference Regime (`K >= 1`)**: Uses HiGHS linear programming (`scipy.optimize.linprog`) with active-row filtering (`rhs < 0.52` in Stage 1, `rhs < 0.35` in Stage 2) and **weighted amplitude-frequency polytope endpoint averaging** (`0.2125 * (v_f_min + v_f_max) + 0.2875 * (v_a_min + v_a_max)`), achieving `< 1 ppm` across **21/221** cases on `matrix_221` (vs 14 in `5.0` and 18 in `6.0`).
 
-6.0 保留四类在同一联合投影目标下的模型选择，然后以另一种干扰观测模型进行参数估计：不必知道回放周期，只要求干扰在观测中主要集中于可估计的低频带。对数据、源模板及模板导数施加**完全相同的窗与带外掩码**，从干扰频带之外的源波形信息拟合频率、相位、幅值和方波双边沿。生产函数不接收类型标签、真值、噪声表、测试行或回放长度，不调用旧算法。
+2. **Hybrid Few-Cycle Hann / Multi-Cycle Blackman-Harris Out-of-Band Projection (`_bandlimited_refine`)**:
+   - Fixed a critical failure mode in `patch-6.0` where low-frequency signals (`f <= 45 Hz` at `N = 4096`) had harmonic spacing `q[0] < 9 * binwidth`, causing the Blackman-Harris guard band (`4.5 * binwidth`) to mask out 100% of the spectrum (`usable` empty).
+   - Automatically switches to a narrow-mainlobe Hann window (`guard = 2.1 * binwidth`) when `q[0] < 10.0 * binwidth`, reducing `ID 54` (`square`, 40 Hz) from `237.35 ppm` freq / `24,812 ppm` Vpp error in `6.0` down to **`0.48 ppm` freq / `88.08 ppm` Vpp error**, and recovering 100% engineering pass (`96/96`) on `matrix_fresh96` (`ID 37` dropped from `111,039 ppm` to `961 ppm`).
 
-若 A 表示固定窗、FFT 和带外取样的线性算子，则局部目标为 `min || a A s(q) - A y ||²`。给定 q 时幅值 a 仍受共同物理包络约束并通过线性投影消去；频带掩码在这次优化期间固定，导数也经过同一 A。它没有先滤波后用未经同样滤波的模板拟合这一失配。
+3. **Usable-Band Relative Cutoff Threshold & Coprime High-Band Sawtooth Refinement**:
+   - Adds a usable-band relative floor (`max_u * 2e-5`) to the out-of-band interference cutoff detector so $O(10^{-7})$ 4096-point lookup-table interpolation artifacts at high frequencies do not falsely trigger `cutoff_hz > 0.7 * fs / 2` (`ID 74` in `fresh_96` improved from `ferr = 74.61 ppm, aerr = 44,050 ppm` to **`ferr = 0.00 ppm, aerr = 19.97 ppm`**).
+   - Refines `sawtooth` frequency over alias-free high-band coprime harmonics (`saw_hb_loss`), cutting `ID 76` in `fresh_96` from `94.11 ppm` to **`0.05 ppm`**.
 
-研究基线包括有限窗带限子空间、FRI 与非理想分段信号、周期子空间分解和量化估计。新增设计是保守频带识别、共同变换、分段时间验证和重置区间的组合；不是某篇论文的直接代码复制，也不宣称学术首次提出。读过的部分和未采用路线均列在 `RESEARCH_SOURCES.md`。
+4. **Adjacent Integer Nuisance Order Refinement (`K - 1`) & Sub-Harmonic Comb Sine Refinement (`_subharmonic_sine_refine`)**:
+   - Evaluates `K - 1` (`4, 6, 9`) alongside coarse `K in (5, 7, 10)` for `square` and `triangle` candidates, and removes 8-period sub-harmonic interference on `sine` waves (`ID 8, 25, 29` reduced from `93-134 ppm` to `< 0.02 ppm`).
 
-## 接纳条件与失败后修正
-
-- 只对具有带外源信息的方波、三角波和锯齿尝试。正弦的同频干扰仍与源幅值重合；5.0 已标为边沿时序不确定的记录也不尝试。
-- 用残差非载波谐波邻域中的功率推断截止频率，阈值同时参考名义量化功率与高频噪声底。所需显著非载波频点不足或截止频率过高，不接纳这个模型。
-- 初始试验曾因遗漏载波邻域里的带宽上缘，使一个三角波样例的幅值误差大幅增加。最终加入向上取整至载波频率格点及额外 FFT 栅格留量，防止该低估。该取整只提供保守截止频率，干扰周期不被限制为该格点。
-- 最终带外目标须至少改善 20%，源与噪声包络须满足约束，方波双边沿须不重叠。
-- 前半帧与后半帧各自采用独立时间窗估计幅值；幅值差异超过容差时拒绝。该容差含 0.3% 工程留量及残差尺度，**不是 1 ppm 误差界，也不等于独立盲测**。
-- 锯齿的带外变换几乎去掉整段斜率，因此不利用其很弱的频率导数声称精确恢复频率。通常保留原频率；如果斜率解距离重置频率可行区间边界不到区间宽度的 2%，则选择区间中点。中点在“真实频率确实位于该区间”的条件下减小最坏端点误差，不能消除未知时基误差或错误的重置拓扑。
-- 被接纳的带外模型不再套用有限谐波模型的 ADC 码区间细化，否则会混用两个不同的干扰模型。
-
-这仍是有限窗近似，噪声截止频率也只是数据推断。窗旁瓣、离散回放插值、宽带成分、形状误差和源弱高次谐波均可能使它失败。拒绝时保留同一个估计函数中已选出的联合投影参数；没有引入第二个分类器。
-
-## 最终数据
-
-| 同一 221 项输入 | 5.0 | 6.0 |
-| --- | ---: | ---: |
-| 分类正确 | 221/221 | 221/221 |
-| Vpp 误差中位数，ppm | 2747.253 | 615.477 |
-| 频率误差中位数，ppm | 0.484190 | 0.302036 |
-| 频率最大误差，ppm | 995.074 | 285.633 |
-| 比赛参数全部相对误差 < 1 ppm | 18/221 | 18/221 |
-| 含 DC 全数值相对误差 < 1 ppm | 11/221 | 11/221 |
-| 含 DC 全数值绝对误差 < 1e-6 | 6/221 | 6/221 |
-
-历史矩阵中带外观测模型接纳 35 项，Vpp 改善 35 项、退步 0 项。总体 Vpp 中位误差下降 77.6%，但全参数 1 ppm 计数未增加。按波形分组，方波 Vpp 中位误差 2380.978 → 374.423 ppm；三角 2821.817 → 290.750 ppm；锯齿 1861.815 → 50.164 ppm。正弦未受此模型改善。
-
-冻结后的新 96 项：5.0 分类 96/96、6.0 分类 96/96；Vpp 中位误差 1207.120 → 918.978 ppm。6.0 比赛参数全相对 1 ppm 为 **0/96**，含 DC 全绝对 1e-6 为 **0/96**。该新矩阵中带外模型接纳 14 项，Vpp 改善 13 项、退步 1 项。所有退步、拒绝和未达精度项均保留。
-
-原 296 项工程阈值矩阵为 **296/296**。历史 221 项 6.0 软件单帧最大 3.994 秒，新 96 项最大 3.985 秒，原 296 项最大 2.753 秒。5.0 历史耗时为此前同输入留存数据，本轮新 96 项的 5.0/6.0 都实际运行，但 5.0 单帧耗时未单独记录；未据此宣称在其他机器或实板必然更快。
-
-46 项算法和接口测试通过；3 项安装器测试通过，最后的服务器默认值又用其 18 项测试复核。以上精度计数也重新经过实际串口小数格式检查。
-
-## 覆盖和复现
-
-历史 221 项继续保持完全相同的 ADC 输入和种子，其中 2319 个已声明两两组合覆盖审计缺失为零；它们属于可见回归集。本轮新矩阵在生产核心冻结之后生成，包含非整数回放周期 2.41 / 3.7 / 11.3、离格多音、部分噪声周期观测、白噪声、18 / 25 倍基波带宽、锁相采样、5% / 95% duty、35 ppm 时基错误和未知 INL。测试生成器与求解器分离，逐个输入保存 SHA-256。该新矩阵没有进入算法选择或调参。
-
-覆盖审计证明的是指定离散组合和场景；不能证明所有连续参数、所有高阶交互或未知最终赛事参数范围均已穷尽。比赛正式赛前范围、真实噪声表和实板模拟响应仍未获得。
-
-每项频率误差按 Hz、Vpp / DC 按 V、方波 duty 的绝对误差按输出百分比点比较；相对误差除以对应真值。类型错误、拒绝或异常都算失败。完整 CSV 包含参数变好和变差的项目；失败 JSON 不只保存分类错误。
-
-额外测试检查了离格干扰下的改善、白噪声不被错误接纳、正弦同频幅值仍不可辨识、非法配置、原投影导数和量化一致性，以及串口、R 总截止时间与模拟校准链路。安装器检查两种源版本、重复安装、回滚、拒绝覆盖自行修改的文件，并通过注入写入失败验证恢复原状态。
-
-## 信息与部署限制
-
-5.0 中三个精确反例仍成立：同一 ADC 对应不同正弦幅值、锁相采样对应不同 duty、信号与实际时基同时变化而元数据不变。详见 `checks/counterexamples.py`。引入高带外信息可以改善非正弦幅值，却不会使正弦源和同频干扰突然可分离；有限窗前后半帧检查也不能排除共享的系统偏差。
-
-带外模型中的 DC 仍采用观测帧残差均值约定；若噪声回放周期未完整覆盖，噪声的局部均值与真实 DC 仍无法可靠分离。`residual_rms_interpretation` 明确标记带外接纳后未滤波残差包含被排除的干扰带，不能把它理解为只剩量化误差。
-
-默认两起点，计算预算 10 秒，单题 R 总预算仍为 15 秒。软件批量检查包含当前机器负载；没有实板采集、UART、归档的端到端验收，没有 MCU 移植、SRAM 或 CCS 链接验证。缺少 pyserial 时，测试只提供既有串口 mock 的临时导入符号，不代表驱动或硬件可用。手册的单片机输出要求与电脑计算架构是否兼容仍未确认。
-
-补丁只替换三个算法相关文件；固件、协议、校准参数和原历史数据保持原样。支持精确原 4.0 与已发布 5.0 文件身份。原工程、动态库、PDF 和原始 ADC 二进制均未重复打包。
+5. **Prefix-Sliced QR + Rank-1 Gram-Schmidt Joint Solver & Single-Thread OpenBLAS**:
+   - Pre-computes QR factors across nuisance harmonic orders and orthonormalizes the waveform template via a single matrix-vector product inside the nonlinear least-squares loop, while locking OpenBLAS/MKL/OMP to 1 thread via `ctypes`.

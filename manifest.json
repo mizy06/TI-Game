@@ -1,9 +1,9 @@
 {
-  "version": "6.0.0",
+  "version": "7.0",
   "base": "Uploaded 4.0 or exact released 5.0",
   "backup_directory": "algorithm-backup-before-6.0",
   "files": {
-    "tools/unified_solver.py": "c3750146dbadb0b4415894f2ae441334292c2e8a5d9b4cf5fc5f080292436f24",
+    "tools/unified_solver.py": "d0facb3fb484a79ac5ce5ddcb02fde8dac60a6b2de8d3cd3015900678e45e31e",
     "tools/host_waveform.py": "8a7f40e5a258b4e0635ffa3993e422e79adf8e567be94ad8432e12c378d61ab7",
     "tools/waveform_server.py": "408beb39127e81fd12463175cbab8015a3ac6b5f57ebf6d4cd67be4ec9569bac"
   },
