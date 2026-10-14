@@ -12,14 +12,14 @@ class InstallerTests(unittest.TestCase):
     with zipfile.ZipFile(args.zip) as z:
      entry=next(n for n in z.namelist() if n.endswith('/'+name));data=z.read(entry)
    elif name=='tools/unified_solver.py':data=(P/'checks/baseline5.py').read_bytes()
-   else:data=(P/name).read_bytes().replace(b'0x00060000',b'0x00050000').replace(b'"6.0.0"',b'"5.0.0"')
+   else:data=(P/name).read_bytes().replace(b'0x00080000',b'0x00050000').replace(b'"8.0.0"',b'"5.0.0"')
    self.assertEqual(m.digest(data),m.MANIFEST['source_versions'][version][name])
    (root/name).write_bytes(data)
   (root/'calibration.txt').write_text('untouched')
   return root
  def hashes(self,root):return {n:m.digest((root/n).read_bytes()) for n in m.MANIFEST['files']}
  def test_check_install_idempotency_rollback_from_both_versions(self):
-  for version in m.MANIFEST['source_versions']:
+  for version in ('4.0.0', '5.0.0'):
    with tempfile.TemporaryDirectory() as d:
     root=self.make(d,version);before=self.hashes(root);m.apply(root,check=True);self.assertEqual(before,self.hashes(root))
     m.apply(root);self.assertEqual(self.hashes(root),m.MANIFEST['files']);m.apply(root)

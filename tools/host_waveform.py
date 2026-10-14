@@ -202,8 +202,8 @@ def analyze(dll, payload: bytes, meta: Metadata, *, config=None) -> tuple[str, d
         raise ValueError("incomplete ADC payload")
     raw = np.frombuffer(payload, dtype="<u2")
     details = {name: 0 for name, _ in Result._fields_}
-    details.update(ok=False, type=4, algorithm_version=0x00060000,
-        sequence=meta.sequence, host_pipeline_version="6.0.0",
+    details.update(ok=False, type=4, algorithm_version=0x00080000,
+        sequence=meta.sequence, host_pipeline_version="8.0.0",
         classification_sample_count=len(raw), measurement_sample_count=len(raw),
         frequency_hz=0., vpp_v=0., duty_fraction=0., dc_offset_v=0.)
     def reject(status, reason):

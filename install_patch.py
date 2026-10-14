@@ -34,17 +34,17 @@ def apply(root,check=False,rollback=False):
  current={name:safe(root,name).read_bytes() for name in names};state={name:digest(data) for name,data in current.items()}
  installed=all(state[name]==MANIFEST['files'][name] for name in names)
  if rollback:
-  if not installed:raise RuntimeError('Current files differ from this exact 6.0 package; refusing rollback.')
+  if not installed:raise RuntimeError('Current files differ from this exact 8.0 package; refusing rollback.')
   identity=json.loads(safe(backup,'source_version.json').read_text())
   version=identity['source_version'];expected=MANIFEST['source_versions'][version]
   restored={name:checked(backup,name,expected[name]) for name in names}
   if check:print('Rollback hashes verified; no files changed.');return
   transact(root,current,restored);print('Restored original '+version+' algorithm files.');return
- if installed:print('6.0 already installed; no files changed.');return
+ if installed:print('8.0 already installed; no files changed.');return
  version=next((v for v,hashes in MANIFEST['source_versions'].items() if all(state[n]==hashes[n] for n in names)),None)
- if not version:raise RuntimeError('Project differs from supported 4.0/5.0 hashes; no files changed.')
+ if not version:raise RuntimeError('Project differs from supported 4.0/5.0/6.0/7.0 hashes; no files changed.')
  updated={name:checked(HERE,name,MANIFEST['files'][name]) for name in names}
- if check:print('Project '+version+' and 6.0 package hashes verified; no files changed.');return
+ if check:print('Project '+version+' and 8.0 package hashes verified; no files changed.');return
  metadata=json.dumps({'source_version':version},indent=2).encode()
  if (backup/'source_version.json').exists():
   if checked(backup,'source_version.json',digest(metadata))!=metadata:raise RuntimeError('Backup version differs.')
@@ -54,7 +54,7 @@ def apply(root,check=False,rollback=False):
   if not (backup/name).exists():atomic(backup/name,data)
  atomic(backup/'source_version.json',metadata)
  transact(root,current,updated)
- print('Installed 6.0; updated exactly three algorithm files. Backup: '+str(backup))
+ print('Installed 8.0; updated exactly three algorithm files. Backup: '+str(backup))
 def main():
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('--project',required=True,type=Path);p.add_argument('--check',action='store_true');p.add_argument('--rollback',action='store_true');a=p.parse_args()
  try:apply(a.project,a.check,a.rollback)

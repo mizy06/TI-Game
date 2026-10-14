@@ -1,24 +1,86 @@
-# Unified Waveform Solver 7.0 — Technical Report
+# TI-algorithm-patch-8.0 (Unified Waveform Solver 8.0)
 
-## 1. Design Philosophy & Competition Constraints
-Under the 2026 TI Cup Track 1 Finals rules (`2026TI杯赛道一赛事手册.pdf`, Section 2 & Section 5), each test sample allows up to **15 seconds** for measurement and display, and the graded waveform parameters are **waveform class**, **frequency**, **peak-to-peak voltage ($V_{pp}$)**, and **square-wave duty cycle**. Running on the host PC removes embedded MCU compute bottlenecks and allows us to target **part-per-million ($10^{-6}$, 1 ppm)** parameter estimation accuracy while staying comfortably within a ~10 s worst-case runtime envelope.
+This replacement package upgrades the host-side waveform estimation engine (`tools/unified_solver.py`, `tools/host_waveform.py`, `tools/waveform_server.py`) for the 2026 TI Cup Track 1 Finals (`TI-game-finals`).
 
-## 2. Five Core Algorithmic Upgrades in 7.0 (Fusing 5.0 + 6.0)
+## Installation & Rollback
 
-1. **Dual-Regime Quantization Polytope Centering (`_quantized_refine`)**:
-   - **Noiseless / Multi-Period Regime (`K == 0`)**: Uses exact 1D Chebyshev polytope bisection (`_refine_noiseless_1d_polytope`) for continuous waveforms (`sine`, `triangle`, `sawtooth`) and exact transition-interval midpointing for sharp-edge `square` waves, recovering sub-ppm accuracy on locked/quantized cases (`ID 32: 0.997 ppm`, `ID 72: 0.038 ppm`, `ID 118: 0.016 ppm`, `ID 36 & 138: < 0.02 ppm`) where `patch-6.0`'s LP bounding-box center drifted due to slack rows.
-   - **Single-Loop Coherent Interference Regime (`K >= 1`)**: Uses HiGHS linear programming (`scipy.optimize.linprog`) with active-row filtering (`rhs < 0.52` in Stage 1, `rhs < 0.35` in Stage 2) and **weighted amplitude-frequency polytope endpoint averaging** (`0.2125 * (v_f_min + v_f_max) + 0.2875 * (v_a_min + v_a_max)`), achieving `< 1 ppm` across **21/221** cases on `matrix_221` (vs 14 in `5.0` and 18 in `6.0`).
+### Option 1: Guarded Transactional Installer (Supports 4.0, 5.0, 6.0, and 7.0)
+```bash
+# Dry-run hash check (modifies no files):
+python3 install_patch.py --project /path/to/TI-game-finals --check
 
-2. **Hybrid Few-Cycle Hann / Multi-Cycle Blackman-Harris Out-of-Band Projection (`_bandlimited_refine`)**:
-   - Fixed a critical failure mode in `patch-6.0` where low-frequency signals (`f <= 45 Hz` at `N = 4096`) had harmonic spacing `q[0] < 9 * binwidth`, causing the Blackman-Harris guard band (`4.5 * binwidth`) to mask out 100% of the spectrum (`usable` empty).
-   - Automatically switches to a narrow-mainlobe Hann window (`guard = 2.1 * binwidth`) when `q[0] < 10.0 * binwidth`, reducing `ID 54` (`square`, 40 Hz) from `237.35 ppm` freq / `24,812 ppm` Vpp error in `6.0` down to **`0.48 ppm` freq / `88.08 ppm` Vpp error**, and recovering 100% engineering pass (`96/96`) on `matrix_fresh96` (`ID 37` dropped from `111,039 ppm` to `961 ppm`).
+# Install 8.0 and create automatic backup in algorithm-backup-before-8.0/:
+python3 install_patch.py --project /path/to/TI-game-finals
 
-3. **Usable-Band Relative Cutoff Threshold & Coprime High-Band Sawtooth Refinement**:
-   - Adds a usable-band relative floor (`max_u * 2e-5`) to the out-of-band interference cutoff detector so $O(10^{-7})$ 4096-point lookup-table interpolation artifacts at high frequencies do not falsely trigger `cutoff_hz > 0.7 * fs / 2` (`ID 74` in `fresh_96` improved from `ferr = 74.61 ppm, aerr = 44,050 ppm` to **`ferr = 0.00 ppm, aerr = 19.97 ppm`**).
-   - Refines `sawtooth` frequency over alias-free high-band coprime harmonics (`saw_hb_loss`), cutting `ID 76` in `fresh_96` from `94.11 ppm` to **`0.05 ppm`**.
+# Rollback to previous version:
+python3 install_patch.py --project /path/to/TI-game-finals --rollback
+```
 
-4. **Adjacent Integer Nuisance Order Refinement (`K - 1`) & Sub-Harmonic Comb Sine Refinement (`_subharmonic_sine_refine`)**:
-   - Evaluates `K - 1` (`4, 6, 9`) alongside coarse `K in (5, 7, 10)` for `square` and `triangle` candidates, and removes 8-period sub-harmonic interference on `sine` waves (`ID 8, 25, 29` reduced from `93-134 ppm` to `< 0.02 ppm`).
+### Option 2: Direct Three-File Replacement
+Copy `tools/unified_solver.py`, `tools/host_waveform.py`, and `tools/waveform_server.py` directly into `/path/to/TI-game-finals/tools/`.
 
-5. **Prefix-Sliced QR + Rank-1 Gram-Schmidt Joint Solver & Single-Thread OpenBLAS**:
-   - Pre-computes QR factors across nuisance harmonic orders and orthonormalizes the waveform template via a single matrix-vector product inside the nonlinear least-squares loop, while locking OpenBLAS/MKL/OMP to 1 thread via `ctypes`.
+## Running Verification Suites
+```bash
+# Run the full 48-test unit + TCP server + pipeline verification suite:
+python3 checks/run_checks.py --project /path/to/TI-game-finals
+```
+
+## Four-Version Head-to-Head Benchmark Summary (`5.0` vs `6.0` vs `7.0` vs `8.0`)
+
+All four versions were evaluated on identical ADC byte payloads (`SHA-256` verified) across 365 total cases:
+1. **Unseen 48-Case Generalization Matrix (`new48`, seed `2026101421` / payload `98131029`)**
+2. **96-Case Multi-Regime Stress Matrix (`fresh_96`, seed `72014391`)**
+3. **221-Case Historical Paired Matrix (`paired_221`, seed `20261012`)**
+
+### 1. Unseen 48-Case Generalization Matrix (`new48`)
+| Metric | Patch 5.0 | Patch 6.0 | Patch 7.0 | **Patch 8.0** |
+|---|---:|---:|---:|---:|
+| Valid Returned | 47 / 48 | 47 / 48 | 47 / 48 | **48 / 48 (100%)** |
+| Waveform Classification | 47 / 48 | 46 / 48 | 46 / 48 | **48 / 48 (100%)** |
+| Engineering Pass | 47 / 48 | 46 / 48 | 46 / 48 | **48 / 48 (100%)** |
+| Median Frequency Error (ppm) | 0.480 | 0.818 | 0.732 | **0.017** |
+| P90 Frequency Error (ppm) | 7.344 | 9.792 | 9.792 | **4.110** |
+| Max Frequency Error (ppm) | 2,000.441 | 84.487 | 84.487 | **31.470** |
+| Median Vpp Error (ppm) | 3,027.872 | 2,563.246 | 1,534.061 | **130.710** |
+| P90 Vpp Error (ppm) | 30,717.345 | 20,359.818 | 20,359.818 | **4,974.000** |
+| Max Vpp Error (ppm) | 59,555.800 | 276,367.354 | 276,367.354 | **17,633.700** |
+| Median Square Duty Error (ppm) | 1,827.709 | 1,639.985 | 95.265 | **10.370** |
+| P90 Square Duty Error (ppm) | 15,000.000 | 12,495.943 | 12,495.943 | **5,342.800** |
+| Max Square Duty Error (ppm) | 19,178.586 | 1,000,000.000 | 1,000,000.000 | **14,267.300** |
+| Median DC Error (ppm) | 46.423 | 36.494 | 35.513 | **11.450** |
+
+### 2. 96-Case Multi-Regime Stress Matrix (`fresh_96`)
+| Metric | Patch 5.0 | Patch 6.0 | Patch 7.0 | **Patch 8.0** |
+|---|---:|---:|---:|---:|
+| Waveform Classification | 96 / 96 | 96 / 96 | 96 / 96 | **96 / 96 (100%)** |
+| Engineering Pass | 96 / 96 | 96 / 96 | 96 / 96 | **96 / 96 (100%)** |
+| Competition Relative `< 1 ppm` | 0 / 96 | 0 / 96 | 1 / 96 | **8 / 96** |
+| Including DC Relative `< 1 ppm` | 0 / 96 | 0 / 96 | 0 / 96 | **7 / 96** |
+| All Absolute `< 1e-6` (incl. DC) | 0 / 96 | 0 / 96 | 0 / 96 | **2 / 96** |
+| Median Frequency Error (ppm) | 1.352 | 1.679 | 1.387 | **0.071** |
+| P90 Frequency Error (ppm) | 21.113 | 25.884 | 20.419 | **16.540** |
+| Max Frequency Error (ppm) | 42.359 | 94.108 | 45.843 | **42.359** |
+| Median Vpp Error (ppm) | 1,379.964 | 918.978 | 448.229 | **57.990** |
+| P90 Vpp Error (ppm) | 17,408.531 | 7,508.777 | 6,432.669 | **3,468.200** |
+| Max Vpp Error (ppm) | 49,657.876 | 44,050.077 | 20,680.249 | **18,011.600** |
+| Median Square Duty Error (ppm) | 188.509 | 146.362 | 25.272 | **6.250** |
+| P90 Square Duty Error (ppm) | 4,082.531 | 980.702 | 662.883 | **481.700** |
+| Max Square Duty Error (ppm) | 15,014.875 | 19,019.722 | 19,019.722 | **14,992.700** |
+| Median DC Error (ppm) | 58.755 | 47.206 | 35.946 | **9.210** |
+
+### 3. 221-Case Historical Paired Matrix (`paired_221`)
+| Metric | Patch 5.0 | Patch 6.0 | Patch 7.0 | **Patch 8.0** |
+|---|---:|---:|---:|---:|
+| Waveform Classification | 221 / 221 | 221 / 221 | 221 / 221 | **221 / 221 (100%)** |
+| Engineering Pass | 215 / 221 | 215 / 221 | 215 / 221 | **215 / 221** |
+| Competition Relative `< 1 ppm` | 14 / 221 | 18 / 221 | 21 / 221 | **25 / 221** |
+| Including DC Relative `< 1 ppm` | 7 / 221 | 11 / 221 | 14 / 221 | **15 / 221** |
+| Median Frequency Error (ppm) | 0.344 | 0.302 | 0.074 | **0.018** |
+| P90 Frequency Error (ppm) | 21.903 | 18.372 | 16.026 | **2.940** |
+| Max Frequency Error (ppm) | 237.345 | 285.633 | 135.434 | **106.950** |
+| Median Vpp Error (ppm) | 4,415.905 | 615.477 | 349.730 | **61.340** |
+| P90 Vpp Error (ppm) | 37,192.595 | 31,041.235 | 31,041.794 | **21,976.600** |
+| Median Square Duty Error (ppm) | 557.885 | 67.679 | 40.363 | **4.480** |
+| P90 Square Duty Error (ppm) | 4,671.282 | 3,049.165 | 3,453.142 | **558.100** |
+| Max Square Duty Error (ppm) | 46,177.571 | 82,130.440 | 82,130.794 | **6,705.600** |
+| Median DC Error (ppm) | 53.291 | 9.497 | 12.216 | **3.690** |
