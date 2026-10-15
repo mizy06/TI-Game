@@ -1,4 +1,5 @@
 """RO encoding, VXI-11 SCPI, original R path, ordering and failure recovery."""
+import hashlib
 import io
 import json
 import re
@@ -16,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools import host_waveform as host
 from tools.capture_store import CaptureStore
-from tools.ro_test import Generator, board_levels, encode, run
+from tools.ro_test import Generator, board_levels, encode, generate_ro, ro_matrix, run
 from tools.self_test import Case, matrix
 from tools.waveform_server import Engine, SerialService, main, measurement_output, parser
 from test_host_integration import response, sine_payload
@@ -206,12 +207,15 @@ class ReplaySerial(LiveSerial):
         assert self.instrument.output == "ON"
         dac = np.frombuffer(self.instrument.uploads[-1], dtype="<i2").astype(float)
         sample_rate = self.sample_rate or self.instrument.rate
-        indices = np.floor(np.arange(host.SAMPLES)*self.instrument.rate/sample_rate +
+        n_capture = 8192 if (self.sample_rate is None and len(dac) > 6000) else host.SAMPLES
+        indices = np.floor(np.arange(n_capture) * self.instrument.rate / sample_rate +
                            self.phase_samples).astype(int) % len(dac)
         dac = dac[indices]
         adc = np.rint((dac / 32767 + 1) * 4095 / 2).astype("<u2").tobytes()
-        self.reply = response(adc, fs=round(sample_rate*1000),
+        self.reply = response(adc, fs=round(sample_rate * 1000),
             vref=self.wire_vref, gain=self.wire_gain, checksum=self.checksum)
+        if len(adc) == host.MAX_PAYLOAD_BYTES:
+            self.reply = self.reply.replace(b"proto=2,bytes=8192,", b"proto=3,bytes=16384,", 1)
         return super().write(data)
 
 
@@ -235,11 +239,37 @@ class ROTests(unittest.TestCase):
             adc, dac, config = encode(case, vref, gain)
             self.assertEqual(adc, original)
             codes = np.frombuffer(dac, dtype="<i2").astype(float)
-            restored = np.rint((codes/32767+1)*4095/2).astype("<u2").tobytes()
+            restored = np.rint((codes / 32767 + 1) * 4095 / 2).astype("<u2").tobytes()
             self.assertEqual(restored[:host.PAYLOAD_BYTES], original)
             self.assertGreaterEqual(config["input_min_v"], 0)
-            self.assertLessEqual(config["input_max_v"], vref/gain)
-            self.assertAlmostEqual(config["loop_frequency_hz"]*len(codes), case.fs_hz)
+            self.assertLessEqual(config["input_max_v"], vref / gain)
+            self.assertAlmostEqual(config["loop_frequency_hz"] * len(codes), case.fs_hz)
+
+    def test_entire_finals_365_matrix_has_exact_adc_and_dac_roundtrip(self):
+        import numpy as np
+        vref, gain = board_levels()
+        cases = list(ro_matrix())
+        self.assertEqual(len(cases), 365)
+        self.assertEqual([c.group for c in cases[:48]], ["new48"] * 48)
+        self.assertEqual([c.group for c in cases[48:144]], ["fresh96"] * 96)
+        self.assertEqual([c.group for c in cases[144:]], ["paired221"] * 221)
+        fingerprints = (
+            json.loads((ROOT / "validation/fingerprints_new48.json").read_text()) +
+            json.loads((ROOT / "validation/fingerprints_fresh96.json").read_text()) +
+            json.loads((ROOT / "validation/fingerprints_221.json").read_text())
+        )
+        self.assertEqual(len(fingerprints), 365)
+        for case, expected_sha in zip(cases, fingerprints):
+            original, _, _ = generate_ro(case)
+            self.assertEqual(hashlib.sha256(original).hexdigest(), expected_sha)
+            adc, dac, config = encode(case, vref, gain)
+            self.assertEqual(adc, original)
+            codes = np.frombuffer(dac, dtype="<i2").astype(float)
+            restored = np.rint((codes / 32767 + 1) * 4095 / 2).astype("<u2").tobytes()
+            self.assertEqual(restored[:len(original)], original)
+            self.assertGreaterEqual(config["input_min_v"], 0)
+            self.assertLessEqual(config["input_max_v"], vref / gain)
+            self.assertAlmostEqual(config["loop_frequency_hz"] * len(codes), case.fs_hz)
 
     def test_source_mode_rejects_unsafe_volts_and_keeps_safe_truth(self):
         case = list(matrix())[1]
@@ -299,8 +329,8 @@ class ROTests(unittest.TestCase):
                 summary = json.loads((report / "summary.json").read_text())
                 self.assertTrue(summary["all_passed"])
                 self.assertEqual(summary["not_run"], [])
-                original = [asdict(c) for c in list(matrix())[:2]]
-                self.assertEqual(json.loads((report/"matrix.json").read_text())["cases"], original)
+                original = [asdict(c) for c in list(ro_matrix())[:2]]
+                self.assertEqual(json.loads((report / "matrix.json").read_text())["cases"], original)
                 entries = json.loads((report / "results.json").read_text())["results"]
                 for entry in entries:
                     captured = json.loads((store.path / entry["capture"] / "capture.json").read_text())

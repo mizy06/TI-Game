@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 
-from tools.acquisition_calibration import counts, sine_period
+from tools.acquisition_calibration import counts, sine_harmonic_vpp_counts, sine_period
 
 
 def reference(full_scale_v, level=.5, *, wave="dc", offset_v=None):
@@ -86,22 +86,25 @@ def fit_playback(observations, full_scale_v):
         if not math.isfinite(voltage) or not 0 < voltage < full_scale_v:
             raise ValueError("invalid calibrated ARB reference voltage")
         measured.append(voltage)
-    coefficients, _, rank, _ = np.linalg.lstsq(design, measured, rcond=None)
+    design_arr = np.asarray(design, dtype=float)
+    coefficients, _, rank, singular = np.linalg.lstsq(design_arr, measured, rcond=None)
     if rank != 3:
         raise ValueError("ARB calibration references do not separate amplitude and offset")
     amplitude_gain, offset_gain, center = map(float, coefficients)
     profile = GeneratorCalibration(amplitude_gain, offset_gain, center - offset_gain * origin,
                                    offset_origin_v=origin, offset_span_v=span)
-    residual = np.asarray(design) @ coefficients - measured
+    residual = design_arr @ coefficients - measured
     error = float(np.max(np.abs(residual)))
     limit = max(.005, .002 * full_scale_v)
     if error > limit:
         raise ValueError(f"ARB response at OFST={origin:.6g} V is nonlinear: "
                          f"maximum fit error {error * 1000:.3f} mV exceeds {limit * 1000:.3f} mV; "
                          "playback calibration rejected")
+    cond = float(singular[0] / singular[-1]) if len(singular) and singular[-1] > 0 else float("inf")
     return profile, {"dc_fit_max_error_v": error, "dc_fit_residuals_v": residual.tolist(),
                      "measured_dc_v": measured, "offset_origin_v": origin,
-                     "offset_valid_range_v": [origin - span, origin + span]}
+                     "offset_valid_range_v": [origin - span, origin + span],
+                     "design_condition_number": cond}
 
 
 def verify_playback(payload, meta, expected):
@@ -117,10 +120,16 @@ def verify_playback(payload, meta, expected):
         if float(np.std(raw)) > 15:
             raise ValueError("independent ARB DC check is unstable")
     else:
-        frequency = meta.sample_rate_millihz / 1000 / sine_period(payload)
+        period = sine_period(payload)
+        fs_hz = (meta.sample_rate_hz_exact if getattr(meta, "sample_rate_hz_exact", None) is not None
+                 else meta.sample_rate_millihz / 1000)
+        frequency = fs_hz / period
         error = abs(frequency / expected["frequency_hz"] - 1)
         span = float(np.percentile(raw, 99) - np.percentile(raw, 1)) * scale
+        exact_vpp = sine_harmonic_vpp_counts(raw, period) * scale
         if error > .0015 or not math.isclose(span, expected["vpp_v"], rel_tol=.04):
             raise ValueError("independent ARB frequency/amplitude check failed")
-        result.update(frequency_error_fraction=error, amplitude_v=span)
+        result.update(frequency_error_fraction=error, amplitude_v=span,
+                      harmonic_amplitude_v=exact_vpp,
+                      ac_amplitude_error_v=abs(exact_vpp - expected["vpp_v"]))
     return result

@@ -5,6 +5,7 @@ is used to fit a calibration, and saturated samples are never reconstructed.
 """
 from __future__ import annotations
 
+from contextlib import nullcontext
 import hashlib
 import json
 import math
@@ -14,6 +15,12 @@ from pathlib import Path
 
 from tools import host_waveform as host
 from tools.capture_store import atomic_json
+
+try:
+    from threadpoolctl import threadpool_limits
+except ModuleNotFoundError:
+    def threadpool_limits(*_args, **_kwargs):
+        return nullcontext()
 
 
 def signature(meta):
@@ -29,6 +36,20 @@ def counts(payload):
     if np.any(data > 4095):
         raise ValueError("calibration received invalid ADC codes")
     return data
+
+
+def sine_harmonic_fit_counts(data, period):
+    """Exact least-squares DC center and fundamental Vpp in ADC counts."""
+    import numpy as np
+    angles = 2.0 * math.pi * np.arange(len(data), dtype=float) / float(period)
+    basis = np.column_stack((np.ones(len(data)), np.sin(angles), np.cos(angles)))
+    coef = np.linalg.lstsq(basis, data, rcond=None)[0]
+    return float(coef[0]), float(2.0 * math.hypot(float(coef[1]), float(coef[2])))
+
+
+def sine_harmonic_vpp_counts(data, period):
+    """Exact least-squares fundamental peak-to-peak amplitude in ADC counts."""
+    return sine_harmonic_fit_counts(data, period)[1]
 
 
 def sine_period(payload):
@@ -54,12 +75,11 @@ def sine_period(payload):
     if period <= 0 or float(np.max(np.abs(intervals / period - 1))) > .03:
         raise ValueError("calibration sine periods are unstable; check the input signal")
     from tools.precision_measurement import harmonic_frequency
-    from threadpoolctl import threadpool_limits
     with threadpool_limits(limits=1, user_api="blas"):
-        frequency, diagnostic = harmonic_frequency(data, 20000., 20000./period, highest=3)
+        frequency, diagnostic = harmonic_frequency(data, 20000., 20000. / period, highest=3)
     if not diagnostic["accepted"]:
         raise ValueError("calibration sine fit failed")
-    return 20000./frequency
+    return 20000. / frequency
 
 
 @dataclass(frozen=True)
@@ -82,7 +102,7 @@ class AcquisitionCalibration:
         if self.sample_rate_hz_exact is not None and (
                 type(self.sample_rate_hz_exact) not in (int, float) or
                 not math.isfinite(self.sample_rate_hz_exact) or
-                abs(self.sample_rate_hz_exact-self.sample_rate_millihz/1000) > .000501):
+                abs(self.sample_rate_hz_exact - self.sample_rate_millihz / 1000) > .000501):
             raise ValueError("exact sampling rate disagrees with compatibility metadata")
 
     def apply_exact(self, payload, meta):
@@ -91,7 +111,7 @@ class AcquisitionCalibration:
             raise ValueError("board metadata changed since calibration; run RO calibration again")
         counts(payload)  # Validate codes before tagging the physical conversion.
         return payload, replace(meta, sample_rate_millihz=self.sample_rate_millihz,
-            sample_rate_hz_exact=self.sample_rate_hz_exact or self.sample_rate_millihz/1000,
+            sample_rate_hz_exact=self.sample_rate_hz_exact or self.sample_rate_millihz / 1000,
             adc_scale=self.adc_scale, adc_offset_counts=self.adc_offset_counts,
             flags=meta.flags | 6)
 
@@ -213,11 +233,31 @@ def fit_calibration(observations):
     slope, offset = np.polyfit(volts, means, 1)
     if not np.isfinite(slope) or slope <= 0 or np.ptp(volts) <= 0:
         raise ValueError("ADC did not track the reference DC levels; check the connection")
+    quad_curvature = float(np.polyfit(volts, means, 2)[0]) if len(volts) >= 3 else 0.0
     nominal_codes_per_volt = nominal["adc_full_scale"] * nominal["gain_ppm"] / nominal["reference_microvolts"]
-    rates = [sine_period(x["payload"]) * x["reference"]["frequency_hz"] for x in tones]
-    rate = float(np.mean(rates))
+    periods = [sine_period(x["payload"]) for x in tones]
+    rates = [p * x["reference"]["frequency_hz"] for p, x in zip(periods, tones)]
+    # Fisher information for stationary sinusoid frequency estimation scales with f^2.
+    fisher_weights = [float(x["reference"]["frequency_hz"]) ** 2 for x in tones]
+    rate = float(np.average(rates, weights=fisher_weights))
+    unweighted_rate = float(np.mean(rates))
     if max(abs(r / rate - 1) for r in rates) > .0015:
         raise ValueError("reference tones disagree on the ADC timebase; check the input signal")
+    tone_ac_gains = []
+    tone_centers = []
+    tone_offsets_v = []
+    for p, x in zip(periods, tones):
+        raw_tone = counts(x["payload"])
+        c0, vpp_counts = sine_harmonic_fit_counts(raw_tone, p)
+        tone_centers.append(c0)
+        tone_offsets_v.append(float(x["reference"]["offset_v"]))
+        exact_vpp = vpp_counts / float(slope)
+        tone_ac_gains.append(float(exact_vpp / x["reference"]["amplitude_v"])
+                             if x["reference"]["amplitude_v"] > 0 else 1.0)
+    # When DDS SINE and DDS DC share the same physical offset DAC within 0.5 LSB,
+    # include the phase-unbiased harmonic-projected sine centers in the midpoint fit.
+    if all(abs(c0 - (slope * v_off + offset)) <= 0.5 for c0, v_off in zip(tone_centers, tone_offsets_v)):
+        slope, offset = np.polyfit(np.r_[volts, tone_offsets_v], np.r_[means, tone_centers], 1)
     calibration = AcquisitionCalibration(round(rate * 1000), float(slope / nominal_codes_per_volt),
                                          float(offset), nominal, sample_rate_hz_exact=rate)
     full_scale_v = nominal["reference_microvolts"] / nominal["gain_ppm"]
@@ -235,19 +275,28 @@ def fit_calibration(observations):
                 raise ValueError("independent DC calibration check failed")
             verification.append({"reference": ref, "dc_error_v": error})
         else:
-            measured_rate = sine_period(observation["payload"]) * ref["frequency_hz"]
+            check_period = sine_period(observation["payload"])
+            measured_rate = check_period * ref["frequency_hz"]
             error = abs(measured_rate / rate - 1)
             if error > .0015:
                 raise ValueError("independent frequency calibration check failed")
             # Independently check the AC path too: DC-only calibration must not
             # conceal a generator amplitude or analogue bandwidth problem.
             span = float(np.percentile(raw, 99) - np.percentile(raw, 1)) / slope
+            exact_vpp = sine_harmonic_vpp_counts(raw, check_period) / float(slope)
             if not math.isclose(span, ref["amplitude_v"], rel_tol=.04):
                 raise ValueError("independent sine amplitude calibration check failed")
             verification.append({"reference": ref, "sample_rate_error_fraction": error,
-                                 "amplitude_v": span})
-    return calibration, {"dc_fit_max_error_v": residual, "reference_sample_rates_hz": rates,
-                         "reference_rate_spread_ppm": float(np.ptp(rates)/rate*1e6),
+                                 "amplitude_v": span, "harmonic_amplitude_v": exact_vpp,
+                                 "ac_gain_ratio": float(exact_vpp / ref["amplitude_v"])
+                                                  if ref["amplitude_v"] > 0 else 1.0})
+    return calibration, {"dc_fit_max_error_v": residual,
+                         "dc_quadratic_curvature_counts_per_v2": quad_curvature,
+                         "reference_sample_rates_hz": rates,
+                         "unweighted_sample_rate_hz": unweighted_rate,
+                         "timebase_weighting": "fisher_f2",
+                         "reference_rate_spread_ppm": float(np.ptp(rates) / rate * 1e6),
+                         "reference_tone_ac_gains": tone_ac_gains,
                          "absolute_accuracy_verified": False,
                          "independent_checks": verification,
                          "note": "Dedicated generator references only; matrix results are not fitted. "
