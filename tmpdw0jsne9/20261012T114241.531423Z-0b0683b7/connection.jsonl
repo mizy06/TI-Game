@@ -1,3 +1,0 @@
-{"utc": "2026-10-12T11:42:41.531902+00:00", "event": "opened", "request": 0, "received_bytes": 0, "port": null}
-{"utc": "2026-10-12T11:42:41.762381+00:00", "event": "request_started", "request": 1, "received_bytes": 0, "timeout_s": 10.0, "raw_reference": false}
-{"utc": "2026-10-12T11:42:41.763168+00:00", "event": "command_sent", "request": 1, "received_bytes": 0, "attempt": 1}

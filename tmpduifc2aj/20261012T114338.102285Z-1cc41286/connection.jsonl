@@ -1,7 +1,0 @@
-{"utc": "2026-10-12T11:43:38.102764+00:00", "event": "opened", "request": 0, "received_bytes": 0, "port": null}
-{"utc": "2026-10-12T11:43:38.103201+00:00", "event": "request_started", "request": 1, "received_bytes": 0, "timeout_s": 2, "raw_reference": false}
-{"utc": "2026-10-12T11:43:38.103294+00:00", "event": "command_sent", "request": 1, "received_bytes": 0, "attempt": 1}
-{"utc": "2026-10-12T11:43:38.103442+00:00", "event": "receiver_error", "request": 1, "received_bytes": 24, "error": "RuntimeError: board capture failed: ERR_ADC_DMA"}
-{"utc": "2026-10-12T11:43:38.103680+00:00", "event": "request_failed", "request": 1, "received_bytes": 31, "error": "RuntimeError: board capture failed: ERR_ADC_DMA"}
-{"utc": "2026-10-12T11:43:38.105378+00:00", "event": "request_started", "request": 2, "received_bytes": 31, "timeout_s": 3, "raw_reference": false}
-{"utc": "2026-10-12T11:43:38.105461+00:00", "event": "command_sent", "request": 2, "received_bytes": 31, "attempt": 1}

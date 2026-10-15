@@ -87,6 +87,10 @@ def read_line(port) -> str:
     return line.decode("ascii").rstrip("\r\n")
 
 
+class FrameReceiveError(TimeoutError):
+    """An incomplete UART frame; reacquisition is safe after resynchronizing."""
+
+
 def read_exact(port, count: int, on_chunk=None) -> bytes:
     chunks = bytearray()
     while len(chunks) < count:
@@ -144,15 +148,39 @@ def receive_frame(port, *, first_line=None, store=None):
         if line.startswith("ERR_"):
             raise RuntimeError(f"board capture failed: {line}")
         if line.startswith("DUMP,"):
-            record = store.begin("uart", {"raw_header": line}) if store else None
+            meta = None
+            received = bytearray()
+
+            def collect(chunk):
+                received.extend(chunk)
+                # ASCII trailers cannot occur in LE16 12-bit ADC samples.
+                # A trailer inside the declared payload proves bytes were lost;
+                # waiting for the remaining count would only waste the deadline.
+                trailer = b"DUMP_END\r\nREADY\r\n"
+                if received.endswith(trailer):
+                    raise FrameReceiveError(
+                        f"incomplete ADC frame: {len(received) - len(trailer)}/{meta.payload_bytes} "
+                        "payload bytes before DUMP_END / READY")
+
+            def archive():
+                if store is None:
+                    return None
+                saved = store.begin("uart", {"raw_header": line})
+                if meta is not None:
+                    saved.set_metadata(meta)
+                if received:
+                    saved.append(received)
+                return saved
+
             try:
                 meta = parse_header(line)
-                if record:
-                    record.set_metadata(meta)
-                payload = read_exact(port, meta.payload_bytes,
-                                     record.append if record else None)
+                payload = read_exact(port, meta.payload_bytes, collect)
                 # Consume the trailer even on a checksum failure to allow resync.
                 end, ready = read_line(port), read_line(port)
+                # Keep JSON creation, metadata fsyncs and per-frame file opens
+                # off the live receive path. RecordingSerial already archives
+                # every wire read, including partial/error responses.
+                record = archive()
                 if fnv1a(payload) != meta.checksum:
                     raise ValueError("DUMP FNV-1a integrity check failed")
                 if end != "DUMP_END" or ready != "READY":
@@ -162,10 +190,14 @@ def receive_frame(port, *, first_line=None, store=None):
                     record.complete(payload)
                 return payload, meta, record
             except Exception as error:
+                if record is None:
+                    record = archive()
                 if record:
                     if record.info["payload_bytes"] in (PAYLOAD_BYTES, MAX_PAYLOAD_BYTES):
                         record.info["calculated_fnv1a"] = fnv1a(record.payload.read_bytes())
                     record.fail(error)
+                if isinstance(error, TimeoutError) and not isinstance(error, FrameReceiveError):
+                    raise FrameReceiveError(str(error)) from error
                 raise
         if line in ("CAPTURING", "READY") or line.startswith(("TI-CUP ", "ADC=", "READY:")) or not line:
             continue

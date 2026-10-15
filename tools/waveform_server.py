@@ -115,6 +115,7 @@ class Engine:
 class SerialService:
     """Read unsolicited PB13 frames too, including while RT is running."""
     RESPONSE_GRACE_S = 3.
+    RX_BUFFER_BYTES = 64 * 1024
 
     def __init__(self, port, store, engine, stderr=None, *, parameters_path=None):
         self.store, self.engine = store, engine
@@ -136,6 +137,7 @@ class SerialService:
         self.pending_stage = None
         self.pending_raw = False
         self.drop_until_ready = False
+        self.resynchronizing = False
         self.parameters_path = Path(parameters_path if parameters_path is not None else
                                     store.path.parent / "algorithm_parameters.json").resolve()
         self.calibration_profile = None
@@ -146,6 +148,7 @@ class SerialService:
             # Raw RO reference captures can repair a broken parameters file.
             # Ordinary R must report the error instead of silently going nominal.
             print(f"R calibration: {error}; run RO to replace the parameters", file=self.stderr, flush=True)
+        self._configure_buffers()
         self._connection_event("opened", port=getattr(port, "port", None))
         self._start_reader()
 
@@ -162,6 +165,18 @@ class SerialService:
         self.receiver_error = None
         self.thread = threading.Thread(target=self._reader, name="adc-uart-receiver", daemon=True)
         self.thread.start()
+
+    def _configure_buffers(self):
+        # Windows' default driver queue can be smaller than one 16 KiB ADC
+        # frame. Allow headroom for USB bursts and occasional filesystem stalls.
+        configure = getattr(self.raw_port, "set_buffer_size", None)
+        if callable(configure):
+            try:
+                configure(rx_size=self.RX_BUFFER_BYTES)
+                self._connection_event("rx_buffer_configured", bytes=self.RX_BUFFER_BYTES)
+            except (OSError, NotImplementedError) as error:
+                self._connection_event("rx_buffer_unavailable", error=str(error))
+                print(f"UART: receive buffer sizing unavailable: {error}", file=self.stderr, flush=True)
 
     def _reconnect(self, deadline):
         """Stop the sole reader, archive queued RX bytes, then reopen this port."""
@@ -197,10 +212,11 @@ class SerialService:
             if time.perf_counter() >= deadline:
                 raise TimeoutError("serial recovery exhausted the R deadline")
             self.raw_port.open()
+            self._configure_buffers()
             self._start_reader()
             self.reconnect_needed = False
             self._connection_event("reconnect_complete", queued_bytes_archived=drained)
-            print("UART: reopened the connection after no board response", file=self.stderr, flush=True)
+            print("UART: reopened the connection for receive recovery", file=self.stderr, flush=True)
         except Exception as error:
             self._connection_event("reconnect_failed", error=f"{type(error).__name__}: {error}")
             raise
@@ -247,6 +263,15 @@ class SerialService:
                 raw = self.port.read_until(b"\n", 256)
                 if not raw:
                     continue
+                if self.resynchronizing:
+                    # The old frame can leave binary bytes or READY in flight.
+                    # Only the next acquisition's CAPTURING boundary permits
+                    # interpreting another frame as this request's response.
+                    if raw.rstrip(b"\r\n") == b"CAPTURING":
+                        self.resynchronizing = self.drop_until_ready = False
+                        self._stage("board ADC/DMA capture")
+                        self._connection_event("frame_resynchronized")
+                    continue
                 if not raw.endswith(b"\n"):
                     raise TimeoutError("serial line incomplete; received bytes saved in uart_rx.bin")
                 line = raw.decode("ascii").rstrip("\r\n")
@@ -292,9 +317,17 @@ class SerialService:
             except Exception as error:
                 if self.stop.is_set() or self.receiver_stop.is_set():
                     break
+                if isinstance(error, host.FrameReceiveError):
+                    # Stop parsing immediately: a late binary tail must not be
+                    # treated as ASCII or satisfy a later request.
+                    self.resynchronizing = True
+                    self.receiver_error = str(error)
+                    self.reconnect_needed = True
                 self._connection_event("receiver_error", error=f"{type(error).__name__}: {error}")
                 if not self._signal(error):
                     print(f"UART: {error}", file=self.stderr, flush=True)
+                if isinstance(error, host.FrameReceiveError):
+                    break
                 # A closed/device-disconnected port cannot be recovered by parsing.
                 if ((hasattr(self.raw_port, "is_open") and not self.raw_port.is_open) or
                         (isinstance(error, OSError) and not isinstance(error, TimeoutError))):
@@ -322,37 +355,54 @@ class SerialService:
                 self.pending_stage = "waiting for board response"
             try:
                 self._connection_event("request_started", timeout_s=timeout, raw_reference=raw)
-                if self.port.write(b"R") != 1:
-                    raise OSError("serial command write incomplete")
-                self._connection_event("command_sent", attempt=1)
-                # Serial.write already submits the byte and has write_timeout.
-                # A driver-level flush/drain can block without that timeout.
-                event.wait(max(0., min(self.RESPONSE_GRACE_S, deadline - time.perf_counter())))
-                with self.pending_lock:
-                    silent = not event.is_set() and self.pending_stage == "waiting for board response"
-                if (silent and deadline - time.perf_counter() > .25 and
-                        callable(getattr(self.raw_port, "open", None))):
-                    self._connection_event("no_response", stage="waiting for board response")
-                    self._reconnect(deadline)
-                    # A late complete frame received while stopping the old
-                    # reader already satisfies this request; do not send twice.
-                    if not event.is_set():
-                        if self.port.write(b"R") != 1:
-                            raise OSError("serial recovery command write incomplete")
-                        self._connection_event("command_sent", attempt=2)
-                if not event.wait(max(0., deadline - time.perf_counter())):
+                attempt = 1
+                while True:
+                    if time.perf_counter() >= deadline:
+                        raise TimeoutError("serial recovery exhausted the R deadline")
+                    if self.port.write(b"R") != 1:
+                        raise OSError("serial command write incomplete")
+                    self._connection_event("command_sent", attempt=attempt)
+                    # A driver-level flush/drain can block without write_timeout.
+                    event.wait(max(0., min(self.RESPONSE_GRACE_S, deadline - time.perf_counter())))
                     with self.pending_lock:
-                        stage = self.pending_stage
-                        if raw:
-                            self.drop_until_ready = True
-                    if stage == "waiting for board response":
-                        self.reconnect_needed = callable(getattr(self.raw_port, "open", None))
-                    self._connection_event("request_timeout", stage=stage,
-                                           receiver_alive=self.thread.is_alive())
-                    raise TimeoutError(f"R exceeded {timeout:g} s at {stage}; "
-                                       "received bytes remain archived; this request has ended")
-                if self.pending_error:
-                    raise self.pending_error
+                        silent = not event.is_set() and self.pending_stage == "waiting for board response"
+                    if (silent and attempt == 1 and deadline - time.perf_counter() > .25 and
+                            callable(getattr(self.raw_port, "open", None))):
+                        self._connection_event("no_response", stage="waiting for board response")
+                        self._reconnect(deadline)
+                        # A late complete frame can already satisfy this request.
+                        if not event.is_set():
+                            attempt += 1
+                            continue
+                    if not event.wait(max(0., deadline - time.perf_counter())):
+                        with self.pending_lock:
+                            stage = self.pending_stage
+                            self.drop_until_ready = stage != "waiting for board response"
+                        if stage in ("waiting for board response", "receiving ADC frame"):
+                            self.reconnect_needed = callable(getattr(self.raw_port, "open", None))
+                            if stage == "receiving ADC frame":
+                                self.resynchronizing = True
+                        self._connection_event("request_timeout", stage=stage,
+                                               receiver_alive=self.thread.is_alive())
+                        raise TimeoutError(f"R exceeded {timeout:g} s at {stage}; "
+                                           "received bytes remain archived; this request has ended")
+                    error = self.pending_error
+                    if (isinstance(error, host.FrameReceiveError) and attempt == 1 and
+                            deadline - time.perf_counter() > .25 and
+                            callable(getattr(self.raw_port, "open", None))):
+                        self._connection_event("frame_retry", error=str(error))
+                        print(f"UART: {error}; retrying this acquisition once within the R deadline",
+                              file=self.stderr, flush=True)
+                        self._reconnect(deadline)
+                        with self.pending_lock:
+                            event.clear()
+                            self.pending_error = self.pending_result = None
+                            self.pending_stage = "waiting for board response"
+                        attempt += 1
+                        continue
+                    if error:
+                        raise error
+                    break
                 self._connection_event("request_complete", elapsed_s=time.perf_counter() - started)
                 if return_result:
                     return self.pending_result
@@ -397,6 +447,13 @@ def parser():
     p.add_argument("--list-matrix", action="store_true", help="save selected matrix JSON without running")
     p.add_argument("--ro-host", default="10.11.13.220", help="RO: Siglent SDG6022X-E address")
     p.add_argument("--ro-port", type=int, default=111, help="RO: VXI-11 portmapper port (111, not the 5025 SCPI socket)")
+    p.add_argument("--ro-transport", choices=("vxi11", "visa"), default="vxi11",
+                   help="RO: generator transport; visa uses USBTMC")
+    p.add_argument("--ro-resource",
+                   default="USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR",
+                   help="RO: VISA USBTMC resource (used with --ro-transport visa)")
+    p.add_argument("--ro-visa-backend", default=None,
+                   help="RO: optional VISA backend, e.g. @py or @ivi")
     p.add_argument("--ro-channel", type=int, choices=(1, 2), default=1, help="RO: connected output channel")
     p.add_argument("--ro-timeout", type=float, default=10., help="RO: SCPI/R timeout in seconds")
     p.add_argument("--ro-settle", type=float, default=.15, help="RO: output settling time in seconds")
@@ -447,12 +504,16 @@ def run_server(args, store, error_output=None):
         if args.list_matrix:
             from dataclasses import asdict
             from tools.capture_store import atomic_json
-            from tools.self_test import matrix
-            cases = [c for c in matrix(args.seed, args.random_count)
-                     if (args.suite == "all" or c.suite == args.suite) and
-                     (not args.case_id or c.id in args.case_id)]
-            if args.max_cases is not None:
-                cases = cases[:args.max_cases]
+            if args.command == "RO":
+                from tools.ro_test import select_ro_cases
+                cases = select_ro_cases(args)
+            else:
+                from tools.self_test import matrix
+                cases = [c for c in matrix(args.seed, args.random_count)
+                         if (args.suite == "all" or c.suite == args.suite) and
+                         (not args.case_id or c.id in args.case_id)]
+                if args.max_cases is not None:
+                    cases = cases[:args.max_cases]
             atomic_json(store.path / "matrix.json", {"seed": args.seed, "cases": [asdict(c) for c in cases]})
             print(f"Matrix: {len(cases)} cases; {store.path/'matrix.json'}", file=sys.stderr)
             return 0

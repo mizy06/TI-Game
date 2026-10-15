@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools import host_waveform as host
 from tools.capture_store import CaptureStore
-from tools.ro_test import Generator, board_levels, encode, generate_ro, ro_matrix, run
+from tools.ro_test import Generator, board_levels, encode, generate_ro, ro_matrix, run, select_ro_cases
 from tools.self_test import Case, matrix
 from tools.waveform_server import Engine, SerialService, main, measurement_output, parser
 from test_host_integration import response, sine_payload
@@ -40,6 +40,7 @@ class ScpiServer:
         self.rate, self.amp, self.offset = 20000., 3.3, 1.65
         self.wave, self.frequency, self.rate_mode = "ARB", 5., "TARB"
         self.name, self.output = f"RO_C{channel}", "OFF"
+        self.combine = "ON"
         self.error = None
         self.stop = threading.Event()
         self.thread = threading.Thread(target=self.serve, daemon=True)
@@ -160,6 +161,10 @@ class ScpiServer:
         if command == f"{c}:OUTP ON" or command == f"{c}:OUTP OFF":
             self.output = command.rsplit(" ", 1)[1]
             self.events.append(self.output)
+        if command in (f"{c}:CMBN ON", f"{c}:CMBN OFF"):
+            self.combine = command.rsplit(" ", 1)[1]
+        if command == f"{c}:CMBN?":
+            return f"{c}:CMBN {self.combine}"
         if command == f"{c}:BSWV?":
             amp = self.amp * 2 if self.mismatch else self.amp
             return f"{c}:BSWV WVTP,{self.wave},FRQ,{self.frequency}HZ,AMP,{amp}V,OFST,{self.offset}V"
@@ -245,21 +250,26 @@ class ROTests(unittest.TestCase):
             self.assertLessEqual(config["input_max_v"], vref / gain)
             self.assertAlmostEqual(config["loop_frequency_hz"] * len(codes), case.fs_hz)
 
-    def test_entire_finals_365_matrix_has_exact_adc_and_dac_roundtrip(self):
+    def test_finals_below_600_matrix_has_exact_adc_and_dac_roundtrip(self):
         import numpy as np
         vref, gain = board_levels()
         cases = list(ro_matrix())
-        self.assertEqual(len(cases), 365)
-        self.assertEqual([c.group for c in cases[:48]], ["new48"] * 48)
-        self.assertEqual([c.group for c in cases[48:144]], ["fresh96"] * 96)
-        self.assertEqual([c.group for c in cases[144:]], ["paired221"] * 221)
+        self.assertEqual(len(cases), 249)
+        self.assertTrue(all(c.frequency_hz < 600 for c in cases))
+        self.assertEqual([c.group for c in cases[:18]], ["new48"] * 18)
+        self.assertEqual([c.group for c in cases[18:72]], ["fresh96"] * 54)
+        self.assertEqual([c.group for c in cases[72:]], ["paired221"] * 177)
         fingerprints = (
             json.loads((ROOT / "validation/fingerprints_new48.json").read_text()) +
             json.loads((ROOT / "validation/fingerprints_fresh96.json").read_text()) +
             json.loads((ROOT / "validation/fingerprints_221.json").read_text())
         )
         self.assertEqual(len(fingerprints), 365)
-        for case, expected_sha in zip(cases, fingerprints):
+        by_id = {f"{group}-{i+1:04d}":sha
+                 for group, start, size in (("new48",0,48),("fresh96",48,96),("paired221",144,221))
+                 for i, sha in enumerate(fingerprints[start:start+size])}
+        for case in cases:
+            expected_sha = by_id[case.id]
             original, _, _ = generate_ro(case)
             self.assertEqual(hashlib.sha256(original).hexdigest(), expected_sha)
             adc, dac, config = encode(case, vref, gain)
@@ -270,6 +280,30 @@ class ROTests(unittest.TestCase):
             self.assertGreaterEqual(config["input_min_v"], 0)
             self.assertLessEqual(config["input_max_v"], vref / gain)
             self.assertAlmostEqual(config["loop_frequency_hz"] * len(codes), case.fs_hz)
+
+    def test_frequency_limit_excludes_boundary_and_applies_before_selection(self):
+        from types import SimpleNamespace
+        fixtures=tuple(Case(id=f'boundary-{i}',frequency_hz=f) for i,f in
+                       enumerate((599.999,600.,600.001)))
+        with patch('tools.ro_test._cached_finals_bundle',return_value=(fixtures,{})):
+            self.assertEqual([c.id for c in ro_matrix()],['boundary-0'])
+            with self.assertRaisesRegex(ValueError,'unknown case ID'):
+                select_ro_cases(SimpleNamespace(case_id=['boundary-1']))
+        for group,expected in (('new48',18),('fresh96',54),('paired221',177)):
+            selected=select_ro_cases(SimpleNamespace(case_id=[group]))
+            self.assertEqual(len(selected),expected)
+            self.assertTrue(all(c.frequency_hz<600 for c in selected))
+        self.assertEqual(len(select_ro_cases(SimpleNamespace(max_cases=5))),5)
+
+    def test_list_matrix_exports_the_same_filtered_ro_selection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with patch('tools.ro_test.Generator',side_effect=AssertionError('offline listing opened generator')):
+                code=main(['RO','--list-matrix','--data-dir',directory,'--case-id','new48'])
+            self.assertEqual(code,0)
+            report=next(Path(directory).glob('*/matrix.json'))
+            cases=json.loads(report.read_text())['cases']
+            self.assertEqual(len(cases),18)
+            self.assertTrue(all(c['frequency_hz']<600 and c['group']=='new48' for c in cases))
 
     def test_source_mode_rejects_unsafe_volts_and_keeps_safe_truth(self):
         case = list(matrix())[1]
@@ -363,6 +397,61 @@ class ROTests(unittest.TestCase):
             self.assertFalse(summary["complete"])
             self.assertEqual(len(summary["not_run"]), 2)
             self.assertEqual(instrument.output, "OFF")
+
+    def test_truncated_uart_frame_retries_current_case_and_completes_matrix(self):
+        instrument = ScpiServer()
+        status, output = io.StringIO(), io.StringIO()
+
+        class InterruptedReplay(ReplaySerial):
+            writes = 0
+            open_calls = 0
+
+            def inject(self, data):
+                if self.writes == 1:
+                    start = data.index(b"\n", data.index(b"DUMP,")) + 1
+                    data = data[:start + 4000] + data[start + 6001:]
+                super().inject(data)
+
+            def write(self, data):
+                self.writes += 1
+                return super().write(data)
+
+            def open(self):
+                self.open_calls += 1
+                self.is_open = True
+
+            @property
+            def in_waiting(self):
+                return len(self.buffer)
+
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                store = CaptureStore(directory)
+                port = InterruptedReplay(instrument, status)
+                service = SerialService(port, store, Engine(self.api, output), stderr=status)
+                try:
+                    code = run(service, store, self.options(instrument, "--max-cases", "2"), status)
+                finally:
+                    service.close()
+                self.assertEqual(code, 0, status.getvalue())
+                self.assertEqual(bytes(port.written), b"RRR")
+                self.assertEqual(port.open_calls, 1)
+                self.assertEqual(len(output.getvalue().splitlines()), 2)
+                report = next(store.path.glob("ro-*"))
+                summary = json.loads((report / "summary.json").read_text())
+                self.assertTrue(summary["complete"])
+                self.assertEqual(summary["counts"], {"completed": 2, "passed": 2})
+                entries = json.loads((report / "results.json").read_text())["results"]
+                self.assertEqual([row["case_id"] for row in entries], [c.id for c in list(ro_matrix())[:2]])
+                records = sorted(store.path.glob("uart/*/capture.json"))
+                self.assertEqual(len(records), 3)
+                self.assertEqual(json.loads(records[0].read_text())["validation"], "invalid")
+                self.assertEqual(entries[0]["capture"], records[1].parent.relative_to(store.path).as_posix())
+                self.assertEqual(entries[1]["capture"], records[2].parent.relative_to(store.path).as_posix())
+        finally:
+            instrument.close()
+        self.assertEqual(instrument.events,
+            ["OFF", "OFF", "ON", "R", "R", "OFF", "ON", "R", "OFF"])
 
     def test_bad_uart_checksum_stops_matrix_and_preserves_received_frame(self):
         instrument = ScpiServer()

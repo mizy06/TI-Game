@@ -10,6 +10,7 @@ import threading
 import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -125,6 +126,28 @@ class StalledSerial(LiveSerial):
         raise AssertionError("Recovery must not discard the UART RX buffer")
 
 
+class TruncatedSerial(StalledSerial):
+    """Lose ADC bytes while still delivering the board's real end marker."""
+    def __init__(self, reply, *, failures=1, late_tail=b""):
+        super().__init__(reply)
+        self.complete_reply, self.failures = reply, failures
+        start = reply.index(b"\n", reply.index(b"DUMP,")) + 1
+        self.broken_reply = reply[:start + 4000] + reply[start + 6001:]
+        self.late_tail = late_tail
+        self.buffer_sizes = []
+
+    def set_buffer_size(self, *, rx_size):
+        self.buffer_sizes.append(rx_size)
+
+    def write(self, data):
+        retry = self.captures > 0
+        self.reply = self.broken_reply if self.captures < self.failures else self.complete_reply
+        # Simulate an old binary fragment arriving after open() drained RX.
+        if retry:
+            self.inject(self.late_tail)
+        return super().write(data)
+
+
 class ServerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -180,6 +203,27 @@ class ServerTests(unittest.TestCase):
                 self.assertEqual(saved, payload if error is ValueError else payload[:101])
                 self.assertEqual((store.path / "uart_rx.bin").read_bytes(), wire)
                 self.assertNotIn("algorithm", info)
+
+    def test_capture_files_are_created_after_the_live_frame_has_been_received(self):
+        payload = sine_payload()
+        wire = response(payload)
+        serial = PartialSerial(wire)
+        with tempfile.TemporaryDirectory() as directory:
+            store = CaptureStore(directory)
+            begin = store.begin
+
+            def after_receive(*args, **kwargs):
+                self.assertEqual(serial.stream.tell(), len(wire))
+                return begin(*args, **kwargs)
+
+            store.begin = after_receive
+            port = RecordingSerial(serial, store.path)
+            try:
+                captured, _, record = host.receive_frame(port, store=store)
+                self.assertEqual(captured, payload)
+                self.assertEqual(record.info["validation"], "valid")
+            finally:
+                port.close()
 
     def test_checksum_error_has_no_stdout_and_next_r_recovers(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -280,6 +324,105 @@ class ServerTests(unittest.TestCase):
                 self.assertEqual(port.open_calls, 1)
             finally:
                 service.close()
+
+    def test_truncated_v3_frame_retries_once_and_archives_both_attempts(self):
+        # A v3 frame is one contiguous acquisition. Concatenating two v2
+        # captures adds an artificial phase jump and tests a different signal.
+        payload = struct.pack('<8192H', *[int(2048+1100*math.sin(2*math.pi*200*i/20000))
+                                         for i in range(8192)])
+        wire = response(payload).replace(b"proto=2,bytes=8192,", b"proto=3,bytes=16384,")
+        for raw in (False, True):
+            with self.subTest(raw=raw), tempfile.TemporaryDirectory() as directory:
+                store, output, errors = CaptureStore(directory), io.StringIO(), io.StringIO()
+                port = TruncatedSerial(wire, late_tail=b"\xff\x07\x80\x01\r\nREADY\r\n")
+                service = SerialService(port, store, Engine(self.api, output), stderr=errors)
+                service.RESPONSE_GRACE_S = .1
+                try:
+                    # Exercise the complete 8192-point solver with the public
+                    # R deadline; the separate deadline tests use fake clocks.
+                    result = service.measure(timeout=15, return_result=True, raw=raw)
+                    record = result[-1]
+                    self.assertEqual(record.info["metadata"]["sequence"], 2)
+                    self.assertEqual(record.payload.read_bytes(), payload)
+                    self.assertEqual(bytes(port.written), b"RR")
+                    self.assertEqual(port.open_calls, 1)
+                    self.assertEqual(port.buffer_sizes, [64 * 1024, 64 * 1024])
+                    self.assertEqual(len(output.getvalue().splitlines()), 0 if raw else 1)
+                finally:
+                    service.close()
+                records = sorted(store.path.glob("uart/*/capture.json"))
+                self.assertEqual(len(records), 2)
+                failed = json.loads(records[0].read_text())
+                self.assertEqual(failed["validation"], "invalid")
+                self.assertEqual(failed["payload_bytes"], 14400)
+                self.assertNotIn("algorithm", failed)
+                self.assertIn("14383/16384", failed["error"])
+                self.assertEqual((store.path / "uart_rx.bin").read_bytes(),
+                    port.broken_reply.replace(b"seq=37,", b"seq=1,") + port.late_tail +
+                    wire.replace(b"seq=37,", b"seq=2,"))
+                events = [json.loads(s) for s in (store.path / "connection.jsonl").read_text().splitlines()]
+                self.assertEqual(sum(e["event"] == "frame_retry" for e in events), 1)
+                self.assertEqual(sum(e["event"] == "frame_resynchronized" for e in events), 1)
+
+    def test_repeated_truncated_frames_stop_after_one_retry_and_next_r_recovers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, output = CaptureStore(directory), io.StringIO()
+            port = TruncatedSerial(response(sine_payload()), failures=2)
+            service = SerialService(port, store, Engine(self.api, output), stderr=io.StringIO())
+            try:
+                started = time.monotonic()
+                with self.assertRaisesRegex(host.FrameReceiveError, "incomplete ADC frame"):
+                    service.measure(timeout=3)
+                self.assertLess(time.monotonic() - started, 3.)
+                self.assertEqual(bytes(port.written), b"RR")
+                self.assertEqual(output.getvalue(), "")
+                service.measure(timeout=3)
+                self.assertEqual(bytes(port.written), b"RRR")
+                self.assertEqual(len(output.getvalue().splitlines()), 1)
+            finally:
+                service.close()
+            records = [json.loads(p.read_text()) for p in sorted(store.path.glob("uart/*/capture.json"))]
+            self.assertEqual([r["validation"] for r in records], ["invalid", "invalid", "valid"])
+
+    def test_frame_retry_does_not_reset_total_request_deadline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, output = CaptureStore(directory), io.StringIO()
+            port = TruncatedSerial(response(sine_payload()))
+            service = SerialService(port, store, Engine(self.api, output), stderr=io.StringIO())
+            try:
+                reopen = port.open
+                clock = [0.]
+
+                def slow_reopen():
+                    reopen()
+                    clock[0] = .6  # The reopen uses up the original .5 s budget.
+
+                port.open = slow_reopen
+                started = time.monotonic()
+                with patch("tools.waveform_server.time.perf_counter", side_effect=lambda: clock[0]):
+                    with self.assertRaisesRegex(TimeoutError, "recovery exhausted the R deadline"):
+                        service.measure(timeout=.5)
+                self.assertLess(time.monotonic() - started, .85)
+                self.assertEqual(bytes(port.written), b"R")
+                self.assertEqual(output.getvalue(), "")
+            finally:
+                service.close()
+
+    def test_timeout_without_a_trailer_recovers_without_parsing_late_binary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, output = CaptureStore(directory), io.StringIO()
+            port = TruncatedSerial(response(sine_payload()), late_tail=b"\xff\x0a\x01\x00\r\nREADY\r\n")
+            port.broken_reply = port.broken_reply[:-len(b"DUMP_END\r\nREADY\r\n")]
+            service = SerialService(port, store, Engine(self.api, output), stderr=io.StringIO())
+            try:
+                service.measure(timeout=3)
+                self.assertEqual(bytes(port.written), b"RR")
+                self.assertEqual(len(output.getvalue().splitlines()), 1)
+            finally:
+                service.close()
+            records = [json.loads(p.read_text()) for p in sorted(store.path.glob("uart/*/capture.json"))]
+            self.assertEqual([r["validation"] for r in records], ["invalid", "valid"])
+            self.assertIn("serial timeout after", records[0]["error"])
 
     def test_recovery_open_failure_is_reported_without_repeated_commands(self):
         with tempfile.TemporaryDirectory() as directory:

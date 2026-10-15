@@ -1,4 +1,4 @@
-"""Independent joint waveform, coherent interference and ADC-bin inference (Unified Solver 7.0).
+"""Independent joint waveform, interference and observation inference (8.2).
 
 All source families and nuisance orders share one bounded projection objective.
 Combines:
@@ -46,6 +46,8 @@ def _ensure_single_thread_blas():
                 if hasattr(lib, sym):
                     getattr(lib, sym)(1)
         _BLAS_SINGLE_THREAD_SET = True
+    except TimeoutError:
+        raise
     except Exception:
         pass
 
@@ -86,8 +88,139 @@ class SolverConfig:
     max_noise_ratio: float = .55
     quantization_refine: bool = True
     refinement_candidates: int = 4
-    coherent_extra_orders: tuple = (15, 20, 25)
+    coherent_extra_orders: tuple = (15, 18, 20, 25)
     bandlimited_refine: bool = True
+    observation_aperture_samples: float = 1.5
+    background_sigma: float = 0.  # optional measured RMS, in the sample units
+
+
+def _background_scale(y, step):
+    """Local broadband scale, not an estimate of total/coherent source noise.
+
+    The fifth difference annihilates a local quartic; its white-noise gain
+    is sqrt(252). Sparse corners/resets and impulses do not dominate its MAD.
+    Curvature and colored noise can still bias it, hence the explicit cap.
+    """
+    d = np.diff(y, n=5)
+    sigma = float(np.median(np.abs(d - np.median(d)))) / (.6744897501960817 * math.sqrt(252))
+    span = float(np.diff(np.quantile(y, [.01, .99]))[0])
+    return min(max(0., sigma), .025 * span)
+
+
+def _robust_span(v, background):
+    if background <= 0 or len(v) < 256:
+        return float(np.ptp(v))
+    # At most 0.2% of a frame can be ignored; remaining noise is bounded by
+    # a separate background allowance, not divided by an inflated source Vpp.
+    return float(np.diff(np.quantile(v, [.001, .999]))[0])
+
+
+def _saw_topology(jumps, n, fs, seed, lower, upper, aperture):
+    """Keep exact timing where feasible; otherwise use bounded reset jitter.
+
+    A fallback needs consecutive, individually observed resets on a common
+    lattice. An arbitrary bad/extra/missing edge cannot create a valid model.
+    """
+    if len(jumps) < 3:
+        return None, lower, upper, 0.
+    cycle = np.searchsorted(jumps + 1, np.arange(n), side="right")
+    indices = np.unique(np.r_[0, n - 1, jumps, jumps + 1])
+    counts = cycle[indices]
+    di = indices[None, :] - indices[:, None]
+    dk = counts[None, :] - counts[:, None]
+    mask = di > 0
+    flo = max(lower, float(np.max((dk[mask] - 1) * fs / di[mask])))
+    fhi = min(upper, float(np.min((dk[mask] + 1) * fs / di[mask])))
+    if flo < fhi:
+        return cycle, flo, fhi, 0.
+    if aperture <= 0:
+        return None, lower, upper, 0.
+    centers = np.asarray(jumps, dtype=float) + .5
+    gaps = np.diff(centers)
+    if np.any(np.abs(gaps * seed / fs - 1) > .25):
+        return None, lower, upper, 0.
+    # Pairwise intersections of edge intervals, including a half ADC sample
+    # of quantization and an explicitly bounded observation aperture.
+    di = centers[None, :] - centers[:, None]
+    dk = np.arange(len(jumps))[None, :] - np.arange(len(jumps))[:, None]
+    mask = dk > 0
+    tol = .5 + aperture
+    flo = max(lower, float(np.max(dk[mask] * fs / (di[mask] + 2 * tol))))
+    den = di[mask] - 2 * tol
+    if np.any(den <= 0):
+        return None, lower, upper, 0.
+    fhi = min(upper, float(np.min(dk[mask] * fs / den)))
+    if flo >= fhi:
+        return None, lower, upper, 0.
+    return cycle, flo, fhi, aperture
+
+
+def _observation_mask(kind, q, t, fs, cycle, aperture):
+    valid = np.ones(len(t), dtype=bool)
+    if kind == 1:
+        phase = (q[0] * t + q[1]) % 1
+        up = (phase + .5) % 1 - .5
+        down = (phase - q[2] + .5) % 1 - .5
+        pad = aperture * q[0] / fs
+        # A common padding can erase the entire short plateau of a narrow
+        # pulse. Keep the central half of each independently observed plateau;
+        # the sample-count and cycle checks below still establish identifiability.
+        flat = np.array([q[2], 1-q[2]]) - .5*(q[3]+q[4])
+        if np.min(flat) <= 0:
+            return None
+        pads = np.minimum(pad, .25*flat)
+        local_pad = np.where(phase < q[2], pads[0], pads[1])
+        valid = (np.abs(up) > q[3] / 2 + local_pad) & (np.abs(down) > q[4] / 2 + local_pad)
+        high, low = valid & (phase < q[2]), valid & (phase >= q[2])
+        # Both plateaus, both halves, and multiple distinct cycles must exist.
+        labels = np.floor(q[0] * t + q[1]).astype(int)
+        for plateau in (high, low):
+            if (np.count_nonzero(plateau) < 32 or
+                    min(np.count_nonzero(plateau[:len(t)//2]), np.count_nonzero(plateau[len(t)//2:])) < 12 or
+                    len(np.unique(labels[plateau])) < 4):
+                return None
+    elif kind == 3 and aperture:
+        jumps = np.flatnonzero(np.diff(cycle))
+        for j in jumps:
+            valid[max(0, j - math.ceil(aperture)):min(len(t), j + math.ceil(aperture) + 2)] = False
+    return valid if np.count_nonzero(valid) >= max(128, len(t)//4) else None
+
+
+def _band_validation(y, s, a, fs, cutoff, background):
+    """Independent frequency bands and time blocks must identify the same gain.
+
+    Standard errors alone are insufficient: a weak source can inflate its
+    error bar enough to accept any disagreement. These relative limits are
+    explicit engineering checks, not 1 ppm accuracy certificates.
+    """
+    n = len(y)
+    if cutoff > .65 * fs / 2:
+        return False, "cutoff_too_high"
+    amplitudes = []
+    for sl in (slice(None), slice(0, n//2), slice(n//2, n)):
+        ys, ss = y[sl], s[sl]
+        w = blackmanharris(len(ys), sym=False)
+        ff = np.fft.rfftfreq(len(ys), 1/fs)
+        mid = (cutoff + .9 * fs/2) / 2
+        for left, right in ((cutoff, mid), (mid, .9*fs/2)):
+            mask = (ff >= left) & (ff < right)
+            if np.count_nonzero(mask) < 8:
+                return False, "insufficient_independent_bins"
+            zs, zy = np.fft.rfft(ss*w)[mask], np.fft.rfft(ys*w)[mask]
+            energy = float(np.vdot(zs, zs).real)
+            total = float(np.sum((ss*w)**2) * len(ss) / 2)
+            if energy < max(1e-12, 1e-5 * total):
+                return False, "weak_source_information"
+            aa = float(np.vdot(zs, zy).real / energy)
+            rem = aa*zs-zy
+            se = math.sqrt(float(np.vdot(rem, rem).real) / max(1, len(rem)-1) / energy)
+            noise_se = background * math.sqrt(float(w@w) / (2*energy))
+            if aa*a <= 0 or max(se, noise_se) > .015*abs(a):
+                return False, "uncertain_band_gain"
+            amplitudes.append(aa)
+    if max(abs(aa/a-1) for aa in amplitudes) > .04:
+        return False, "independent_gain_disagreement"
+    return True, "validated"
 
 
 def shape(kind, phase, duty=.5, rise=.03, fall=.03):
@@ -273,10 +406,74 @@ def _joint(y, s, ds, B, dB=None, amin=0., amax=math.inf, factor=None, yy_pre=Non
 
 
 def _source(kind, q, t, cycle=None):
+    if kind == 2 and isinstance(cycle, dict):
+        # Mean observation of a piecewise-linear source across one sampling
+        # aperture. Its two corners are rounded; the underlying ramp gain is
+        # unchanged. Fitting ideal sharp corners lets nuisance harmonics absorb
+        # this attenuation and biases the inferred source amplitude.
+        width = q[0] * cycle["aperture_s"]
+        p = q[0]*t + q[1]
+        def primitive(v):
+            z = (v+.25) % 1
+            return np.where(z < .5, 2*z*z-z, -2*z*z+3*z-1)
+        left, right = p-width/2, p+width/2
+        s = (primitive(right)-primitive(left))/width
+        sl, sr = shape(2, left), shape(2, right)
+        dp = (sr-sl)/width
+        dw = (.5*(sr+sl)-s)/width
+        return s, np.column_stack((dp*t+dw*cycle["aperture_s"], dp))
     if kind != 3:
         return _basis(kind, q, t)
     s = 2 * (cycle - cycle.mean() - q[0] * t)
     return s, (-2 * t)[:, None]
+
+
+def _regularized_gain(y, s, B, a, residual):
+    """Minimum-interference gain within one residual standard error.
+
+    A finite harmonic nuisance can nearly absorb the source. In that regime
+    the unregularized gain is an unstable extrapolation of its tiny tail.
+    Use the least-interference representative of the one-standard-error
+    interval, keeping DC unpenalized and recording the interval explicitly.
+    """
+    Q, R = np.linalg.qr(B, mode="reduced")
+    ws = Q.T@s
+    wy = Q.T@y
+    z = s-Q@ws
+    energy = float(z@z)
+    variance = float(residual@residual)/max(1, len(y)-B.shape[1]-1)
+    se = math.sqrt(variance/max(energy, 1e-30))
+    # Remove DC before minimizing the coherent nuisance's squared energy.
+    target = float(ws[1:]@wy[1:]/max(ws[1:]@ws[1:], 1e-30))
+    updated = a+float(np.clip(target-a, -se, se))
+    cb = solve_triangular(R, wy-updated*ws, check_finite=False)
+    return updated, cb, updated*s+B@cb-y, se, target
+
+
+def _nuisance_evidence(y, s, B, nonlinear_parameters):
+    """Restricted likelihood with a shared zero-mean harmonic nuisance prior.
+
+    Marginalizing the nuisance accounts for source/nuisance overlap; ordinary
+    parameter-count BIC assumes a well-conditioned source and misses this.
+    DC and source gain remain unpenalized. The harmonic prior variance is
+    inferred from the frame, without knowing its source or interference.
+    """
+    X = np.column_stack((s, B))
+    G, b = X.T@X, X.T@y
+    yy = float(y@y)
+    n, m = len(y), X.shape[1]-2
+    def objective(log_precision):
+        precision = math.exp(log_precision)
+        H = G+np.diag(np.r_[0., 0., np.full(m, precision)])
+        c = np.linalg.solve(H, b)
+        sign, logdet = np.linalg.slogdet(H)
+        if sign <= 0:
+            return math.inf
+        rss = max(yy-float(b@c), 1e-24)
+        return ((n-2)*math.log(rss/(n-2))+logdet-m*log_precision+
+                nonlinear_parameters*math.log(n))
+    opt = minimize_scalar(objective, bounds=(-12., 12.), method="bounded")
+    return float(opt.fun), math.exp(float(opt.x))
 
 
 def _chebyshev_center_1d(y_codes: np.ndarray, s: np.ndarray, a_center: float, half_span: float = 1.5):
@@ -542,7 +739,7 @@ def _quantized_refine(y, t, fit, step, fs, check_time):
         objective = np.r_[np.zeros(len(theta)), -1.]
         lp = linprog(
             objective, A_ub=A, b_ub=rhs, bounds=bounds, method="highs",
-            options={"time_limit": 1.5, "primal_feasibility_tolerance": 1e-9, "dual_feasibility_tolerance": 1e-9}
+            options={"time_limit": min(1.5, check_time.remaining()), "primal_feasibility_tolerance": 1e-9, "dual_feasibility_tolerance": 1e-9}
         )
         check_time()
         if not lp.success:
@@ -588,7 +785,7 @@ def _quantized_refine(y, t, fit, step, fs, check_time):
             objective[index] = sign
             lp = linprog(
                 objective, A_ub=A, b_ub=rhs, bounds=bounds, method="highs",
-                options={"time_limit": 1.0, "primal_feasibility_tolerance": 1e-9, "dual_feasibility_tolerance": 1e-9}
+                options={"time_limit": min(1.0, check_time.remaining()), "primal_feasibility_tolerance": 1e-9, "dual_feasibility_tolerance": 1e-9}
             )
             if lp.success:
                 trial = accepted + scale * lp.x
@@ -679,19 +876,16 @@ def _detect_subharmonic_comb(r0, fs, f_carrier):
     if best_L is None:
         return None
 
-    if abs(best_L - round(best_L)) < 0.03:
-        best_L = float(round(best_L))
-    else:
-        def comb_loss(L_val):
-            f_s = f_carrier / L_val
-            m_n = np.maximum(1.0, np.rint(freqs[usable] / f_s))
-            d_s = np.abs(freqs[usable] - m_n * f_s)
-            w_comb = np.exp(-0.5 * (d_s / (0.6 * df)) ** 2)
-            return -float(np.sum(p_clean[usable] * w_comb))
-        res_L = minimize_scalar(comb_loss, bounds=(best_L * 0.985, best_L * 1.015), method="bounded", options={"xatol": 1e-5})
-        best_L = float(res_L.x)
-        if abs(best_L - round(best_L)) < 0.005:
-            best_L = float(round(best_L))
+    # Refine the continuous comb period; do not snap to integer ratios.
+    def comb_loss(L_val):
+        f_s = f_carrier / L_val
+        m_n = np.maximum(1.0, np.rint(freqs[usable] / f_s))
+        d_s = np.abs(freqs[usable] - m_n * f_s)
+        w_comb = np.exp(-0.5 * (d_s / (0.6 * df)) ** 2)
+        return -float(np.sum(p_clean[usable] * w_comb))
+    res_L = minimize_scalar(comb_loss, bounds=(best_L * 0.985, best_L * 1.015), method="bounded", options={"xatol": 1e-5})
+    best_L = float(res_L.x)
+
 
     f_sub = f_carrier / best_L
     max_M_possible = min(145, int(0.49 * fs / f_sub))
@@ -770,24 +964,10 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
 
     if kind == 0:
         if is_int_L:
-            # Integer L on sine: m = L overlaps carrier fundamental, so project out m != L to refine frequency!
-            M = min(135, M_raw + 1)
-            ms = np.array([m for m in range(1, M + 1) if m != int(L)], dtype=float) / L
-            all_m = np.r_[1.0, ms]
-            def loss_s_int(f_try):
-                check_time()
-                ang = TAU * f_try * t[:, None] * all_m[None, :]
-                B_s = np.column_stack((np.ones(n), np.sin(ang), np.cos(ang)))
-                cs = _fast_lstsq(B_s, y)
-                rem = y - B_s @ cs
-                return float(rem @ rem)
-            res_f = minimize_scalar(
-                loss_s_int, bounds=(max(lo, f0 - 0.5 * fs / n), min(hi, f0 + 0.5 * fs / n)),
-                method="bounded", options={"xatol": 1e-10}
-            )
-            q_new = q0.copy()
-            q_new[0] = float(res_f.x)
-            return dict(fit, q=q_new), False
+            # A spectral comb does not prove an exact clock ratio. Locking the
+            # carrier to it biases near-integer playback periods. Retain the
+            # independently estimated carrier; its amplitude is unidentifiable.
+            return fit, False
         else:
             # Fractional L on sine: m * (f/L) never equals f! Decouple (f_c, f_s) and run LP polytope centering!
             M = min(110, M_raw + 1)
@@ -849,7 +1029,7 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
                         A_ = np.vstack((np.column_stack((M_m, np.ones(n))), np.column_stack((-M_m, np.ones(n)))))
                         rhs_ = np.r_[0.5 - rr_, 0.5 + rr_]
                         bnds_ = [(-6., 6.)] * len(theta) + [(None, 0.5)]
-                        lp1 = linprog(np.r_[np.zeros(len(theta)), -1.], A_ub=A_, b_ub=rhs_, bounds=bnds_, method="highs", options={"time_limit": 1.0})
+                        lp1 = linprog(np.r_[np.zeros(len(theta)), -1.], A_ub=A_, b_ub=rhs_, bounds=bnds_, method="highs", options={"time_limit": min(1.0, check_time.remaining())})
                         if lp1.success:
                             theta = theta + sc_ * lp1.x[:-1]
                     m_, J_ = model_f_sine(theta, True)
@@ -869,7 +1049,7 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
                             for sgn in (-1., 1.):
                                 check_time()
                                 o2 = np.zeros(len(theta)); o2[idx_v] = sgn
-                                lp2 = linprog(o2, A_ub=A2, b_ub=rhs2, bounds=bnds2, method="highs", options={"time_limit": 0.8})
+                                lp2 = linprog(o2, A_ub=A2, b_ub=rhs2, bounds=bnds2, method="highs", options={"time_limit": min(0.8, check_time.remaining())})
                                 if lp2.success:
                                     ends.append(theta + sc_ * lp2.x)
                         if len(ends) == 4:
@@ -881,6 +1061,8 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
                 if np.ptp(raw_rem) / (2 * abs(a_f)) <= max_noise_ratio + 3 * step / (2 * abs(a_f)) + 0.02:
                     cb_out = np.array([float(cb_f[0])])
                     return dict(fit, q=np.array([fc, ph_f]), a=a_f, cb=cb_out, residual=-raw_rem + raw_rem.mean()), True
+            except TimeoutError:
+                raise
             except Exception:
                 return fit, False
         return fit, False
@@ -920,6 +1102,8 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
                 return a * dz + z[:, None] * da
             opt_nc = least_squares(lambda qv: ev_nocarrier(qv, False), q_start, jac=lambda qv: ev_nocarrier(qv, True), bounds=(low, high), x_scale=scales, max_nfev=25, ftol=1e-11, xtol=1e-11)
             q_start = opt_nc.x.copy()
+        except TimeoutError:
+            raise
         except Exception:
             pass
 
@@ -978,6 +1162,8 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
                 best_cand = dict(q=opt_m.x.copy(), a=a_m, en=en_m, bic=bic_m)
                 best_M = M_try
                 q_start = opt_m.x.copy()
+        except TimeoutError:
+            raise
         except Exception:
             continue
 
@@ -1015,6 +1201,8 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
             return fit, False
         bic = n * math.log(max(float(rv @ rv / n), v_floor)) + (len(q_pol) + 1 + len(cb_new)) * math.log(n)
         best_cand = dict(fit, q=q_pol.copy(), a=a_new, cb=cb_new, residual=rv, innovation_energy=en_new, bic=bic)
+    except TimeoutError:
+        raise
     except Exception:
         return fit, False
 
@@ -1060,7 +1248,7 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
                         hg = min(hg, (high[j] - theta[j]) / sc_[j])
                     bnds_.append((lw, hg))
                 bnds_.append((None, 0.5))
-                lp1 = linprog(np.r_[np.zeros(len(theta)), -1.], A_ub=A_, b_ub=rhs_, bounds=bnds_, method="highs", options={"time_limit": 1.0})
+                lp1 = linprog(np.r_[np.zeros(len(theta)), -1.], A_ub=A_, b_ub=rhs_, bounds=bnds_, method="highs", options={"time_limit": min(1.0, check_time.remaining())})
                 if lp1.success:
                     theta = theta + sc_ * lp1.x[:-1]
             mv, Jm = model_sub(theta, True)
@@ -1089,7 +1277,7 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
                     for sgn in (-1., 1.):
                         check_time()
                         o2 = np.zeros(len(theta)); o2[idx_v] = sgn
-                        lp2 = linprog(o2, A_ub=A2, b_ub=rhs2, bounds=bnds2, method="highs", options={"time_limit": 0.8})
+                        lp2 = linprog(o2, A_ub=A2, b_ub=rhs2, bounds=bnds2, method="highs", options={"time_limit": min(0.8, check_time.remaining())})
                         if lp2.success:
                             ends.append(theta + sc_ * lp2.x)
                 if len(ends) == 2 * len(t_idxs):
@@ -1097,6 +1285,8 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
                     if float(np.max(np.abs(model_sub(trial) - y)) / step) <= hb + 1e-4:
                         if kind != 3 or np.ptp(trial[0] * (t - t[0]) - cycle) <= 1.0 + 1e-9:
                             best_cand = dict(best_cand, q=trial[:nq], a=float(trial[nq]), cb=trial[nq + 1:])
+        except TimeoutError:
+            raise
         except Exception:
             pass
 
@@ -1234,7 +1424,7 @@ def _multitone_refine(y, t, fit, step, fs, amin, amax, check_time, max_noise_rat
                 A = np.vstack((np.column_stack((M_mat, np.ones(n))), np.column_stack((-M_mat, np.ones(n)))))
                 rhs = np.r_[0.5 - rr, 0.5 + rr]
                 bnds = [(-6., 6.) if scale[j] else (0., 0.) for j in range(len(theta))] + [(None, 0.5)]
-                lp1 = linprog(np.r_[np.zeros(len(theta)), -1.0], A_ub=A, b_ub=rhs, bounds=bnds, method="highs", options={"time_limit": 1.0})
+                lp1 = linprog(np.r_[np.zeros(len(theta)), -1.0], A_ub=A, b_ub=rhs, bounds=bnds, method="highs", options={"time_limit": min(1.0, check_time.remaining())})
                 if lp1.success:
                     theta = theta + scale * lp1.x[:-1]
 
@@ -1257,7 +1447,7 @@ def _multitone_refine(y, t, fit, step, fs, amin, amax, check_time, max_noise_rat
                     for sgn in (-1., 1.):
                         check_time()
                         o2 = np.zeros(len(theta)); o2[idx_v] = sgn
-                        lp2 = linprog(o2, A_ub=A2, b_ub=rhs2, bounds=bnds2, method="highs", options={"time_limit": 0.8})
+                        lp2 = linprog(o2, A_ub=A2, b_ub=rhs2, bounds=bnds2, method="highs", options={"time_limit": min(0.8, check_time.remaining())})
                         if lp2.success:
                             ends.append(theta + scale * lp2.x)
                 if len(ends) == 2 * len(targets):
@@ -1275,6 +1465,8 @@ def _multitone_refine(y, t, fit, step, fs, amin, amax, check_time, max_noise_rat
             return fit, False
         cb_out = np.array([float(cb_final[0])])
         return dict(fit, q=qv_f, a=a_final, cb=cb_out, residual=-raw_rem + raw_rem.mean(), innovation_energy=en_f), True
+    except TimeoutError:
+        raise
     except Exception:
         return fit, False
 
@@ -1329,6 +1521,8 @@ def _bandlimited_refine(y, t, fit, step, fs, amin, amax, check_time, source, max
                                     out_s = least_squares(lambda qv: ev_fix_a(qv, False), q, jac=lambda qv: ev_fix_a(qv, True), bounds=(low_s, high_s), x_scale=[1e-3 * fs / n, 1e-3], max_nfev=25, ftol=1e-12, xtol=1e-12)
                                     q_new = q.copy(); q_new[0] = float(out_s.x[0])
                                     fit = dict(fit, q=q_new)
+            except TimeoutError:
+                raise
             except Exception:
                 pass
         return fit, dict(info, reason="carrier_overlap_or_edge_uncertainty")
@@ -1491,6 +1685,9 @@ def _bandlimited_refine(y, t, fit, step, fs, amin, amax, check_time, source, max
         info["half_amplitude_disagreement"] = disagreement
         if disagreement > allowed:
             return fit, dict(info, rejection="half_validation")
+        validated, reason = _band_validation(y, s, a, fs, cutoff, _background_scale(y, step))
+        if not validated:
+            return fit, dict(info, rejection=reason)
         info.update(
             accepted=True, old_band_rss=float(old @ old), new_band_rss=float(r @ r),
             innovation_energy=en, frequency_change_hz=float(qq[0] - fit["q"][0]),
@@ -1521,6 +1718,8 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
             not isinstance(cfg.coherent_extra_orders, tuple) or
             any(not isinstance(k, int) or not 0 <= k <= 32 for k in cfg.coherent_extra_orders) or
             not isinstance(cfg.bandlimited_refine, bool) or
+            not math.isfinite(cfg.observation_aperture_samples) or not 0 <= cfg.observation_aperture_samples <= 3 or
+            not math.isfinite(cfg.background_sigma) or cfg.background_sigma < 0 or
             not math.isfinite(quantization_step) or quantization_step < 0 or
             not math.isfinite(cfg.low_harmonic_weight) or not 0 < cfg.low_harmonic_weight <= 1 or
             not 1 <= cfg.noise_harmonics <= 15 or
@@ -1540,16 +1739,24 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
     if not math.isfinite(lo + hi) or not 0 < lo < hi < fs / 2:
         raise ValueError("invalid frequency search range")
 
-    cpu_started = time.process_time()
     def check_time():
         wall_dt = time.perf_counter() - started
-        cpu_dt = time.process_time() - cpu_started
-        if wall_dt > cfg.max_seconds and max(cpu_dt, wall_dt * 0.25) > cfg.max_seconds:
+        if wall_dt > cfg.max_seconds:
             raise TimeoutError("unified solver deadline exceeded")
 
+    check_time.remaining = lambda: max(.001, cfg.max_seconds - (time.perf_counter() - started))
+
     check_time()
-    amin = max(0., (float(np.ptp(y)) - step) / (2 * (1 + cfg.max_noise_ratio)))
-    amax = (float(np.ptp(y)) + step) / (2 * (1 - cfg.max_noise_ratio)) * 1.15
+    background = max(cfg.background_sigma / spread, _background_scale(y, step))
+    # Ordinary quantization alone must not enable a broad measurement model.
+    measured_background = background > max(.8 * step, 1e-6)
+    background = background if measured_background else 0.
+    span = _robust_span(y, background)
+    amin = max(0., (span - 7*background - step) / (2 * (1 + cfg.max_noise_ratio)))
+    amax = (span + step) / (2 * (1 - cfg.max_noise_ratio)) * 1.15
+    # Raw high-order differences can include coherent interference. They may
+    # set an admission allowance, but must never flatten all family scores
+    # at that scale and let a simpler, wrong source win on parameter count.
     variance_floor = max(step * step / 12, 1e-24)
     fits = []
     starts = []
@@ -1562,31 +1769,68 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
         if kind == 1 and .5 * (q[3] + q[4]) > min(q[2], 1 - q[2]) + 1e-12:
             return math.inf
         s, _ = _source(kind, q, t, fit.get("cycle"))
-        ratio = float(np.ptp(y - fit["a"] * s) / (2 * abs(fit["a"])))
-        limit = cfg.max_noise_ratio + 3 * step / max(2 * abs(fit["a"]), 1e-12) + .015
-        fit["edge_timing_uncertainty_samples"] = 0.
-        penalty = 0.
+        amplitude = 2 * abs(fit["a"])
+        if amplitude < 1e-12:
+            return math.inf
+        ratio = _robust_span(y - fit["a"] * s, background) / amplitude
+        limit = cfg.max_noise_ratio + (3 * step + 7 * background) / amplitude + .015
+        aperture = fit.get("reset_timing_uncertainty_samples", 0.)
+        fit["edge_timing_uncertainty_samples"] = aperture
+        valid = None
         if ratio > limit:
-            if kind != 1:
+            if kind not in (1, 3) or (kind == 3 and not aperture):
                 return math.inf
-            phase = (q[0] * t + q[1]) % 1
-            up = (phase + .5) % 1 - .5
-            down = (phase - q[2] + .5) % 1 - .5
-            aperture = 1.5 * q[0] / fs
-            uncertain = (np.abs(up) <= q[3] / 2 + aperture) | (np.abs(down) <= q[4] / 2 + aperture)
-            if np.mean(uncertain) > .2 or np.count_nonzero(~uncertain) < n // 2:
+            aperture = cfg.observation_aperture_samples if kind == 1 else aperture
+            valid = _observation_mask(kind, q, t, fs, fit.get("cycle"), aperture)
+            if valid is None:
                 return math.inf
-            stable_ratio = float(np.ptp((y - fit["a"] * s)[~uncertain]) / (2 * abs(fit["a"])))
+            stable_ratio = _robust_span((y - fit["a"] * s)[valid], background) / amplitude
             if stable_ratio > limit:
                 return math.inf
-            fit["edge_timing_uncertainty_samples"] = 1.5
-            penalty = 1e6 + float(np.count_nonzero(uncertain)) * math.log(n)
+            fit["edge_timing_uncertainty_samples"] = aperture
+        elif aperture:
+            valid = _observation_mask(kind, q, t, fs, fit.get("cycle"), aperture)
+            if valid is None:
+                return math.inf
+        fit["observation_valid"] = valid
+        loss_r = r.copy()
+        if valid is not None:
+            # Censor only residuals within the admissible observed edge range;
+            # errors outside it still count. No arbitrary million-point penalty.
+            if kind == 1:
+                B, _ = _nuisance(q[0], t, fit["order"], kind)
+                nuisance = B @ fit["cb"]
+                ss = np.array([shape(1, q[0]*t+q[1]+d*q[0]/fs, *q[2:]) for d in (-aperture, 0., aperture)])
+                lo_s, hi_s = fit["a"]*ss.min(axis=0)+nuisance, fit["a"]*ss.max(axis=0)+nuisance
+                edge_r = np.maximum(lo_s-y, 0.) + np.minimum(hi_s-y, 0.)
+                loss_r[~valid] = edge_r[~valid]
+            else:
+                # Reset value within one source jump is unknown; observations
+                # outside that range are not explained by timing uncertainty.
+                loss_r[~valid] = np.sign(r[~valid])*np.maximum(abs(r[~valid])-amplitude, 0.)
+        if background:
+            # Huber tails remain unbounded: clipping the loss itself can make
+            # a wrong morphology look good by saturating systematic errors.
+            c = 6*background
+            absolute = abs(loss_r)
+            loss_r = np.sqrt(np.where(absolute <= c, loss_r**2, 2*c*absolute-c*c))
+        if measured_background and fit["order"]:
+            local_sigma = min(background, _background_scale(r, step))
+            local_variance = max(local_sigma**2, variance_floor)
+            # The projected source has one gain and its nonlinear parameters.
+            # Counting the already-projected nuisance again rejects otherwise
+            # identifiable sources solely because the interference is wider.
+            if fit["a"]**2 * fit["innovation_energy"] < 25 * local_variance * (len(q)+1):
+                return math.inf
         p = len(q) + 1 + len(fit["cb"])
-        return n * math.log(max(float(r @ r / n), variance_floor)) + p * math.log(n) + penalty
+        missing_penalty = np.count_nonzero(~valid)*math.log(n) if valid is not None else 0.
+        return n * math.log(max(float(loss_r @ loss_r / n), variance_floor)) + p * math.log(n) + missing_penalty
 
     with threadpool_limits(limits=1, user_api="blas"):
         seeds = _frequency_starts(y, fs, lo, hi, cfg.starts)
         for seed_index, seed in enumerate(seeds):
+            if fits and check_time.remaining() < .35 * cfg.max_seconds:
+                break
             check_time()
             lower = max(lo, seed - .7 * fs / n)
             upper = min(hi, seed + .7 * fs / n)
@@ -1615,7 +1859,7 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
             duty_prof = float(np.clip(np.mean(prof_p > mid_prof), cfg.duty_min + 1e-4, cfg.duty_max - 1e-4))
             duty = duty_prof if abs(duty_prof - 0.5) > abs(duty_raw - 0.5) + 0.12 else duty_raw
 
-            span = float(np.ptp(y))
+            span = _robust_span(y, background)
             delta = np.diff(y)
             spacing = max(1, int(.55 * fs / seed))
             jumps, _ = find_peaks(delta, height=.32 * span, distance=spacing)
@@ -1623,19 +1867,8 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                 jumps = np.r_[0, jumps]
             if delta[-1] > .32 * span and (not len(jumps) or len(delta) - 1 - jumps[-1] >= spacing):
                 jumps = np.r_[jumps, len(delta) - 1]
-            cycle = None
-            flo, fhi = lower, upper
-            if len(jumps) >= 3:
-                cycle = np.searchsorted(jumps + 1, np.arange(n), side="right")
-                indices = np.unique(np.r_[0, n - 1, jumps, jumps + 1])
-                counts = cycle[indices]
-                di = indices[None, :] - indices[:, None]
-                dk = counts[None, :] - counts[:, None]
-                mask = di > 0
-                flo = max(lower, float(np.max((dk[mask] - 1) * fs / di[mask])))
-                fhi = min(upper, float(np.min((dk[mask] + 1) * fs / di[mask])))
-                if flo >= fhi:
-                    cycle = None
+            cycle, flo, fhi, reset_aperture = _saw_topology(
+                jumps, n, fs, seed, lower, upper, cfg.observation_aperture_samples)
 
             warm = {}
             seedfits = []
@@ -1646,15 +1879,21 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
             _, Q_all_0, R_all_0 = _nuisance_interleaved_qr(seed, t, max_init_k, 2)
 
             for K in orders:
+                if fits and check_time.remaining() < .35 * cfg.max_seconds:
+                    break
                 check_time()
                 if K > max_init_k:
                     max_init_k = max(orders)
                     _, Q_all_123, R_all_123 = _nuisance_interleaved_qr(seed, t, max_init_k, 1)
                     _, Q_all_0, R_all_0 = _nuisance_interleaved_qr(seed, t, max_init_k, 2)
 
-                for kind in (0, 2, 1, 3):
+                for kind, observed in ((0, False), (2, False), (2, True), (1, False), (3, False)):
+                    if observed and not measured_background:
+                        continue
                     if kind == 3 and cycle is None:
                         continue
+                    source_cycle = ({"aperture_s": 1/fs} if observed else
+                                    cycle if kind == 3 else None)
                     B, _ = _nuisance(seed, t, K, kind)
                     m_cols = B.shape[1]
                     if kind == 0:
@@ -1723,7 +1962,7 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                             nonlocal cached, cache_r, cache_J, cache_a, cache_en
                             check_time()
                             if cached is None or not np.array_equal(cached, q_vec):
-                                s, ds = _source(kind, q_vec, t, cycle)
+                                s, ds = _source(kind, q_vec, t, source_cycle)
                                 z = s - Q_k @ (Q_k.T @ s)
                                 en = float(z @ z)
                                 if en < 1e-10 * max(1., float(s @ s)):
@@ -1758,16 +1997,17 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                                 a_fit = -a_fit
                                 low[1] = q_fit[1] - 0.24
                                 high[1] = q_fit[1] + 0.24
-                            s_opt, _ = _source(kind, q_fit, t, cycle)
+                            s_opt, _ = _source(kind, q_fit, t, source_cycle)
                             cb = _fast_lstsq(B, y - a_fit * s_opt)
                             r_vec = a_fit * s_opt + B @ cb - y
                             item = dict(
                                 kind=kind, order=K, q=q_fit, a=a_fit, cb=cb,
                                 residual=r_vec, low=low.copy(), high=high.copy(),
-                                cycle=cycle if kind == 3 else None,
+                                cycle=source_cycle,
                                 converged=bool(opt.success), evaluations=opt.nfev,
                                 innovation_energy=cache_en, scales=scales
                             )
+                            item["reset_timing_uncertainty_samples"] = reset_aperture if kind == 3 else 0.
                             item["bic"] = score(item)
                             if math.isfinite(item["bic"]):
                                 seedfits.append(item)
@@ -1810,7 +2050,11 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                         probe, _ = _nuisance(trial["q"][0], t, max(cfg.coherent_extra_orders), 2)
                         coeff = _fast_lstsq(probe, residual)
                         remaining = residual - probe @ coeff
-                        if float(remaining @ remaining) < .49 * rss:
+                        probe_rss = float(remaining @ remaining)
+                        extra_parameters = 2 * (max(cfg.coherent_extra_orders) - K)
+                        if (probe_rss < .49 * rss or
+                                (measured_background and trial["order"] >= 5 and probe_rss < .9*rss and
+                                 n*math.log(max(rss, 1e-30)/max(probe_rss, 1e-30)) > extra_parameters*math.log(n))):
                             extra = [k for k in cfg.coherent_extra_orders if k not in orders]
                             orders.extend(extra)
                             orders_used.update(extra)
@@ -1824,7 +2068,8 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
             }
             for x in seedfits:
                 rss = float(x["residual"] @ x["residual"])
-                if x["order"] and rss > max(.6 * min(base_rss.values()), 4 * n * variance_floor):
+                if (x["order"] and (not measured_background or x["order"] < 15) and
+                        rss > max(.6 * min(base_rss.values()), 4 * n * variance_floor)):
                     x["bic"] = math.inf
                 if x["kind"] == 3 and x["order"] > 0 and base_rss[3] <= 1.8 * n * variance_floor:
                     x["bic"] = math.inf
@@ -1840,6 +2085,8 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
         shortlist.sort(key=lambda x: x["bic"])
 
         for item in shortlist[:cfg.refinement_candidates]:
+            if check_time.remaining() < .2 * cfg.max_seconds:
+                break
             if item is not shortlist[0] and item["bic"] - shortlist[0]["bic"] > 5000.0:
                 continue
             kind, K = item["kind"], item["order"]
@@ -1867,6 +2114,14 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                         cand_orders.append(K - 2)
             best_refined = None
             pos_only_ref = (kind in (1, 2) and item["a"] > 0)
+            valid = item.get("observation_valid")
+            if valid is None:
+                valid = np.ones(n, dtype=bool)
+            weights = np.ones(np.count_nonzero(valid))
+            if background:
+                rr = np.abs(item["residual"][valid])
+                weights = np.sqrt(np.minimum(1., 3*background / np.maximum(rr, 1e-30)))
+            yf = y[valid]*weights
             for K_try in cand_orders:
                 cached = None
                 cache = None
@@ -1877,7 +2132,9 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                     if cached is None or not np.array_equal(cached, q_vec):
                         s, ds = _source(kind, q_vec, t, cycle)
                         B, dB = _nuisance(q_vec[0], t, K_try, kind)
-                        cache = _joint(y, s, ds, B, dB, amin, amax, positive_a=pos_only_ref)
+                        cache = _joint(yf, s[valid]*weights, ds[valid]*weights[:, None],
+                                       B[valid]*weights[:, None], dB[valid]*weights[:, None],
+                                       amin, amax, positive_a=pos_only_ref)
                         cached = q_vec.copy()
                     return cache[4] if jac else cache[0]
 
@@ -1889,6 +2146,9 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                     )
                     evaluate(opt.x)
                     r, a, cb, en = cache[:4]
+                    ss, _ = _source(kind, opt.x, t, cycle)
+                    BB, _ = _nuisance(opt.x[0], t, K_try, kind)
+                    r = a*ss + BB@cb - y
                     cand_item = dict(
                         item, order=K_try, q=opt.x.copy(), a=a, cb=cb, residual=r,
                         innovation_energy=en, converged=bool(opt.success),
@@ -1901,7 +2161,10 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                             orders_used.add(K_try)
                 except (ValueError, np.linalg.LinAlgError):
                     continue
-            if best_refined is not None:
+            # Refinement can move edges out of the valid observation region or
+            # make the source disappear into nuisance harmonics. A rejected or
+            # worse refinement must never replace the admitted source model.
+            if best_refined is not None and best_refined["bic"] < item["bic"]:
                 item.update(best_refined)
 
         finals = [r for r in shortlist if math.isfinite(r["bic"])]
@@ -1910,15 +2173,52 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
         finals.sort(key=lambda x: x["bic"])
         best = finals[0]
 
+        selection_method = "bic"
+        if measured_background and best.get("observation_valid") is None and best["order"]:
+            # Use the overlap correction only for statistically close fits.
+            # A distinct residual improvement is direct source evidence and
+            # must not be overturned by a nuisance prior.
+            comparable = [r for r in finals if r.get("observation_valid") is None and
+                          r["bic"]-best["bic"] <= 2*math.log(n)]
+            for candidate in comparable:
+                ss, _ = _source(candidate["kind"], candidate["q"], t, candidate.get("cycle"))
+                BB, _ = _nuisance(candidate["q"][0], t, candidate["order"], candidate["kind"])
+                evidence, precision = _nuisance_evidence(y, ss, BB, len(candidate["q"]))
+                candidate["nuisance_evidence"] = evidence
+                candidate["nuisance_prior_precision"] = precision
+            if comparable:
+                best = min(comparable, key=lambda r:r["nuisance_evidence"])
+                selection_method = "marginal_harmonic_nuisance_likelihood"
+
+        gain_regularization = dict(accepted=False)
+        ss, _ = _source(best["kind"], best["q"], t, best.get("cycle"))
+        source_energy = float((ss-ss.mean())@(ss-ss.mean()))
+        if (measured_background and best["kind"] != 0 and best["order"] and
+                best.get("observation_valid") is None and
+                best["innovation_energy"] < .005*source_energy):
+            BB, _ = _nuisance(best["q"][0], t, best["order"], best["kind"])
+            aa, cc, rr, se, target = _regularized_gain(y, ss, BB, best["a"], best["residual"])
+            candidate = dict(best, a=aa, cb=cc, residual=rr)
+            if amin <= abs(aa) <= amax and math.isfinite(score(candidate)):
+                gain_regularization = dict(accepted=True, method="minimum_interference_within_one_standard_error",
+                                           before_vpp=2*abs(best["a"])*spread,
+                                           standard_error_vpp=2*se*spread,
+                                           minimum_interference_vpp=2*abs(target)*spread)
+                best = candidate
+
         sub_accepted = False
         mt_accepted = False
-        if best["order"] == 0 and cfg.bandlimited_refine:
+        fitted_background = max(cfg.background_sigma/spread, _background_scale(best["residual"], step))
+        fitted_background_detected = fitted_background > max(.8*step, 1e-6)
+        precision_allowed = (not fitted_background_detected and not best.get("edge_timing_uncertainty_samples")
+                             and check_time.remaining() >= .3 * cfg.max_seconds)
+        if best["order"] == 0 and cfg.bandlimited_refine and precision_allowed:
             best, sub_accepted = _subharmonic_refine(y, t, best, step, fs, lo, hi, amin, amax, check_time, cfg.max_noise_ratio)
             if not sub_accepted:
                 best, mt_accepted = _multitone_refine(y, t, best, step, fs, amin, amax, check_time, cfg.max_noise_ratio)
 
-        band = dict(attempted=False, accepted=False, reason="disabled")
-        if cfg.bandlimited_refine:
+        band = dict(attempted=False, accepted=False, reason=("unverified_observation_model_or_budget" if not precision_allowed else "disabled"))
+        if cfg.bandlimited_refine and precision_allowed:
             if (sub_accepted or mt_accepted) and best["kind"] != 0:
                 band = dict(attempted=True, accepted=True, method=("subharmonic_comb_projection" if sub_accepted else "sparse_multitone_projection"))
             elif not (sub_accepted or mt_accepted):
@@ -1928,7 +2228,7 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
 
         before = dict(best, q=best["q"].copy(), cb=best["cb"].copy())
         quant = dict(attempted=False, accepted=False, all_samples_in_bins=False)
-        if cfg.quantization_refine and not (band["accepted"] or sub_accepted or mt_accepted):
+        if cfg.quantization_refine and precision_allowed and not (band["accepted"] or sub_accepted or mt_accepted):
             best, quant = _quantized_refine(y, t, best, step, fs, check_time)
             if not amin <= abs(best["a"]) <= amax or not math.isfinite(score(best)):
                 best = before
@@ -1948,6 +2248,11 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
         cycle = best["cycle"]
         p = np.arange(n) * q[0] / fs - cycle
         left, right = float(-p.min()), float(1 - p.max())
+        if best.get("reset_timing_uncertainty_samples"):
+            edges = np.flatnonzero(np.diff(cycle))
+            phases = cycle[edges+1] - (edges+.5)*q[0]/fs
+            pad = (.5+best["reset_timing_uncertainty_samples"])*q[0]/fs
+            left, right = float(np.max(phases-pad)), float(np.min(phases+pad))
         phase_interval = [left, right]
         if left > right + 1e-8:
             raise ValueError("reset timing inconsistent with frequency")
@@ -1959,7 +2264,18 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
     source_identifiable = kind != 0 and best["innovation_energy"] / max(energy, 1e-12) > 1e-8
     diagnostics = dict(
         method="joint_morphology_nuisance_band_quantization",
-        solver_version="8.0.0",
+        solver_version="8.2.0",
+        background_sigma=float(background*spread),
+        fitted_background_sigma=float(fitted_background*spread),
+        background_sigma_is_measurement_bound=False,
+        measured_background_model=bool(fitted_background_detected),
+        gain_regularization=gain_regularization,
+        selection_method=selection_method,
+        model_nuisance_evidence={NAMES[r["kind"]]:r["nuisance_evidence"] for r in finals if "nuisance_evidence" in r},
+        triangle_aperture_samples=(best["cycle"]["aperture_s"]*fs if isinstance(best.get("cycle"), dict) else 0.),
+        reset_timing_uncertainty_samples=best.get("reset_timing_uncertainty_samples", 0.),
+        observation_valid_fraction=(float(np.mean(best["observation_valid"])) if best.get("observation_valid") is not None else 1.),
+        deadline_policy="cooperative_wall_clock_no_cpu_extension",
         seeds_hz=seeds,
         refined_starts_hz=starts,
         candidates=len(fits),

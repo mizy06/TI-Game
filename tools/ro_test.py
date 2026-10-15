@@ -19,7 +19,8 @@ from pathlib import Path
 
 from tools import host_waveform as host
 from tools.capture_store import atomic_json, atomic_text
-from tools.self_test import Case, clean_signal, distorted_shape, evaluate, generate, matrix
+from tools.self_test import (Case, clean_signal, distorted_shape, evaluate, generate, matrix,
+                             TEST_FREQUENCY_MAX_EXCLUSIVE_HZ)
 
 PROJECT = Path(__file__).resolve().parents[1]
 FINALS_SUITE_SPECS = (
@@ -235,10 +236,10 @@ def _cached_finals_bundle():
 
 
 def ro_matrix(seed=20261005, random_count=512):
-    """Return the 365-case Finals RO matrix set (48 new48 + 96 fresh96 + 221 paired221)."""
+    """Return Finals RO cases strictly below 600 Hz, preserving their IDs."""
     del seed, random_count
     cases, _ = _cached_finals_bundle()
-    return iter(cases)
+    return (case for case in cases if case.frequency_hz < TEST_FREQUENCY_MAX_EXCLUSIVE_HZ)
 
 
 def _is_finals_case(case):
@@ -394,7 +395,7 @@ def evaluate_ro(case, line, details, elapsed, facts=None):
 
 
 def select_ro_cases(args):
-    """Select from the 365-case Finals matrix (48+96+221), or resolve legacy competition-* IDs."""
+    """Select sub-600-Hz Finals cases, or resolve eligible legacy competition-* IDs."""
     suite = getattr(args, "suite", "all")
     case_ids = list(getattr(args, "case_id", None) or [])
     seed = getattr(args, "seed", 20261005)
@@ -741,22 +742,123 @@ class Vxi11:
             self.core = None
 
 
+class VisaTransport:
+    """SCPI transport for VISA USBTMC resources.
+
+    VISA owns the USBTMC framing, including bulk transfers and the device END
+    indication.  The RO layer only needs the same byte-oriented interface as
+    :class:`Vxi11`, so binary WVDT responses remain unmodified.
+    """
+
+    def __init__(self, resource, timeout, backend=None):
+        if not resource:
+            raise ValueError("RO VISA transport requires --ro-resource")
+        self.resource_name = resource
+        self.timeout = timeout
+        self.backend = backend
+        self.rm = None
+        self.instrument = None
+
+    def open(self):
+        try:
+            import pyvisa
+        except ImportError as error:
+            raise RuntimeError("RO USB requires pyvisa; install pyvisa and a VISA/USBTMC backend") from error
+        try:
+            self.rm = pyvisa.ResourceManager(self.backend) if self.backend else pyvisa.ResourceManager()
+            self.instrument = self.rm.open_resource(self.resource_name)
+            self.instrument.timeout = max(1, math.ceil(self.timeout * 1000))
+            # The generator's SCPI commands are LF terminated.  Raw reads are
+            # used deliberately because arbitrary waveform bytes may contain LF.
+            self.instrument.write_termination = "\n"
+            self.instrument.read_termination = None
+            self.instrument.send_end = True
+            return self
+        except Exception:
+            self.close()
+            raise
+
+    def write(self, data):
+        if self.instrument is None:
+            raise ConnectionError("RO VISA resource is not open")
+        written = self.instrument.write_raw(data)
+        if written != len(data):
+            raise ConnectionError(f"RO incomplete VISA write: {written}/{len(data)} bytes")
+
+    def read(self, limit=4096, text=False, on_chunk=None):
+        if self.instrument is None:
+            raise ConnectionError("RO VISA resource is not open")
+        from pyvisa.constants import StatusCode
+        from pyvisa.errors import VisaIOError
+        result = bytearray()
+        deadline = time.monotonic() + self.timeout
+        original_timeout = self.instrument.timeout
+        try:
+            with self.instrument.ignore_warning(StatusCode.success_max_count_read):
+                while True:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError("RO VISA read deadline exceeded")
+                    capacity = limit - len(result)
+                    if capacity <= 0:
+                        raise RuntimeError(f"RO VISA response exceeds {limit} bytes")
+                    self.instrument.timeout = max(1, math.ceil(remaining * 1000))
+                    part, status = self.instrument.visalib.read(
+                        self.instrument.session, min(capacity, 65536))
+                    if len(part) > capacity:
+                        raise ConnectionError("RO oversized VISA read response")
+                    result.extend(part)
+                    ended = status != StatusCode.success_max_count_read
+                    if on_chunk is not None:
+                        on_chunk(part, len(result), 4 if ended else 1)
+                    if ended:
+                        return bytes(result)
+                    if not part:
+                        raise ConnectionError("RO VISA read returned no data and no END")
+        except VisaIOError as error:
+            if error.error_code == StatusCode.error_timeout:
+                raise TimeoutError(f"VISA read timed out for {self.resource_name}") from error
+            raise
+        finally:
+            self.instrument.timeout = original_timeout
+
+    def close(self):
+        instrument, manager = self.instrument, self.rm
+        self.instrument = self.rm = None
+        if instrument is not None:
+            try:
+                instrument.close()
+            except Exception:
+                pass
+        if manager is not None:
+            try:
+                manager.close()
+            except Exception:
+                pass
+
+
 class Generator:
-    """SDG6022X-E WVDT via VXI-11 message END, not line-framed binary TCP."""
-    def __init__(self, address, port=111, channel=1, timeout=10.):
+    """SDG6022X-E SCPI generator over VXI-11 or VISA USBTMC."""
+    def __init__(self, address, port=111, channel=1, timeout=10.,
+                 transport="vxi11", resource=None, visa_backend=None):
         if channel not in (1, 2) or not 1 <= port <= 65535:
             raise ValueError("RO invalid generator channel/port")
         if not math.isfinite(timeout) or timeout <= 0:
             raise ValueError("RO timeout must be positive and finite")
+        if transport not in ("vxi11", "visa"):
+            raise ValueError("RO transport must be vxi11 or visa")
         self.address, self.port, self.timeout = address, port, timeout
+        self.transport_name = transport
+        self.resource = resource
+        self.visa_backend = visa_backend
         self.channel = f"C{channel}"
         self.name = f"RO_C{channel}"
-        if port in (5024, 5025):
+        if transport == "vxi11" and port in (5024, 5025):
             raise ValueError("RO now uses VXI-11: remove --ro-port 5025/5024 or use --ro-port 111")
         self.transport = None
         self.controlled = False
         self.shutdown_error = ""
-        self.stage, self.command = "connect", "VXI-11 inst0"
+        self.stage, self.command = "connect", ("VISA USBTMC" if transport == "visa" else "VXI-11 inst0")
         self.failure = None
         self.trace = None
         self.shutting_down = False
@@ -766,6 +868,14 @@ class Generator:
         self.readback_attempts = []
         self.stderr = None
         self.playback_calibration = None
+
+    @property
+    def transport_label(self):
+        return "VISA USBTMC" if self.transport_name == "visa" else "VXI-11"
+
+    @property
+    def resource_label(self):
+        return self.resource if self.transport_name == "visa" else f"TCPIP::{self.address}::inst0::INSTR"
 
     def record(self, event, **details):
         if self.trace is not None:
@@ -904,7 +1014,7 @@ class Generator:
                 "uploaded_bytes": len(data), "uploaded_sha256": hashlib.sha256(data).hexdigest(),
                 "verified": False, "byte_readback_supported": False,
                 "configuration_verified": True,
-                "verification": "VXI-11 write acknowledgement, OPC, user file and playback settings",
+                "verification": f"{self.transport_label} write acknowledgement, OPC, user file and playback settings",
                 "query_attempts": self.readback_attempts}
         self.readback_info = info
         self.record("waveform_upload_confirmed", **info)
@@ -915,8 +1025,12 @@ class Generator:
 
     def __enter__(self):
         try:
-            self.transport = Vxi11(self.address, self.port, self.timeout)
-            self.operation(f"{self.address}:{self.port} portmapper / inst0", self.transport.open)
+            if self.transport_name == "visa":
+                self.transport = VisaTransport(self.resource, self.timeout, self.visa_backend)
+                self.operation(f"VISA resource {self.resource}", self.transport.open)
+            else:
+                self.transport = Vxi11(self.address, self.port, self.timeout)
+                self.operation(f"{self.address}:{self.port} portmapper / inst0", self.transport.open)
             self.stage = "identify instrument"
             self.identity = self.query("*IDN?")
             if not re.search(r"\bSDG6022X(?:-E)?\b", self.identity, re.I):
@@ -924,9 +1038,14 @@ class Generator:
             self.controlled = True
             self.stage = "initialize output"
             for command in ("OUTP OFF", "OUTP LOAD,HZ,PLRT,NOR", "MDWV STATE,OFF",
-                            "SWWV STATE,OFF", "BTWV STATE,OFF", "NOISE_ADD STATE,OFF"):
+                            "SWWV STATE,OFF", "BTWV STATE,OFF", "NOISE_ADD STATE,OFF",
+                            "CMBN OFF"):
                 self.send(f"{self.channel}:{command}")
             self.ready()
+            # Waveform combining adds the other channel even when its BNC
+            # output is OFF. It must be disabled before independent references.
+            if parameters(self.query(f"{self.channel}:CMBN?"), f"{self.channel}:CMBN") != ["OFF"]:
+                raise RuntimeError("RO generator waveform combining is not disabled")
             return self
         except BaseException as error:
             self.__exit__(type(error), error, error.__traceback__)
@@ -984,7 +1103,8 @@ class Generator:
         if parameters(self.query(f"{c}:OUTP?"), f"{c}:OUTP")[0] != "ON":
             raise RuntimeError("RO generator output is not enabled")
         return {"arb": arb, "rate": rate, "wave": wave, "output": output,
-                "waveform": waveform, "transport": "VXI-11"}
+                "waveform": waveform,
+                "transport": self.transport_label}
 
     def reference(self, wave, offset_v, amplitude_v=0., frequency_hz=0.):
         """Configure independent built-in references, never an RT matrix case."""
@@ -1028,17 +1148,23 @@ class Generator:
             try:
                 if self.controlled:
                     if exc is not None:
-                        # Use a fresh RPC stream after failure. Never reuse pending replies.
+                        # Reopen after failure and discard pending responses before OUTP OFF.
                         old = self.transport
-                        old_link = old.link
-                        old.discard()
-                        self.transport = Vxi11(self.address, self.port, self.timeout)
-                        self.operation("reconnect VXI-11 for OUTP OFF", self.transport.open)
+                        old_link = getattr(old, "link", None)
+                        if self.transport_name == "visa":
+                            old.close()
+                            self.transport = VisaTransport(self.resource, self.timeout, self.visa_backend)
+                            self.operation("reconnect VISA USBTMC for OUTP OFF", self.transport.open)
+                            self.operation("clear pending USBTMC responses", self.transport.instrument.clear)
+                        else:
+                            old.discard()
+                            self.transport = Vxi11(self.address, self.port, self.timeout)
+                            self.operation("reconnect VXI-11 for OUTP OFF", self.transport.open)
                     self.send(f"{self.channel}:OUTP OFF")
                     self.ready()
                     if parameters(self.query(f"{self.channel}:OUTP?"), f"{self.channel}:OUTP")[0] != "OFF":
                         raise RuntimeError("RO generator did not confirm output OFF")
-                    if exc is not None and old_link is not None:
+                    if exc is not None and old_link is not None and self.transport_name == "vxi11":
                         # Release the old logical link on the healthy core connection.
                         self.transport.core.call(23, xdr_words(old_link))
             except Exception as error:
@@ -1201,7 +1327,10 @@ def run(service, store, args, stderr):
     if not math.isfinite(args.ro_settle) or not 0 <= args.ro_settle <= 10:
         raise ValueError("RO settling time must be finite and between 0 and 10 seconds")
     measured = service is not None
-    generator = Generator(args.ro_host, args.ro_port, args.ro_channel, args.ro_timeout)
+    generator = Generator(args.ro_host, args.ro_port, args.ro_channel, args.ro_timeout,
+                          transport=getattr(args, "ro_transport", "vxi11"),
+                          resource=getattr(args, "ro_resource", None),
+                          visa_backend=getattr(args, "ro_visa_backend", None))
     generator.stderr = stderr
     selected = select_ro_cases(args)
     vref, gain = board_levels()
@@ -1221,7 +1350,10 @@ def run(service, store, args, stderr):
     try:
         with (report / "scpi.jsonl").open("w", encoding="utf-8", buffering=1) as trace:
             generator.trace = trace
-            print(f"RO: VXI-11 {args.ro_host}:{args.ro_port} / inst0", file=stderr, flush=True)
+            if generator.transport_name == "visa":
+                print(f"RO: VISA USBTMC {args.ro_resource}", file=stderr, flush=True)
+            else:
+                print(f"RO: VXI-11 {args.ro_host}:{args.ro_port} / inst0", file=stderr, flush=True)
             with generator as instrument, (report / "results.jsonl").open("w", encoding="utf-8") as journal:
                 if measured:
                     if getattr(args, "ro_calibrate", "auto") == "auto":
@@ -1266,7 +1398,9 @@ def run(service, store, args, stderr):
             "calibration": "calibration.json" if (report / "calibration.json").exists() else None,
             "generator_calibration": ("generator_calibration.json"
                 if (report / "generator_calibration.json").exists() else None),
-            "transport": "VXI-11", "diagnostics": "scpi.jsonl",
+            "transport": generator.transport_label,
+            "resource": generator.resource_label,
+            "diagnostics": "scpi.jsonl",
             "not_run": [c.id for c in selected[len(results):]],
             "wall_time_s": time.perf_counter() - started,
             "note": ("Real instrument/UART test on the 48+96+221 finals matrix set; adc mode scales "
@@ -1285,7 +1419,8 @@ def _run_cases(service, store, args, stderr, instrument, journal, report,
     """Keep the RT/RO evaluation and optional UART behavior separate from transport."""
     atomic_json(report / "instrument.json", {"identity": instrument.identity,
         "host": args.ro_host, "port": args.ro_port, "channel": args.ro_channel,
-        "transport": "VXI-11", "resource": f"TCPIP::{args.ro_host}::inst0::INSTR",
+        "transport": instrument.transport_label,
+        "resource": instrument.resource_label,
         "vref_v": vref, "gain": gain, "level_mode": args.ro_level_mode,
         "board": measured, "mode": "full" if measured else "encode-only",
         "acquisition_calibration": (service.calibration.to_dict()

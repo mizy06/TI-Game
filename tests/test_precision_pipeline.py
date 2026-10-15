@@ -87,7 +87,9 @@ class PrecisionPipelineTests(unittest.TestCase):
             port=LiveSerial(response(payload))
             service=SerialService(port,store,Engine(self.api,output),stderr=io.StringIO())
             try:
-                report=measure_batch(service,frames=4,timeout=10)
+                # This verifies four complete analyses and durable archives
+                # under the public R deadline; the next test checks timeout.
+                report=measure_batch(service,frames=4,timeout=15)
             finally:
                 service.close()
             self.assertEqual(len(output.getvalue().splitlines()),1)

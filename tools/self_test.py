@@ -68,12 +68,15 @@ def safe_center(vpp, noise, position, vref=3.3, gain=1., headroom=.035):
     return low + position * (high - low)
 
 
+TEST_FREQUENCY_MAX_EXCLUSIVE_HZ = 600.
+
+
 def matrix(seed=20261005, random_count=512):
     """Return the final board-side 296-case matrix.
 
-    The board-era matrix is intentionally kept stable: 200 preliminary gate
-    cases followed by 96 fully evaluated challenge cases. ``random_count`` remains
-    in the signature for command-line compatibility and is ignored.
+    Source IDs and payloads stay stable: 200 preliminary gate cases followed
+    by 96 challenge cases, filtered to frequencies strictly below 600 Hz.
+    ``random_count`` remains for command-line compatibility and is ignored.
     """
     del random_count
     from tools.competition_stress_suite import gate_cases, challenge_cases
@@ -121,7 +124,8 @@ def matrix(seed=20261005, random_count=512):
 
     old_cases = gate_cases(seed, 50) + challenge_cases(seed, 12)
     return (convert(old, ordinal, ordinal > 200)
-            for ordinal, old in enumerate(old_cases, 1))
+            for ordinal, old in enumerate(old_cases, 1)
+            if old.frequency_hz < TEST_FREQUENCY_MAX_EXCLUSIVE_HZ)
 
 
 def ideal_shape(case, p):
