@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "source": "test",
+  "context": {},
+  "created_utc": "2026-10-12T12:03:16.906998+00:00",
+  "validation": "receiving",
+  "payload_bytes": 0,
+  "payload_file": "samples.adc.bin",
+  "encoding": "<u2"
+}

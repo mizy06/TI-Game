@@ -1,8 +1,9 @@
 param(
-    [string]$Port = "COM10"
+    [Parameter(Mandatory=$true)]
+    [string]$Port,
+    [string]$DataDir = (Join-Path (Split-Path $PSScriptRoot -Parent) 'data')
 )
-
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
-Set-Location $root
-python tools\host_waveform.py --port $Port --loop
+python (Join-Path $root 'server.py') --port $Port --data-dir $DataDir
+exit $LASTEXITCODE

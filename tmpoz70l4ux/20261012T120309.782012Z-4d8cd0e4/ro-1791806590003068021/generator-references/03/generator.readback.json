@@ -1,0 +1,28 @@
+{
+  "complete": true,
+  "uploaded_bytes": 8000,
+  "response_limit_bytes": 67112960,
+  "readback": {
+    "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8000B, TYPE, 6, ",
+    "header_bytes": 66,
+    "declared_bytes": 8000,
+    "position": "USER",
+    "waveform_name": "RO_C1.bin",
+    "waveform_type": "6",
+    "response_bytes": 8067,
+    "received_body_bytes": 8001,
+    "framing": "raw",
+    "payload_bytes": 8000,
+    "sha256": "a037832e6b4e4a65956d97c4955d09800d462de551e2d3f31978e392e57f8ce8",
+    "uploaded_bytes": 8000,
+    "uploaded_sha256": "a037832e6b4e4a65956d97c4955d09800d462de551e2d3f31978e392e57f8ce8",
+    "payload_prefix_hex": "9959995999599959995999599959995999599959995999599959995999599959",
+    "uploaded_prefix_hex": "9959995999599959995999599959995999599959995999599959995999599959",
+    "verified": true,
+    "bytes": 8000,
+    "readback_bytes": 8000,
+    "repetitions": 1,
+    "query": "WVDT? user,RO_C1",
+    "query_attempts": []
+  }
+}

@@ -18,9 +18,9 @@
 extern "C" {
 #endif
 
-/* 算法接口版本 2.1.0。高 16 位可理解为主版本；主机工具会检查这个值，
+/* 算法接口版本 2.1.2。高 16 位可理解为主版本；主机工具会检查这个值，
  * 防止“Python 按新版结构体读，但 DLL 仍是旧版”造成静默错位。 */
-#define WAVEFORM_ALGORITHM_VERSION       (0x00020100UL)
+#define WAVEFORM_ALGORITHM_VERSION       (0x00020102UL)
 
 /* 默认采集参数。WAVEFORM_SAMPLE_RATE_HZ=20000 表示每秒取 20000 点；
  * 4096 点覆盖 204.8 ms；12 位 ADC 的最大合法码为 2^12-1=4095。 */
@@ -75,7 +75,11 @@ enum {
     WAVEFORM_QUALITY_CLOCK_UNCALIBRATED = (1U << 0),
     WAVEFORM_QUALITY_VREF_UNCALIBRATED  = (1U << 1),
     WAVEFORM_QUALITY_FEW_CYCLES         = (1U << 2),
-    WAVEFORM_QUALITY_LOW_MODEL_MARGIN   = (1U << 3)
+    WAVEFORM_QUALITY_LOW_MODEL_MARGIN   = (1U << 3),
+    WAVEFORM_QUALITY_HARMONIC_AMPLITUDE = (1U << 4), /* host high-harmonic backstop */
+    WAVEFORM_QUALITY_RAMP_AMPLITUDE     = (1U << 5),
+    WAVEFORM_QUALITY_TIMING_CONSENSUS   = (1U << 6),
+    WAVEFORM_QUALITY_HOST_ENVELOPE      = (1U << 7)
 };
 
 /* 四种可识别波形及兜底 UNKNOWN。枚举从 0 连续排列，C 实现和 Python
@@ -170,7 +174,8 @@ typedef struct {
     uint16_t accepted_cycles;
     /* 靠近 ADC 满量程的采样点数。 */
     uint16_t high_clip_samples;
-    /* 由稳健高低分位中点估计的直流中心，单位 ADC 码。 */
+    /* C 阶段的载波中心估计，单位 ADC 码。主机 R/RT 随后重建完整
+     * 干净包络，在最终诊断字段中以包络中点表示信号源设置偏置。 */
     uint16_t dc_offset_counts;
     /* 靠近 ADC 零端的采样点数。 */
     uint16_t low_clip_samples;
@@ -215,7 +220,7 @@ bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
 typedef struct {
     waveform_status_t l1_status, l2_status, l3_status;
     waveform_type_t l1_type, l2_type, l3_type;
-    uint8_t selected_level; /* 1 on agreement, 3 after arbitration */
+    uint8_t selected_level; /* 1 on agreement, 2 on spectral rescue, 3 after arbitration */
     bool l3_ran;
 } waveform_cascade_trace_t;
 bool waveform_analyze_frequency(const waveform_frame_t *, waveform_result_t *);

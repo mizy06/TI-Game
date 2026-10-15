@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "source": "uart",
+  "context": {
+    "raw_header": "DUMP,proto=2,bytes=8192,fnv1a=3438409617,seq=20,fs_millihz=20000000,vref_uv=3300000,gain_ppm=1000000,adc_max=4095,flags=1"
+  },
+  "created_utc": "2026-10-12T11:42:01.467733+00:00",
+  "validation": "valid",
+  "payload_bytes": 8192,
+  "payload_file": "samples.adc.bin",
+  "encoding": "<u2",
+  "metadata": {
+    "sequence": 20,
+    "sample_rate_millihz": 20000000,
+    "reference_microvolts": 3300000,
+    "gain_ppm": 1000000,
+    "adc_full_scale": 4095,
+    "flags": 1,
+    "checksum": 3438409617,
+    "sample_rate_hz_exact": null,
+    "adc_scale": 1.0,
+    "adc_offset_counts": 0.0,
+    "payload_bytes": 8192,
+    "protocol_version": 2
+  },
+  "calculated_fnv1a": 3438409617,
+  "sample_count": 4096,
+  "request_to_received_s": 0.005043621000368148,
+  "acquisition_calibration": {
+    "sample_rate_millihz": 20239993,
+    "adc_scale": 1.0159993234072473,
+    "adc_offset_counts": -32.99657040550548,
+    "nominal_metadata": {
+      "sample_rate_millihz": 20000000,
+      "reference_microvolts": 3300000,
+      "gain_ppm": 1000000,
+      "adc_full_scale": 4095
+    },
+    "sample_rate_hz_exact": 20239.992945622518
+  },
+  "acquisition_calibration_source": {
+    "command": "RO",
+    "calibrated_utc": "2026-10-12T11:41:59.063353+00:00",
+    "calibration_report": "/workspace/scratch/63f60d92de6c/work/TI-game-finals/tmph_wc59m1/20261012T114157.497797Z-0a72207e/ro-1791805317751789151/calibration.json",
+    "calibration_sha256": "777cdb291cab629f21131286623210f145bfce39d5b398d8fa0628d96e43246e"
+  },
+  "algorithm_parameters_file": "/workspace/scratch/63f60d92de6c/work/TI-game-finals/tmph_wc59m1/algorithm_parameters.json",
+  "analysis_metadata": {
+    "sequence": 20,
+    "sample_rate_millihz": 20239993,
+    "reference_microvolts": 3300000,
+    "gain_ppm": 1000000,
+    "adc_full_scale": 4095,
+    "flags": 7,
+    "checksum": 3438409617,
+    "sample_rate_hz_exact": 20239.992945622518,
+    "adc_scale": 1.0159993234072473,
+    "adc_offset_counts": -32.99657040550548,
+    "payload_bytes": 8192,
+    "protocol_version": 2
+  },
+  "analysis_payload_file": "samples.adc.bin",
+  "calibrated_values_file": "samples.calibrated.f64.bin",
+  "calibrated_values_encoding": "<f8",
+  "analysis_sha256": "26cbbeb1da591999d2ce2002a8fefd0e7fdffcb25affc06fec448f5a57e7c668"
+}

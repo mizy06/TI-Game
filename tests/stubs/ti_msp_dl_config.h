@@ -132,4 +132,11 @@ static inline void __disable_irq(void) {}
 static inline void __enable_irq(void) {}
 static inline void __WFI(void) {}
 
+static inline void DL_ADC12_disableConversions(ADC12_Regs *adc) { (void)adc; }
+static inline void DL_ADC12_enableConversions(ADC12_Regs *adc) { (void)adc; }
+static inline void DL_ADC12_setSampleTime0(ADC12_Regs *adc, uint16_t count)
+{ (void)adc; (void)count; }
+static inline void DL_ADC12_setSampleTime1(ADC12_Regs *adc, uint16_t count)
+{ (void)adc; (void)count; }
+
 #endif /* TI_MSP_DL_CONFIG_HOST_STUB_H_ */

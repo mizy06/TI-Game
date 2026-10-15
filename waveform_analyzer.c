@@ -1274,7 +1274,7 @@ static uint32_t select_global_harmonic_period(
  * 模型是 y ≈ offset + scale*t。去均值后最佳 scale=cov(y,t)/energy(t)。
  * 模板峰峰值是 2048 个 Q10 单位，所以乘 2048 把 scale 换成完整 Vpp；
  * 再乘 65536 保存为 Q16。若协方差非正，说明方向不匹配，返回 0。 */
-static uint32_t fitted_vpp_counts_q16(void)
+static uint32_t fitted_vpp_counts_q16(waveform_type_t type)
 {
     int32_t sum_y = 0;
     int32_t sum_t = 0;
@@ -1283,16 +1283,29 @@ static uint32_t fitted_vpp_counts_q16(void)
     uint64_t positive_covariance;
     uint64_t multiplier = 2048ULL * 65536ULL;
     uint16_t bin;
+    uint16_t used = 0U;
 
     /* 与相关计算一样，使用 N*y-sum 的等比例去均值形式，避免先做除法。 */
     for (bin = 0U; bin < PHASE_BINS; ++bin) {
+        /* Interpolating across a saw reset rounds its discontinuity. Fit the
+         * linear ramp only, then extrapolate its slope to a whole period. The
+         * classification score still uses the complete waveform. */
+        if ((type == WAVEFORM_TYPE_SAWTOOTH) &&
+            (absolute_i32(g_template[bin]) > 800)) {
+            continue;
+        }
         sum_y += g_folded[bin];
         sum_t += g_template[bin];
+        ++used;
     }
     for (bin = 0U; bin < PHASE_BINS; ++bin) {
-        int32_t y = ((int32_t)g_folded[bin] * (int32_t)PHASE_BINS) -
+        if ((type == WAVEFORM_TYPE_SAWTOOTH) &&
+            (absolute_i32(g_template[bin]) > 800)) {
+            continue;
+        }
+        int32_t y = ((int32_t)g_folded[bin] * (int32_t)used) -
                     sum_y;
-        int32_t t = ((int32_t)g_template[bin] * (int32_t)PHASE_BINS) -
+        int32_t t = ((int32_t)g_template[bin] * (int32_t)used) -
                     sum_t;
         covariance += (int64_t)y * t;
         template_energy += (uint64_t)((int64_t)t * t);
@@ -1585,7 +1598,10 @@ bool waveform_analyze_frame_with_algorithm(const waveform_frame_t *frame,
     result->type = classification.type;
 
     /* 阶段 6：以已经选中的最佳模板拟合峰峰幅度。 */
-    vpp_counts_q16 = fitted_vpp_counts_q16();
+    vpp_counts_q16 = fitted_vpp_counts_q16(result->type);
+    if (result->type == WAVEFORM_TYPE_SAWTOOTH) {
+        result->quality_flags |= WAVEFORM_QUALITY_RAMP_AMPLITUDE;
+    }
     result->vpp_counts_q16 = vpp_counts_q16;
     /* ADC 码转 ADC 引脚电压：
      * vpp_uv = vpp_counts_q16/65536/full_scale * reference_uv。

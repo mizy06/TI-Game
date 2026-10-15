@@ -1,0 +1,4 @@
+{"utc": "2026-10-12T11:45:56.832339+00:00", "event": "opened", "request": 0, "received_bytes": 0, "port": null}
+{"utc": "2026-10-12T11:45:57.091909+00:00", "event": "request_started", "request": 1, "received_bytes": 0, "timeout_s": 10.0, "raw_reference": true}
+{"utc": "2026-10-12T11:45:57.092688+00:00", "event": "command_sent", "request": 1, "received_bytes": 0, "attempt": 1}
+{"utc": "2026-10-12T11:45:57.096659+00:00", "event": "request_complete", "request": 1, "received_bytes": 8366, "elapsed_s": 0.00476029399987965}

@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-script_dir="$(cd "$(dirname "$0")" && pwd)"
-project_dir="$(cd "$script_dir/.." && pwd)"
-
-cc -std=c99 -O2 -Wall -Wextra -Werror \
-  -I"$project_dir" \
-  "$project_dir/waveform_analyzer.c" \
-  -x c "$script_dir/host_test.c.txt" \
-  -lm -o "$script_dir/host_test"
-
-"$script_dir/host_test"
+root="$(cd "$(dirname "$0")/.." && pwd)"
+tmp="$root/tests/.build"
+mkdir -p "$tmp"
+trap 'rm -rf "$tmp"' EXIT
+for case_name in host_test precision_validation; do
+  "${CC:-cc}" -std=c99 -O2 -Wall -Wextra -Werror -I"$root" \
+    "$root/waveform_analyzer.c" "$root/waveform_cascade.c" \
+    -x c "$root/tests/$case_name.c.txt" -lm -o "$tmp/$case_name"
+  "$tmp/$case_name"
+done
+bash "$root/tools/build_host_waveform.sh"
+python3 -m unittest discover -s "$root/tests" -p 'test*.py' -v

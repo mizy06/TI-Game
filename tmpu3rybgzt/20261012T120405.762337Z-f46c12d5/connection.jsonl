@@ -1,0 +1,7 @@
+{"utc": "2026-10-12T12:04:05.764491+00:00", "event": "opened", "request": 0, "received_bytes": 0, "port": null}
+{"utc": "2026-10-12T12:04:05.764780+00:00", "event": "request_started", "request": 1, "received_bytes": 0, "timeout_s": 3, "raw_reference": false}
+{"utc": "2026-10-12T12:04:05.764986+00:00", "event": "command_sent", "request": 1, "received_bytes": 0, "attempt": 1}
+{"utc": "2026-10-12T12:04:05.769407+00:00", "event": "receiver_error", "request": 1, "received_bytes": 8358, "error": "ValueError: DUMP FNV-1a integrity check failed"}
+{"utc": "2026-10-12T12:04:05.769525+00:00", "event": "request_failed", "request": 1, "received_bytes": 8358, "error": "ValueError: DUMP FNV-1a integrity check failed"}
+{"utc": "2026-10-12T12:04:05.771453+00:00", "event": "request_started", "request": 2, "received_bytes": 8358, "timeout_s": 3, "raw_reference": false}
+{"utc": "2026-10-12T12:04:05.771540+00:00", "event": "command_sent", "request": 2, "received_bytes": 8358, "attempt": 1}

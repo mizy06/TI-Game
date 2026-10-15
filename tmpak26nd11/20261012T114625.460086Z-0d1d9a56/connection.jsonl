@@ -1,0 +1,10 @@
+{"utc": "2026-10-12T11:46:25.461553+00:00", "event": "opened", "request": 0, "received_bytes": 0, "port": null}
+{"utc": "2026-10-12T11:46:25.461999+00:00", "event": "request_started", "request": 1, "received_bytes": 0, "timeout_s": 9.999968352999986, "raw_reference": true}
+{"utc": "2026-10-12T11:46:25.462076+00:00", "event": "command_sent", "request": 1, "received_bytes": 0, "attempt": 1}
+{"utc": "2026-10-12T11:46:25.469077+00:00", "event": "request_complete", "request": 1, "received_bytes": 8367, "elapsed_s": 0.00708308000002944}
+{"utc": "2026-10-12T11:46:25.870271+00:00", "event": "request_started", "request": 2, "received_bytes": 8367, "timeout_s": 9.591711675999704, "raw_reference": true}
+{"utc": "2026-10-12T11:46:25.870464+00:00", "event": "command_sent", "request": 2, "received_bytes": 8367, "attempt": 1}
+{"utc": "2026-10-12T11:46:25.875881+00:00", "event": "request_complete", "request": 2, "received_bytes": 16734, "elapsed_s": 0.005625866000173119}
+{"utc": "2026-10-12T11:46:26.283935+00:00", "event": "request_started", "request": 3, "received_bytes": 16734, "timeout_s": 9.178042616999846, "raw_reference": true}
+{"utc": "2026-10-12T11:46:26.284036+00:00", "event": "command_sent", "request": 3, "received_bytes": 16734, "attempt": 1}
+{"utc": "2026-10-12T11:46:26.289470+00:00", "event": "request_complete", "request": 3, "received_bytes": 25101, "elapsed_s": 0.005548479000026418}

@@ -20,8 +20,26 @@ $compilerPath = Join-Path $compilerRoot 'bin\tiarmclang.exe'
 $compilerLib = [IO.Path]::GetFullPath((Join-Path $compilerRoot 'lib'))
 $fixedArgs = [Collections.Generic.List[string]]::new()
 
+# CCS 7.1 emits the SysConfig linker script twice for TI Clang projects:
+# once as the positional file after --rom_model and once as a generated -l
+# input.  The linker treats that second occurrence as another MEMORY block.
+$hasRomModelScript = $false
+for ($index = 0; $index -lt $args.Count - 1; $index++) {
+    if ($args[$index] -eq '-Wl,--rom_model' -and
+        $args[$index + 1].EndsWith('.cmd', [StringComparison]::OrdinalIgnoreCase)) {
+        $hasRomModelScript = $true
+        break
+    }
+}
+
 for ($index = 0; $index -lt $args.Count; $index++) {
     $argument = $args[$index]
+
+    if ($hasRomModelScript -and $argument.StartsWith('-Wl,-l') -and
+        $argument.IndexOf('device_linker.cmd', [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+        continue
+    }
+
     if ($index + 1 -lt $args.Count -and $args[$index + 1].StartsWith('/')) {
         if ($argument -match '^(-I|-[^-]*,-i)[A-Za-z]$') {
             $fixedArgs.Add($argument + ':' + $args[++$index])

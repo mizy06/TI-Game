@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "created_utc": "20261012T120309.782012Z",
+  "encoding": "uint16 little-endian",
+  "sample_csv": false,
+  "uart_rx": "uart_rx.bin",
+  "note": "Raw UART bytes are saved before protocol checks; frame payloads before analysis."
+}

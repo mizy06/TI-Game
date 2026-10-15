@@ -1,0 +1,113 @@
+{
+  "rt_metadata": {
+    "sequence": 20365734,
+    "sample_rate_millihz": 19760000,
+    "reference_microvolts": 3000000,
+    "gain_ppm": 800000,
+    "adc_full_scale": 4095,
+    "flags": 7,
+    "checksum": 3195522182,
+    "sample_rate_hz_exact": null,
+    "adc_scale": 1.0,
+    "adc_offset_counts": 0.0,
+    "payload_bytes": 8192,
+    "protocol_version": 2
+  },
+  "rt_generated": {
+    "noise_vpp_v": 0.0,
+    "noise_mean_v": 0.0,
+    "requested_noise_vpp_v": 0.0,
+    "noise_upper_hz": 9880.0,
+    "adc_min": 48,
+    "adc_max": 144,
+    "prequantization_clipped_samples": 0,
+    "truth": {
+      "frequency_hz": 100.0,
+      "vpp_v": 0.0879120879120879,
+      "dc_v": 0.08770582631742183,
+      "duty_pct": 0.0,
+      "scope": "clean_period",
+      "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+      "dc_definition": "configured source offset (clean envelope midpoint)"
+    }
+  },
+  "truth": {
+    "frequency_hz": 100.0,
+    "vpp_v": 0.07736263736263736,
+    "dc_v": 0.0771811271593312,
+    "duty_pct": 0.0,
+    "scope": "clean_period",
+    "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+    "dc_definition": "configured source offset (clean envelope midpoint)"
+  },
+  "level_mode": "adc",
+  "voltage_scale": 0.88,
+  "amplitude_v": 3.3,
+  "offset_v": 1.65,
+  "sample_rate_hz": 19760.0,
+  "loop_frequency_hz": 4.7614457831325305,
+  "waveform_samples": 4150,
+  "seam_bridge_samples": 54,
+  "input_min_v": 0.038681318681318674,
+  "input_max_v": 0.11604395604395604,
+  "dac_roundtrip_error_v": 2.479042000511078e-05,
+  "dac_encoding": "signed int16 little-endian",
+  "note": "Original RT codes are unchanged. A short carrier continuation closes the loop; aperiodic noise/AM/interference still repeats, and R is not phase-locked.",
+  "readback": {
+    "arb": [
+      "INDEX",
+      "0",
+      "NAME",
+      "RO_C1"
+    ],
+    "rate": [
+      "MODE",
+      "TARB",
+      "VALUE",
+      "19760.0",
+      "INTER",
+      "HOLD"
+    ],
+    "wave": [
+      "WVTP",
+      "ARB",
+      "FRQ",
+      "250.0HZ",
+      "AMP",
+      "3.3V",
+      "OFST",
+      "1.65V"
+    ],
+    "output": [
+      "OFF",
+      "LOAD",
+      "HZ",
+      "PLRT",
+      "NOR"
+    ],
+    "waveform": {
+      "header": "WVDT POS, USER, WVNM, RO_C1.bin, LENGTH, 8300B, TYPE, 6, ",
+      "header_bytes": 66,
+      "declared_bytes": 8300,
+      "position": "USER",
+      "waveform_name": "RO_C1.bin",
+      "waveform_type": "6",
+      "response_bytes": 8367,
+      "received_body_bytes": 8301,
+      "framing": "raw",
+      "payload_bytes": 8300,
+      "sha256": "8e698f9d997f6e32f9ce2f2dbc2fa97c8c5b38920e2b108d575dc8c33cb7c8fd",
+      "uploaded_bytes": 8300,
+      "uploaded_sha256": "8e698f9d997f6e32f9ce2f2dbc2fa97c8c5b38920e2b108d575dc8c33cb7c8fd",
+      "payload_prefix_hex": "f188f188e188e188e188d188d188c188c188b188a18891889188818871886188",
+      "uploaded_prefix_hex": "f188f188e188e188e188d188d188c188c188b188a18891889188818871886188",
+      "verified": true,
+      "bytes": 8300,
+      "readback_bytes": 8300,
+      "repetitions": 1,
+      "query": "WVDT? user,RO_C1",
+      "query_attempts": []
+    },
+    "transport": "VXI-11"
+  }
+}
