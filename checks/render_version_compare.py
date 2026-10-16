@@ -26,6 +26,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("comparison", type=Path)
     parser.add_argument("--versions", type=Path, help="versions.json with revision metadata")
+    parser.add_argument("--appendix", type=Path, help="extra Markdown appended verbatim")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     data = json.loads(args.comparison.read_text(encoding="utf-8"))
@@ -37,7 +38,7 @@ def main() -> int:
 
     lines = []
     add = lines.append
-    add("# 版本对比报告：上周日前推送版 vs 当前未推送版\n")
+    add(f"# {meta.get('title', '版本对比报告')}\n")
     add(f"- 数据源：`{data['report']}`（最近一次实机 RO 采集矩阵，365 项）")
     add(f"- 筛选：`{data['frequency_min_hz']:.0f} Hz <= 源频率 <= {data['frequency_max_hz']:.0f} Hz` "
         f"且 `noise_pp_ratio < {data['noise_pp_ratio_below']:.0%}` → **{data['selected_cases']} 项**")
@@ -53,18 +54,22 @@ def main() -> int:
     add("")
     transitions = data["transitions"]
     first, second = names[0], names[1]
-    first_summary, second_summary = data["versions"][first], data["versions"][second]
     add("## 结论\n")
-    add(f"- **{labels[second]} 在 {second_summary['total']} 项上全部通过 "
-        f"（{second_summary['passed']}/{second_summary['total']}），"
-        f"分类全部正确，无异常输出。**")
-    add(f"- {labels[first]} 通过 {first_summary['passed']}/{first_summary['total']}"
-        f"（{first_summary['passed'] / max(1, first_summary['total']):.1%}），"
-        f"另有 {first_summary['total'] - first_summary['valid_outputs']} 项拒识为 unknown。")
-    gained = transitions.get("FAIL->PASS", 0)
+    for name in names:
+        s = data["versions"][name]
+        add(f"- **{labels[name]}**：通过 {s['passed']}/{s['total']}"
+            f"（{s['passed'] / max(1, s['total']):.1%}），"
+            f"分类正确 {s['classified']}/{s['total']}，有效输出 {s['valid_outputs']}，"
+            f"异常 {s['exceptions']}，平均/最大耗时 "
+            f"{s['wall_time_s']['mean']:.2f}/{s['wall_time_s']['max']:.2f} s。")
+    add("")
+    add(f"逐例转移（{labels[first]} → {labels[second]}）：" +
+        "，".join(f"{k} {v}" for k, v in sorted(transitions.items())) + "。")
     lost = transitions.get("PASS->FAIL", 0)
-    add(f"- 逐例转移：{gained} 项由失败转为通过，{lost} 项由通过转为失败"
-        f"（{'无回归' if lost == 0 else '存在回归'}）。")
+    gained = transitions.get("FAIL->PASS", 0)
+    add("")
+    add(f"- {labels[second]} 相对 {labels[first]}：新增通过 {gained} 项，"
+        f"丢失通过 {lost} 项（{'无回归' if lost == 0 else '**存在回归**'}）。")
     for name in names[2:]:
         other = data["versions"][name]
         add(f"- 参考列 {labels[name]}：通过 {other['passed']}/{other['total']}"
@@ -173,6 +178,9 @@ def main() -> int:
         for command in meta["commands"]:
             add(command)
         add("```")
+        add("")
+    if args.appendix and args.appendix.exists():
+        add(args.appendix.read_text(encoding="utf-8").rstrip())
         add("")
     (args.output / "REPORT.md").write_text("\n".join(lines), encoding="utf-8")
     with (args.output / "per_case.csv").open("w", encoding="utf-8", newline="") as stream:

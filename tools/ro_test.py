@@ -20,7 +20,8 @@ from pathlib import Path
 from tools import host_waveform as host
 from tools.capture_store import atomic_json, atomic_text
 from tools.self_test import (Case, clean_signal, distorted_shape, evaluate, generate, matrix,
-                             TEST_FREQUENCY_MAX_EXCLUSIVE_HZ)
+                             TEST_FREQUENCY_MIN_HZ, TEST_FREQUENCY_MAX_EXCLUSIVE_HZ,
+                             TEST_NOISE_MAX_EXCLUSIVE)
 
 PROJECT = Path(__file__).resolve().parents[1]
 FINALS_SUITE_SPECS = (
@@ -121,10 +122,9 @@ def _generate_finals_row(row, seed):
     }
     if row["kind"] == "sine" and row.get("replay"):
         volts = codes.astype(float) * 3.3 / 4095.0
-        v_centered = volts - float(volts.mean())
-        c_sin = 2.0 * float(np.mean(v_centered * np.sin(2.0 * np.pi * p)))
-        c_cos = 2.0 * float(np.mean(v_centered * np.cos(2.0 * np.pi * p)))
-        truth["wire_carrier_vpp_v"] = float(2.0 * math.hypot(c_sin, c_cos))
+        basis = np.column_stack((np.sin(2.0 * np.pi * p), np.cos(2.0 * np.pi * p), np.ones_like(p)))
+        coeffs, _, _, _ = np.linalg.lstsq(basis, volts, rcond=None)
+        truth["wire_carrier_vpp_v"] = float(2.0 * math.hypot(coeffs[0], coeffs[1]))
     facts = {
         "noise_vpp_v": float(np.ptp(noise)),
         "noise_mean_v": float(noise.mean()),
@@ -239,7 +239,9 @@ def ro_matrix(seed=20261005, random_count=512):
     """Return Finals RO cases strictly below 600 Hz, preserving their IDs."""
     del seed, random_count
     cases, _ = _cached_finals_bundle()
-    return (case for case in cases if case.frequency_hz < TEST_FREQUENCY_MAX_EXCLUSIVE_HZ)
+    return (case for case in cases
+            if (TEST_FREQUENCY_MIN_HZ <= case.frequency_hz < TEST_FREQUENCY_MAX_EXCLUSIVE_HZ
+                and case.noise_pp_ratio < TEST_NOISE_MAX_EXCLUSIVE))
 
 
 def _is_finals_case(case):

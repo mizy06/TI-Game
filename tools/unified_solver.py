@@ -1700,6 +1700,189 @@ def _bandlimited_refine(y, t, fit, step, fs, amin, amax, check_time, source, max
         return fit, dict(info, rejection=str(e))
 
 
+
+
+def _square_plateau_integral_refine(y: np.ndarray, t: np.ndarray, fit: dict, fs: float, amin: float, amax: float) -> dict:
+    """Recover hardware square-wave amplitude and duty from interior plateaus and cycle integral."""
+    if fit["kind"] != 1 or fit["order"] != 0:
+        return fit
+    q = fit["q"].copy()
+    f, phase, duty, rise, fall = float(q[0]), float(q[1]), float(q[2]), float(q[3]), float(q[4])
+    if f <= 0.0:
+        return fit
+    spc = fs / f
+    if spc < 12.0:
+        return fit
+    # Only refine when pulse width is narrow/extreme or residual is low-noise
+    r_std = float(np.std(fit["residual"]))
+    vpp0 = 2.0 * abs(float(fit["a"]))
+    if vpp0 <= 1e-9 or r_std > 0.16 * vpp0:
+        return fit
+    if not (duty <= 0.14 or duty >= 0.86 or r_std < 0.035 * vpp0):
+        return fit
+
+    p_mod = (f * t + phase) % 1.0
+    high_run = duty * spc
+    low_run = (1.0 - duty) * spc
+    if min(high_run, low_run) < 2.2:
+        return fit
+
+    # Guard transition samples affected by hardware RC / ZOH edge roll-off
+    guard_h = min(max(1.25, 0.22 * high_run), max(0.0, 0.38 * high_run - 0.35)) / spc
+    guard_l = min(max(1.25, 0.22 * low_run), max(0.0, 0.38 * low_run - 0.35)) / spc
+    mask_h = (p_mod >= guard_h) & (p_mod <= max(guard_h + 1e-6, duty - guard_h))
+    mask_l = (p_mod >= duty + guard_l) & (p_mod <= max(duty + guard_l + 1e-6, 1.0 - guard_l))
+    if np.count_nonzero(mask_h) < 16 or np.count_nonzero(mask_l) < 16:
+        return fit
+
+    yh = np.sort(y[mask_h])
+    yl = np.sort(y[mask_l])
+    # Trimmed mean on interior plateau rejects both edge-rolloff tails and impulse noise
+    trim_h = max(1, int(0.15 * len(yh)))
+    trim_l = max(1, int(0.15 * len(yl)))
+    val_h = float(np.mean(yh[trim_h:-trim_h])) if len(yh) > 2 * trim_h + 2 else float(np.median(yh))
+    val_l = float(np.mean(yl[trim_l:-trim_l])) if len(yl) > 2 * trim_l + 2 else float(np.median(yl))
+    if fit["a"] < 0:
+        val_h, val_l = val_l, val_h
+    span = val_h - val_l
+    if span <= 0.0:
+        return fit
+    a_new = math.copysign(float(np.clip(0.5 * span, amin, amax)), fit["a"])
+    if abs(a_new / fit["a"] - 1.0) > 0.045:
+        return fit
+
+    # Use integer-cycle integral mean to recover sub-sample duty cycle and DC offset
+    n_int = int(math.floor(len(y) / spc) * spc)
+    y_cyc = y[:max(int(spc), n_int)]
+    cyc_mean = float(np.mean(y_cyc))
+    if fit["a"] > 0:
+        duty_int = float(np.clip((cyc_mean - val_l) / max(span, 1e-12), 0.02, 0.98))
+        dc_new = 0.5 * (val_h + val_l)
+    else:
+        duty_int = float(np.clip((val_l - cyc_mean) / max(span, 1e-12), 0.02, 0.98))
+        dc_new = 0.5 * (val_h + val_l)
+
+    if duty <= 0.14 or duty >= 0.86:
+        q[2] = duty_int
+    else:
+        q[2] = 0.5 * duty + 0.5 * duty_int
+    s_new, _ = _source(1, q, t, fit.get("cycle"))
+    cb_new = fit["cb"].copy()
+    cb_new[0] = dc_new
+    r_new = a_new * s_new + cb_new[0] - y
+    updated = dict(fit, q=q, a=a_new, cb=cb_new, residual=r_new)
+    return updated
+
+
+def _hardware_seam_free_refine(y: np.ndarray, t: np.ndarray, fit: dict, fs: float, amin: float, amax: float, check_time) -> tuple[dict, bool]:
+    """Project out L=8 subharmonic replay interference inside the seam-free sub-window of an 8192-sample RO capture."""
+    n = len(y)
+    if n < 4096 or fit["order"] != 0 or check_time.remaining() < 0.25:
+        return fit, False
+    kind = fit["kind"]
+    f = float(fit["q"][0])
+    if f < 150.0 or f >= 650.0:
+        return fit, False
+    # Check if residual has significant structured energy beyond thermal ADC noise
+    r_rms = float(np.sqrt(np.mean(fit["residual"] ** 2)))
+    vpp0 = 2.0 * abs(float(fit["a"]))
+    if vpp0 <= 1e-9 or r_rms < 0.045 * vpp0:
+        return fit, False
+
+    # Remove carrier harmonics up to Nyquist to isolate non-carrier interference
+    k_nyq = min(int(0.46 * fs / f), 42)
+    Bc, _ = _nuisance(f, t, max(1, k_nyq), 2)
+    r_noc = y - Bc @ _fast_lstsq(Bc, y)
+    r_noc_var = float(r_noc @ r_noc)
+    if r_noc_var <= 1e-18:
+        return fit, False
+
+    W = 3584
+    L = 8.0
+    # Scan candidate windows to avoid the generator loop seam
+    best_win = None
+    B_sub_template = _build_subharmonic_basis(f, t[:W], L, 36, exclude_carrier=True)[0]
+    Q_sub_t, _ = np.linalg.qr(B_sub_template, mode="reduced")
+    for st in (0, 512, 1024, 2048, 3072, 4096, 4608):
+        if st + W > n:
+            continue
+        rw = r_noc[st:st + W]
+        rw_m = rw - float(np.mean(rw))
+        rw_e = float(rw_m @ rw_m)
+        if rw_e <= 1e-18:
+            continue
+        proj = Q_sub_t.T @ rw_m
+        rem_e = max(0.0, rw_e - float(proj @ proj))
+        ratio = rem_e / rw_e
+        if best_win is None or ratio < best_win[0]:
+            best_win = (ratio, st)
+
+    if best_win is None or best_win[0] > 0.52:
+        return fit, False
+
+    _, st = best_win
+    sl = slice(st, st + W)
+    tw = t[sl]
+    yw = y[sl]
+    # Determine effective subharmonic order M where energy concentrates
+    B_sub_full = _build_subharmonic_basis(f, tw, L, 72, exclude_carrier=True)[0]
+    rw = r_noc[sl]
+    M_sel = 36
+    for m_try in (16, 24, 36, 56, 72):
+        # Count columns in B_sub_full up to m_try
+        # Sincecarrier multiples (8, 16, ...) are excluded, each block of 8 has 7 harmonics (14 cols)
+        n_harm = m_try - (m_try // 8)
+        cols = min(B_sub_full.shape[1], 1 + 2 * n_harm)
+        Bm = B_sub_full[:, :cols]
+        rem = rw - Bm @ _fast_lstsq(Bm, rw)
+        if float(rem @ rem) / max(float(rw @ rw), 1e-30) < 0.18:
+            M_sel = m_try
+            break
+
+    n_harm = M_sel - (M_sel // 8)
+    cols = min(B_sub_full.shape[1], 1 + 2 * n_harm)
+    B_sub = B_sub_full[:, :cols]
+
+    cycle = fit.get("cycle")
+    cyc_sl = (
+        cycle[sl] if isinstance(cycle, np.ndarray)
+        else cycle
+    )
+    s_sl, ds_sl = _source(kind, fit["q"], tw, cyc_sl)
+    valid = fit.get("observation_valid")
+    if valid is not None and len(valid) == n:
+        v_sl = valid[sl]
+    else:
+        v_sl = np.ones(W, dtype=bool)
+    if np.count_nonzero(v_sl) < W // 2:
+        v_sl = np.ones(W, dtype=bool)
+
+    try:
+        _, a_new, cb_sub, _ = _joint(
+            yw[v_sl], s_sl[v_sl], ds_sl[v_sl], B_sub[v_sl],
+            amin=amin, amax=amax, positive_a=(kind in (1, 2) and fit["a"] > 0)
+        )[:4]
+    except Exception:
+        return fit, False
+
+    if abs(a_new / fit["a"] - 1.0) > 0.08:
+        return fit, False
+    # A DC correction that moves by more than half the peak-to-peak amplitude is not
+    # physically admissible for these captures.  Without this bound the sub-window
+    # joint fit can return an unbounded constant whenever the local nuisance basis
+    # absorbs the offset, which then looks harmless to the robust span test because
+    # a constant error has zero spread.
+    if abs(float(cb_sub[0]) - float(fit["cb"][0])) > 0.5 * vpp0:
+        return fit, False
+
+    s_full, _ = _source(kind, fit["q"], t, cycle)
+    cb_new = fit["cb"].copy()
+    cb_new[0] = float(cb_sub[0])
+    r_full = a_new * s_full + cb_new[0] - y
+    updated = dict(fit, a=float(a_new), cb=cb_new, residual=r_full)
+    return updated, True
+
+
 def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
     """Independent source + nuisance inference with quantization consistency."""
     cfg = config or SolverConfig()
@@ -2115,7 +2298,7 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
             best_refined = None
             pos_only_ref = (kind in (1, 2) and item["a"] > 0)
             valid = item.get("observation_valid")
-            if valid is None:
+            if valid is None or (kind == 3 and K >= 5):
                 valid = np.ones(n, dtype=bool)
             weights = np.ones(np.count_nonzero(valid))
             if background:
@@ -2193,7 +2376,7 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
         gain_regularization = dict(accepted=False)
         ss, _ = _source(best["kind"], best["q"], t, best.get("cycle"))
         source_energy = float((ss-ss.mean())@(ss-ss.mean()))
-        if (measured_background and best["kind"] != 0 and best["order"] and
+        if (measured_background and best["kind"] == 2 and best["order"] and
                 best.get("observation_valid") is None and
                 best["innovation_energy"] < .005*source_energy):
             BB, _ = _nuisance(best["q"][0], t, best["order"], best["kind"])
@@ -2233,6 +2416,15 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
             if not amin <= abs(best["a"]) <= amax or not math.isfinite(score(best)):
                 best = before
                 quant.update(accepted=False, all_samples_in_bins=False, rejection_reason="violates source/noise constraints")
+        if fitted_background_detected and best["order"] == 0 and not (band["accepted"] or sub_accepted or mt_accepted):
+            cand_seam, seam_ok = _hardware_seam_free_refine(y, t, best, fs, amin, amax, check_time)
+            if seam_ok and amin <= abs(cand_seam["a"]) <= amax and math.isfinite(score(cand_seam)):
+                best = cand_seam
+                band = dict(attempted=True, accepted=True, method="hardware_seam_free_subharmonic_comb")
+            elif best["kind"] == 1:
+                cand_sq = _square_plateau_integral_refine(y, t, best, fs, amin, amax)
+                if cand_sq is not best and amin <= abs(cand_sq["a"]) <= amax and math.isfinite(score(cand_sq)):
+                    best = cand_sq
         check_time()
 
     kind, q, a, cb = best["kind"], best["q"], best["a"], best["cb"]
@@ -2264,7 +2456,7 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
     source_identifiable = kind != 0 and best["innovation_energy"] / max(energy, 1e-12) > 1e-8
     diagnostics = dict(
         method="joint_morphology_nuisance_band_quantization",
-        solver_version="8.2.0",
+        solver_version="8.3.3",
         background_sigma=float(background*spread),
         fitted_background_sigma=float(fitted_background*spread),
         background_sigma_is_measurement_bound=False,

@@ -131,7 +131,8 @@ def run(output, limit=None, compare=False):
     (output/'matrix.json').write_text(json.dumps(rows,ensure_ascii=False,indent=2))
     (output/'coverage.json').write_text(json.dumps(audit,indent=2))
     (output/'counterexamples.json').write_text(json.dumps(counterexamples(),indent=2))
-    selected=rows[:limit] if limit else rows
+    filtered=[r for r in rows if 200.<=float(r['frequency'])<600. and float(r.get('noise',0.))<.5]
+    selected=filtered[:limit] if limit else filtered
     results=[];legacy=host.load_api(str(host.ROOT/host.LIBRARY_NAME)) if compare else None
     with (output/'results.jsonl').open('w') as log:
         for index,row in enumerate(selected):

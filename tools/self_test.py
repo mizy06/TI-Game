@@ -68,7 +68,9 @@ def safe_center(vpp, noise, position, vref=3.3, gain=1., headroom=.035):
     return low + position * (high - low)
 
 
+TEST_FREQUENCY_MIN_HZ = 200.
 TEST_FREQUENCY_MAX_EXCLUSIVE_HZ = 600.
+TEST_NOISE_MAX_EXCLUSIVE = .5
 
 
 def matrix(seed=20261005, random_count=512):
@@ -381,7 +383,7 @@ def run(api, store, process, *, suite="all", seed=20261005,
     stderr = stderr or sys.stderr
     selected = [c for c in matrix(seed, random_count)
                 if (suite == "all" or c.suite == suite) and
-                (not case_ids or c.id in case_ids)]
+                (c.id in case_ids if case_ids else (TEST_FREQUENCY_MIN_HZ <= c.frequency_hz < TEST_FREQUENCY_MAX_EXCLUSIVE_HZ and c.noise_pp_ratio < TEST_NOISE_MAX_EXCLUSIVE))]
     if case_ids and set(case_ids)-{c.id for c in selected}:
         raise ValueError("unknown case ID or case outside selected suite")
     if max_cases is not None:

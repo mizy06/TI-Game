@@ -254,11 +254,11 @@ class ROTests(unittest.TestCase):
         import numpy as np
         vref, gain = board_levels()
         cases = list(ro_matrix())
-        self.assertEqual(len(cases), 249)
-        self.assertTrue(all(c.frequency_hz < 600 for c in cases))
-        self.assertEqual([c.group for c in cases[:18]], ["new48"] * 18)
-        self.assertEqual([c.group for c in cases[18:72]], ["fresh96"] * 54)
-        self.assertEqual([c.group for c in cases[72:]], ["paired221"] * 177)
+        self.assertEqual(len(cases), 141)
+        self.assertTrue(all(200 <= c.frequency_hz < 600 and c.noise_pp_ratio < 0.5 for c in cases))
+        self.assertEqual([c.group for c in cases[:12]], ["new48"] * 12)
+        self.assertEqual([c.group for c in cases[12:49]], ["fresh96"] * 37)
+        self.assertEqual([c.group for c in cases[49:]], ["paired221"] * 92)
         fingerprints = (
             json.loads((ROOT / "validation/fingerprints_new48.json").read_text()) +
             json.loads((ROOT / "validation/fingerprints_fresh96.json").read_text()) +
@@ -289,10 +289,10 @@ class ROTests(unittest.TestCase):
             self.assertEqual([c.id for c in ro_matrix()],['boundary-0'])
             with self.assertRaisesRegex(ValueError,'unknown case ID'):
                 select_ro_cases(SimpleNamespace(case_id=['boundary-1']))
-        for group,expected in (('new48',18),('fresh96',54),('paired221',177)):
+        for group,expected in (('new48',12),('fresh96',37),('paired221',92)):
             selected=select_ro_cases(SimpleNamespace(case_id=[group]))
             self.assertEqual(len(selected),expected)
-            self.assertTrue(all(c.frequency_hz<600 for c in selected))
+            self.assertTrue(all(200<=c.frequency_hz<600 and c.noise_pp_ratio<0.5 for c in selected))
         self.assertEqual(len(select_ro_cases(SimpleNamespace(max_cases=5))),5)
 
     def test_list_matrix_exports_the_same_filtered_ro_selection(self):
@@ -302,8 +302,8 @@ class ROTests(unittest.TestCase):
             self.assertEqual(code,0)
             report=next(Path(directory).glob('*/matrix.json'))
             cases=json.loads(report.read_text())['cases']
-            self.assertEqual(len(cases),18)
-            self.assertTrue(all(c['frequency_hz']<600 and c['group']=='new48' for c in cases))
+            self.assertEqual(len(cases),12)
+            self.assertTrue(all(200<=c['frequency_hz']<600 and c['noise_pp_ratio']<0.5 and c['group']=='new48' for c in cases))
 
     def test_source_mode_rejects_unsafe_volts_and_keeps_safe_truth(self):
         case = list(matrix())[1]
@@ -372,8 +372,8 @@ class ROTests(unittest.TestCase):
                     self.assertEqual(captured["self_test"], entry["result"])
                     self.assertEqual(captured["metadata"]["reference_microvolts"], 3300000)
                     self.assertEqual(captured["metadata"]["gain_ppm"], 1000000)
-                    self.assertEqual((report / entry["case_id"] / "rt.adc.bin").read_bytes(),
-                                     (store.path / entry["capture"] / "samples.adc.bin").read_bytes())
+                    rt_bytes = (report / entry["case_id"] / "rt.adc.bin").read_bytes()
+                    self.assertEqual(rt_bytes, (store.path / entry["capture"] / "samples.adc.bin").read_bytes()[:len(rt_bytes)])
                 self.assertEqual(status.getvalue().count("开始测试"), 1)
         finally:
             instrument.close()

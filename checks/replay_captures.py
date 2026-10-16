@@ -29,7 +29,9 @@ def main():
     p.add_argument('--trace', action='store_true')
     p.add_argument('--seconds', type=float, default=10.)
     p.add_argument('--solver', type=Path, help='Diagnostic replay of a saved solver revision')
-    p.add_argument('--frequency-below', type=float, default=600., help='Exclusive test-frequency limit (default: 600 Hz)')
+    p.add_argument('--frequency-min', type=float, default=200., help='Inclusive lower test-frequency limit (default: 200 Hz)')
+    p.add_argument('--frequency-below', type=float, default=600., help='Exclusive upper test-frequency limit (default: 600 Hz)')
+    p.add_argument('--noise-below', type=float, default=.5, help='Exclusive noise_pp_ratio limit (default: 0.5)')
     a = p.parse_args()
     report = a.report
     session = report.parent
@@ -49,7 +51,8 @@ def main():
     results = []
     with (a.output / 'results.jsonl').open('w', encoding='utf-8') as log:
         for row in rows:
-            if row['case']['frequency_hz'] >= a.frequency_below:
+            if not (a.frequency_min <= row['case']['frequency_hz'] < a.frequency_below
+                    and row['case'].get('noise_pp_ratio', 0.) < a.noise_below):
                 continue
             if a.failed_only and row['result']['passed']:
                 continue
@@ -107,8 +110,10 @@ def main():
             log.flush()
             print(row['case_id'], check['verdict'], line, '; '.join(check['failure_reasons']), flush=True)
     summary = dict(report=str(report), raw_captures=len(results),
+                   frequency_min_hz=a.frequency_min,
                    frequency_below_hz=a.frequency_below,
-                   excluded_frequency_cases=sum(r['case']['frequency_hz'] >= a.frequency_below for r in rows),
+                   noise_below=a.noise_below,
+                   excluded_frequency_cases=sum(not (a.frequency_min <= r['case']['frequency_hz'] < a.frequency_below and r['case'].get('noise_pp_ratio', 0.) < a.noise_below) for r in rows),
                    passed=sum(r['result']['passed'] for r in results),
                    restored=[r['case_id'] for r in results if not r['recorded_result']['passed'] and r['result']['passed']],
                    regressed=[r['case_id'] for r in results if r['recorded_result']['passed'] and not r['result']['passed']],
