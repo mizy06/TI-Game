@@ -12,6 +12,11 @@
 #define ACQ_ADC_SAMPLE_TIMER_COUNT   (32U)
 #define ACQ_ADC_FULL_SCALE           (4095U)
 #define ACQ_SAMPLE_RATE_MILLIHZ      (20000000UL)
+/* Stock LP-MSPM0G3507 Y2 is 40 MHz (SLAU873, section 2.7).
+ * A different physical crystal also requires matching empty.syscfg changes. */
+#ifndef ACQ_HFXT_FREQ_HZ
+#define ACQ_HFXT_FREQ_HZ              (40000000UL)
+#endif
 #define ACQ_REFERENCE_MICROVOLTS     (3300000UL)
 #define ACQ_FRONTEND_GAIN_PPM        (1000000UL)
 #define ACQ_FLAGS                    (1UL)

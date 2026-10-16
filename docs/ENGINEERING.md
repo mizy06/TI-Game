@@ -12,9 +12,9 @@
 
 ## 2. 时钟排查与结论
 
-### 已有证据
+### 历史内部时钟配置的证据
 
-- `empty.syscfg` 的 `SYSCTL.forceDefaultClkConfig=true`；`empty.c` 没有运行时 SYSPLL/MCLK 切换。原工程已经使用默认配置，未找到 80 MHz 配置。
+- 修改前的 `empty.syscfg` 使用 `SYSCTL.forceDefaultClkConfig=true`；当时的 `empty.c` 没有运行时 SYSPLL/MCLK 切换。原工程使用默认配置，未找到 80 MHz 配置。当前版本已切换至下述 HFXT 路径。
 - TI 的 LaunchPad 用户指南 §2.7 明确默认 SYSOSC/MCLK 为 32 MHz。80 MHz 是芯片支持的额定上限，不能把“80 MHz”直接视为超频。
 - 原 RO 独立校准测得 fs=20244.764 Hz，而固件线上报告标称 20000 Hz。若仍按标称率计算，`f测/f真=20000/20244.764`，约 −1.209% 的偏差，与“每次稳定偏小、RO 后恢复”的方向和量级相符。
 - 原两个拟合参考 fs 为 20244.1931 / 20245.3340 Hz，彼此相差约 56.4 ppm；原独立 250 Hz 验证差约 17.8 ppm。同一历史 ADC 用本版全记录谐波拟合复算得到 20243.9847 / 20245.3658 Hz，差约 68.2 ppm，独立检查差约 18.9 ppm。复算不是重新采集，不能据此发布一份“新实机标定”。
@@ -23,13 +23,13 @@
 
 ### 本版处理
 
-保留默认 SYSOSC，增加 `CPUCLK_FREQ==32000000` 编译检查，不启用 PLL。TIMA0 仍每 50 µs 发布一次事件触发 ADC0，DMA 逐点搬运；不依靠 CPU 软件延时生成采样间隔。固件只报告标称元数据，校准 flags 仍为 1；只有上位机加载已验证的 RO 校准后才增加校准标志。
+2026-10-16 在 main 同步外部晶振修改，并将 HFXT → SYSPLL → MCLK 路径直接写入 `empty.syscfg`，详见 [外部时钟配置与烧录验证](EXTERNAL_CLOCK.md)。原装 LP-MSPM0G3507 的 Y2 是 **40 MHz**，PLL 生成 32 MHz MCLK，TIMA0 每 50 µs 发布一次事件触发 ADC0，DMA 逐点搬运；ADC 转换时钟为 HFCLK/2。`board_clock.h` 只核验启动状态和时钟源，采集期间不切换时钟、不调整 SYSOSC trim。SysConfig 不启用 SYSOSC FCL；旧 FCL 状态需 BOOTRST 清除，烧录后建议断开全部供电再上电。采样时基不再依赖 SYSOSC/FCL。不依靠 CPU 软件延时生成采样间隔。固件报告标称元数据，校准 flags 仍为 1；只有上位机加载已验证的 RO 校准后才增加校准标志。旧内部时钟校准已备份并清空，首次使用必须重新 RO。
 
 RO 时基拟合从单一阈值交越回归改为全记录 DC + 基波/谐波的双精度联合拟合。保存额外的 `sample_rate_hz_exact`；mHz 字段仅供旧 ABI 和协议兼容。拟合参考仍为独立 100/400 Hz，验证为独立 250 Hz，不使用矩阵真值。报告新增参考 fs 离散度 ppm 和 `absolute_accuracy_verified=false`，现有工程校准合格门限没有伪装成 1 ppm 验证。
 
 ### 如何验证实板
 
-烧录本版，确认启动横幅为 V3 / N=8192 / MCLK=32MHz；检查 SysConfig 生成的 CPUCLK、TIMA0 时钟选择、分频、装载值。用 `fs=fTIM/(分频×(LOAD+1))` 对照生成配置，不要拿 CPU 主频代替实际定时器时钟。对计时器发布事件、ADC 完成和 DMA 点数做实板核对；记录 100/250/400 Hz 独立测量、温度和供电。通过具有明确时基规格的计数器或独立参考验证实际输出频率。UART 到达时间带有传输和调度延迟，不能用作 ppm 采样时钟标定。
+烧录本版，确认启动横幅包括 `HFXT=40MHz, PLL=32MHz, CLOCK=EXTERNAL`、V3 / N=8192 / MCLK=32MHz；检查 SysConfig 生成的 CPUCLK、TIMA0 时钟选择、分频、装载值。用 `fs=fTIM/(分频×(LOAD+1))` 对照生成配置，不要拿 CPU 主频代替实际定时器时钟。对计时器发布事件、ADC 完成和 DMA 点数做实板核对；记录 100/250/400 Hz 独立测量、温度和供电。通过具有明确时基规格的计数器或独立参考验证实际输出频率。UART 到达时间带有传输和调度延迟，不能用作 ppm 采样时钟标定。
 
 ## 3. 为什么三个量都到 0.1 ppm 不能靠这份硬件保证
 

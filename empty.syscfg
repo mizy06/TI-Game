@@ -27,6 +27,7 @@ const UART1  = UART.addInstance();
  * Write custom configuration values to the imported modules.
  */
 ADC121.$name               = "ADC12_0";
+ADC121.sampClkSrc          = "DL_ADC12_CLOCK_HFCLK";
 ADC121.sampClkDiv          = "DL_ADC12_CLOCK_DIVIDE_2";
 ADC121.trigSrc             = "DL_ADC12_TRIG_SRC_EVENT";
 ADC121.adcMem0chansel      = "DL_ADC12_INPUT_CHAN_2";
@@ -59,7 +60,22 @@ GPIO1.associatedPins[0].$name     = "PIN_0";
 GPIO1.associatedPins[0].direction = "INPUT";
 GPIO1.associatedPins[0].internalResistor = "PULL_UP";
 
-SYSCTL.forceDefaultClkConfig = true;
+/* 原装 LaunchPad Y2=40 MHz；固定使用外部参考，采集期间不切换时钟。 */
+SYSCTL.forceDefaultClkConfig = false;
+SYSCTL.enableSYSOSCFCL = false;
+SYSCTL.useHFCLK_Manual = true;
+SYSCTL.HFCLKSource = "HFXT";
+SYSCTL.HFCLK_Freq = 40000000;
+SYSCTL.HFCLKMonitor = true;
+SYSCTL.HFXTStartup = 10;
+SYSCTL.MCLKSource = "HSCLK";
+SYSCTL.HSCLKSource = "SYSPLLCLK2X";
+SYSCTL.SYSPLLSource = "HFCLK";
+SYSCTL.SYSPLL_Pdiv = 1;
+SYSCTL.SYSPLL_Qdiv = 2;
+SYSCTL.SYSPLL_CLK2XEn = true;
+SYSCTL.SYSPLL_CLK2XDiv = 4;
+SYSCTL.enableWorkaround_SYSPLL_ERR_01 = true;
 
 TIMER1.$name                       = "TIMER_0";
 TIMER1.timerPeriod                 = "0.05 ms";
@@ -86,6 +102,8 @@ Board.peripheral.swclkPin.$suggestSolution   = "PA20";
 Board.peripheral.swdioPin.$suggestSolution   = "PA19";
 GPIO1.associatedPins[0].pin.$suggestSolution = "PB13";
 SYSCTL.peripheral.$suggestSolution           = "SYSCTL";
+SYSCTL.peripheral.hfxInPin.$suggestSolution   = "PA5";
+SYSCTL.peripheral.hfxOutPin.$suggestSolution  = "PA6";
 TIMER1.peripheral.$suggestSolution           = "TIMA0";
 UART1.peripheral.$suggestSolution            = "UART0";
 UART1.peripheral.rxPin.$suggestSolution      = "PA11";

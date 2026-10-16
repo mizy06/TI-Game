@@ -4,6 +4,7 @@
 #include "acquisition_config.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "board_clock.h"
 
 static volatile uint16_t g_adc_samples[ACQ_SAMPLE_COUNT];
 static volatile bool g_capture_done;
@@ -15,7 +16,7 @@ static uint32_t g_frame_sequence;
 #endif
 #define CAPTURE_TIMEOUT_MS (500U)
 #if CPUCLK_FREQ != 32000000U
-#error "Acquisition-only finals firmware requires the default 32 MHz clock"
+#error "Acquisition-only finals firmware requires a 32 MHz peripheral clock"
 #endif
 #if ACQ_ADC_SAMPLE_TIMER_COUNT < 1U || ACQ_ADC_SAMPLE_TIMER_COUNT > 64U
 #error "ADC sample timer count must stay within the 20 kS/s timing budget"
@@ -235,6 +236,12 @@ int main(void)
     SYSCFG_DL_init();
     DL_TimerA_stopCounter(TIMER_0_INST);
     DL_ADC12_disableConversions(ADC12_0_INST);
+    if (!board_clock_is_ready()) {
+        uart_put_string("\r\nERR_EXTERNAL_CLOCK: check Y2 / PA5 / PA6; capture disabled\r\n");
+        for (;;) {
+            __WFI();
+        }
+    }
     DL_ADC12_setSampleTime0(ADC12_0_INST, ACQ_ADC_SAMPLE_TIMER_COUNT);
     DL_ADC12_setSampleTime1(ADC12_0_INST, ACQ_ADC_SAMPLE_TIMER_COUNT);
     DL_ADC12_enableConversions(ADC12_0_INST);
@@ -245,6 +252,11 @@ int main(void)
                                      DL_GPIO_HYSTERESIS_ENABLE,
                                      DL_GPIO_WAKEUP_DISABLE);
     uart_put_string("\r\nTI-CUP ADC DMA HOST V3\r\n");
+    uart_put_string(BOARD_CLOCK_DESCRIPTION "\r\n");
+    uart_put_string((DL_SYSCTL_getClockStatus() & DL_SYSCTL_CLK_STATUS_FCL_ON)
+        ? "SYSOSC_FCL=ON (retained); SAMPLE_CLOCK=HFXT_FIXED\r\n"
+        : "SYSOSC_FCL=OFF; SAMPLE_CLOCK=HFXT_FIXED\r\n");
+    uart_put_string("ADC_CLOCK=HFCLK/2; recalibrate host with RO after clock change\r\n");
     uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS=20000Hz, N=8192, MCLK=32MHz, SCOMP=32\r\n");
     uart_put_string("READY: server R -> raw ADC frame; RT runs on host\r\n");
     for (;;) {
