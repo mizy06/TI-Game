@@ -3,6 +3,7 @@ import io
 import tempfile
 import unittest
 from dataclasses import replace
+from unittest.mock import patch
 import numpy as np
 from tools import host_waveform as host
 from tools.acquisition_calibration import AcquisitionCalibration,signature
@@ -98,6 +99,46 @@ class PrecisionPipelineTests(unittest.TestCase):
             self.assertLess(abs(report['measured']['frequency_hz']/case.frequency_hz-1),.001)
             for path in store.path.glob('uart/*/samples.adc.bin'):
                 self.assertEqual(path.read_bytes(),payload)
+
+    def test_default_dual_frame_captures_before_analysis_and_shares_the_deadline(self):
+        case=Case(frequency_hz=200,noise_pp_ratio=0.)
+        payload,_,_=generate(case)
+        with tempfile.TemporaryDirectory() as directory:
+            output=io.StringIO();store=CaptureStore(directory)
+            port=LiveSerial(response(payload))
+            service=SerialService(port,store,Engine(self.api,output),stderr=io.StringIO())
+            clock=[0.];budgets=[]
+            write=port.write
+
+            def capture(data):
+                clock[0]+=.2
+                return write(data)
+
+            def analyze(api,payload,meta,*,config):
+                self.assertEqual(bytes(port.written),b'RR')
+                self.assertEqual(output.getvalue(),'')
+                budgets.append(config.max_seconds)
+                clock[0]+=.3
+                f=200 if len(budgets)==1 else 200.1
+                return f'sine,{f},1,0,1.65',dict(ok=True,status=0,type=0,
+                    frequency_hz=f,vpp_v=1.,duty_fraction=0.,dc_offset_v=1.65,
+                    measurement_sample_count=4096,classification_sample_count=4096)
+
+            port.write=capture
+            try:
+                with patch('tools.precision_batch.time.perf_counter',side_effect=lambda:clock[0]), \
+                        patch('tools.precision_batch.host.analyze',side_effect=analyze):
+                    line,details,elapsed,meta,record=measure_batch(service,timeout=1.5,return_result=True)
+                self.assertEqual(details['batch_frames'],2)
+                self.assertEqual(details['measurement_sample_count'],8192)
+                self.assertAlmostEqual(details['frequency_hz'],200.05)
+                self.assertAlmostEqual(elapsed,.6)
+                self.assertEqual(len(output.getvalue().splitlines()),1)
+                self.assertEqual(len(record.info['r_batch']['captures']),2)
+                self.assertAlmostEqual(budgets[0],1.1)
+                self.assertAlmostEqual(budgets[1],.8)
+            finally:
+                service.close()
 
     def test_batch_timeout_does_not_emit_an_earlier_complete_block(self):
         case=Case(frequency_hz=217.139,noise_pp_ratio=0.)

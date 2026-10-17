@@ -71,6 +71,8 @@ class Metadata:
     adc_offset_counts: float = 0.
     payload_bytes: int = PAYLOAD_BYTES
     protocol_version: int = 2
+    # Independent voltage reference transfer, used only by the amplitude path.
+    vpp_transfer: dict | None = None
 
 
 def fnv1a(data: bytes) -> int:
@@ -226,10 +228,15 @@ def load_api(path: str):
     return dll
 
 
-def analyze(dll, payload: bytes, meta: Metadata, *, config=None) -> tuple[str, dict]:
+def analyze(dll, payload: bytes, meta: Metadata, *, config=None,
+            vpp_observation=None, vpp_calibration=None) -> tuple[str, dict]:
     """The retained DLL argument is ignored; no C stage supplies any seed."""
     import numpy as np
+    import time
+    analysis_started = time.perf_counter()
     from tools.unified_solver import estimate
+    if (vpp_observation is None) != (vpp_calibration is None):
+        raise ValueError("Vpp reference observation and independent calibration are both required")
     if len(payload) != meta.payload_bytes or len(payload) not in (PAYLOAD_BYTES, MAX_PAYLOAD_BYTES):
         raise ValueError("incomplete ADC payload")
     raw = np.frombuffer(payload, dtype="<u2")
@@ -281,88 +288,52 @@ def analyze(dll, payload: bytes, meta: Metadata, *, config=None) -> tuple[str, d
         vpp_counts_q16=round(result["vpp"]*65536),
         accepted_cycles=int(len(raw)*f/fs), quality_flags=flags,
         unified_solver=result["diagnostics"])
+    # Vpp accuracy cannot be inferred from precise timing or repeatability.
+    details['vpp_quality'] = dict(input_mode='single_channel',
+        meaning=('carrier_including_coherent_interference' if kind == 0 else
+                 'source_amplitude_under_unverified_nuisance_model'),
+        independent_reference_used=False, absolute_accuracy_verified=False,
+        accuracy_0p1_percent_certified=False)
+    if meta.vpp_transfer is not None and len(raw)*f/fs>=32:
+        from tools.amplitude_calibration import voltage_values
+        from tools.vpp_spectral import harmonic_amplitude, spectral_separation
+        voltage=voltage_values(raw,meta.vpp_transfer)
+        diagnostic=result['diagnostics']
+        try:
+            proposed,amp_info=harmonic_amplitude(voltage,fs,kind,f,duty,
+                diagnostic['square_rise_fraction'],diagnostic['square_fall_fraction'])
+        except (ValueError,np.linalg.LinAlgError) as error:
+            proposed=vpp
+            amp_info=dict(relative_rms=1.,rejection=str(error))
+        amp_info['background_separation']=spectral_separation(voltage,fs,f)
+        amp_info['accepted']=bool(np.isfinite(proposed) and .85*vpp<proposed<1.15*vpp
+                                  and amp_info.get('relative_rms',0)<.02)
+        details['spectral_vpp']=amp_info
+        if amp_info['accepted']:
+            vpp=proposed
+            details.update(vpp_v=vpp,vpp_microvolts=round(vpp*1e6),vpp_millivolts=round(vpp*1000),
+                           vpp_counts_q16=round(vpp/unit*65536))
+            details['vpp_quality']['meaning']='clean_source_under_separated_harmonic_support_assumption'
+    if vpp_observation is not None:
+        from dataclasses import replace
+        from tools.unified_solver import SolverConfig
+        from tools.vpp_reference import estimate_reference
+        cfg = config or SolverConfig(max_seconds=14.)
+        remaining = cfg.max_seconds-(time.perf_counter()-analysis_started)
+        if remaining <= 0:
+            raise TimeoutError('Vpp host total deadline exceeded')
+        fitted = estimate_reference(raw, fs, vpp_observation, vpp_calibration,
+            config=replace(cfg, max_seconds=remaining), expected_kind=kind,
+            timing_seed=result)
+        vpp = fitted['vpp_v']
+        details.update(vpp_v=vpp, vpp_microvolts=round(vpp*1e6),
+            vpp_millivolts=round(vpp*1000), vpp_counts_q16=round(vpp/unit*65536),
+            vpp_reference=fitted)
+        details['vpp_quality'].update(input_mode='synchronous_independent_reference',
+            meaning='clean_source_before_calibrated_signal_path', independent_reference_used=True)
+        if time.perf_counter()-analysis_started >= cfg.max_seconds:
+            raise TimeoutError('Vpp host total deadline exceeded')
     return f"{NAMES[kind]},{f:.9f},{vpp:.9f},{duty*100:.7f},{dc:.9f}", details
-
-
-def analyze_legacy(dll, payload: bytes, meta: Metadata) -> tuple[str, dict]:
-    """Archived 3.0 pipeline, for comparison only; never called by R/RO/RT."""
-    # Small regressions are slower with a large BLAS thread pool. This also
-    # keeps the contest latency predictable on many-core laptops.
-    from threadpoolctl import threadpool_limits
-    with threadpool_limits(limits=1, user_api="blas"):
-        return _analyze(dll, payload, meta)
-
-
-def _analyze(dll, payload: bytes, meta: Metadata) -> tuple[str, dict]:
-    if len(payload) != meta.payload_bytes or len(payload) not in (PAYLOAD_BYTES, MAX_PAYLOAD_BYTES):
-        raise ValueError("incomplete ADC payload")
-    import numpy as np
-    raw = np.frombuffer(payload, dtype="<u2")
-    classification = raw
-    if np.all(raw <= meta.adc_full_scale) and (meta.adc_scale != 1. or meta.adc_offset_counts != 0.):
-        # Preserve the legacy C classifier's calibrated near-rail thresholds.
-        # This temporary integer copy is NEVER the precision measurement input.
-        classification = np.clip(np.rint((raw.astype(float)-meta.adc_offset_counts)/meta.adc_scale),
-                                 0, meta.adc_full_scale).astype("<u2")
-        classification[raw == 0] = 0
-        classification[raw == meta.adc_full_scale] = meta.adc_full_scale
-    values = (ctypes.c_uint16 * SAMPLES).from_buffer_copy(classification[:SAMPLES].tobytes())
-    frame = Frame(values, SAMPLES, meta.adc_full_scale,
-                  int(round(meta.sample_rate_hz_exact*1000)) if meta.sample_rate_hz_exact else meta.sample_rate_millihz, meta.reference_microvolts,
-                  meta.gain_ppm, meta.sequence, meta.flags)
-    result = Result()
-    ok = bool(dll.ti_waveform_analyze_frame(ctypes.byref(frame), ctypes.byref(result)))
-    details = {name: int(getattr(result, name)) for name, _ in Result._fields_}
-    details["ok"] = ok
-    details["host_pipeline_version"] = "3.0.0"
-    details["classification_sample_count"] = SAMPLES
-    details["measurement_sample_count"] = int(len(raw))
-    details["raw_high_rail_samples"] = int(np.count_nonzero(raw == meta.adc_full_scale))
-    details["raw_low_rail_samples"] = int(np.count_nonzero(raw == 0))
-    if np.any(raw > meta.adc_full_scale):
-        details.update(ok=False, status=6, invalid_samples=int(np.count_nonzero(raw > meta.adc_full_scale)))
-        return "unknown,0,0,0,0", details
-    if len(raw) > SAMPLES:
-        guard = max(1, meta.adc_full_scale//1024)
-        details["high_clip_samples"] = int(np.count_nonzero(classification >= meta.adc_full_scale-guard))
-        details["low_clip_samples"] = int(np.count_nonzero(classification <= guard))
-        if np.count_nonzero(classification >= meta.adc_full_scale-guard) > len(raw)//20:
-            details.update(ok=False, status=2)
-            return "unknown,0,0,0,0", details
-        if np.count_nonzero(classification <= guard) > len(raw)//20:
-            details.update(ok=False, status=5)
-            return "unknown,0,0,0,0", details
-    if not ok:
-        return "unknown,0,0,0,0", details
-    if result.algorithm_version != ABI_VERSION or result.sequence != meta.sequence or not 0 <= result.type < len(NAMES) - 1:
-        raise RuntimeError("host algorithm returned incompatible result")
-    from tools.envelope_measurement import refine
-    from tools.precision_measurement import refine_timing
-    fs = meta.sample_rate_hz_exact or meta.sample_rate_millihz/1000
-    samples = (np.frombuffer(payload, dtype="<u2").astype(float)-meta.adc_offset_counts)/meta.adc_scale
-    frequency, duty, timing = refine_timing(samples, fs,
-        details["frequency_millihz"]/1000, result.type, details["duty_ppm"]/1e6)
-    details["frequency_hz"] = frequency
-    details["duty_fraction"] = duty if result.type == 1 else 0.
-    details["precision_timing"] = timing
-    refine(payload, meta, details)
-    details["c_timing_result"] = {"frequency_millihz": details["frequency_millihz"],
-        "duty_ppm": details["duty_ppm"]}
-    details["frequency_millihz"] = int(round(frequency*1000))
-    details["duty_ppm"] = int(round(details["duty_fraction"]*1e6))
-    details["duty_permille"] = int(round(details["duty_fraction"]*1000))
-    duty_pct = details["duty_fraction"]*100
-    # The DC estimate is measured at the ADC pin; undo the front-end gain.
-    offset = details["dc_offset_v"]
-    if result.type == 3:
-        # With an abrupt saw reset between ADC samples, exact integer-period
-        # sampling cannot identify sub-sample reset time independently of DC.
-        # Report this phase uncertainty; it is not a total error/confidence bound.
-        details["dc_sampling_uncertainty_microvolts"] = int(round(
-            details["vpp_microvolts"] * result.frequency_millihz /
-            (2 * meta.sample_rate_millihz)))
-    return ((f"{NAMES[result.type]},{frequency:.9f},"
-             f"{details['vpp_v']:.9f},{duty_pct:.7f},{offset:.9f}"), details)
 
 
 def classify(dll, payload: bytes, meta: Metadata) -> str:
@@ -376,7 +347,7 @@ def main() -> int:
     argv = sys.argv[1:]
     if "--loop" in argv:
         argv.remove("--loop")
-    elif not any(arg.upper() in ("R", "RT", "RO") for arg in argv):
+    elif not any(arg.upper() in ("R", "RT", "RO", "RS") for arg in argv):
         argv.insert(0, "R")
     return server_main(argv)
 

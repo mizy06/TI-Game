@@ -213,7 +213,9 @@ class ReplaySerial(LiveSerial):
         dac = np.frombuffer(self.instrument.uploads[-1], dtype="<i2").astype(float)
         sample_rate = self.sample_rate or self.instrument.rate
         n_capture = 8192 if (self.sample_rate is None and len(dac) > 6000) else host.SAMPLES
-        indices = np.floor(np.arange(n_capture) * self.instrument.rate / sample_rate +
+        # Form the rate ratio first: at equal clocks, multiply-then-divide
+        # roundoff can otherwise turn sample 13 into 12.999999999999998.
+        indices = np.floor(np.arange(n_capture) * (self.instrument.rate / sample_rate) +
                            self.phase_samples).astype(int) % len(dac)
         dac = dac[indices]
         adc = np.rint((dac / 32767 + 1) * 4095 / 2).astype("<u2").tobytes()
@@ -254,11 +256,11 @@ class ROTests(unittest.TestCase):
         import numpy as np
         vref, gain = board_levels()
         cases = list(ro_matrix())
-        self.assertEqual(len(cases), 141)
-        self.assertTrue(all(200 <= c.frequency_hz < 600 and c.noise_pp_ratio < 0.5 for c in cases))
-        self.assertEqual([c.group for c in cases[:12]], ["new48"] * 12)
-        self.assertEqual([c.group for c in cases[12:49]], ["fresh96"] * 37)
-        self.assertEqual([c.group for c in cases[49:]], ["paired221"] * 92)
+        self.assertEqual(len(cases), 296)
+        self.assertTrue(all(100 <= c.frequency_hz <= 600 and c.noise_pp_ratio <= 0.5 for c in cases))
+        self.assertEqual(sum(c.group == "final_weak" for c in cases), 148)
+        self.assertEqual(sum(c.group == "final_strong" for c in cases), 148)
+        from tools.ro_test import _cached_legacy_finals_bundle
         fingerprints = (
             json.loads((ROOT / "validation/fingerprints_new48.json").read_text()) +
             json.loads((ROOT / "validation/fingerprints_fresh96.json").read_text()) +
@@ -268,10 +270,12 @@ class ROTests(unittest.TestCase):
         by_id = {f"{group}-{i+1:04d}":sha
                  for group, start, size in (("new48",0,48),("fresh96",48,96),("paired221",144,221))
                  for i, sha in enumerate(fingerprints[start:start+size])}
-        for case in cases:
+        for case in _cached_legacy_finals_bundle()[0]:
             expected_sha = by_id[case.id]
             original, _, _ = generate_ro(case)
             self.assertEqual(hashlib.sha256(original).hexdigest(), expected_sha)
+        for case in cases:
+            original, _, _ = generate_ro(case)
             adc, dac, config = encode(case, vref, gain)
             self.assertEqual(adc, original)
             codes = np.frombuffer(dac, dtype="<i2").astype(float)
@@ -355,7 +359,7 @@ class ROTests(unittest.TestCase):
                 finally:
                     service.close()
                 self.assertEqual(code, 0, status.getvalue())
-                self.assertEqual(bytes(port.written), b"RR")
+                self.assertEqual(bytes(port.written), b"RRRR")
                 self.assertEqual(len(output.getvalue().splitlines()), 2)
                 self.assertTrue(all(len(line.split(",")) == 5 and line.startswith("RESULT,")
                                     for line in output.getvalue().splitlines()))
@@ -367,17 +371,57 @@ class ROTests(unittest.TestCase):
                 self.assertEqual(json.loads((report / "matrix.json").read_text())["cases"], original)
                 entries = json.loads((report / "results.json").read_text())["results"]
                 for entry in entries:
+                    self.assertEqual(len(entry["captures"]), 2)
+                    self.assertEqual(entry["algorithm"]["batch_frames"], 2)
                     captured = json.loads((store.path / entry["capture"] / "capture.json").read_text())
                     self.assertEqual(captured["source"], "uart")
                     self.assertEqual(captured["self_test"], entry["result"])
                     self.assertEqual(captured["metadata"]["reference_microvolts"], 3300000)
                     self.assertEqual(captured["metadata"]["gain_ppm"], 1000000)
-                    rt_bytes = (report / entry["case_id"] / "rt.adc.bin").read_bytes()
-                    self.assertEqual(rt_bytes, (store.path / entry["capture"] / "samples.adc.bin").read_bytes()[:len(rt_bytes)])
+                    # The ADC sees the quantized DAC replay, which can differ
+                    # by one ADC code from the pre-encoding RT source.
+                    import numpy as np
+                    dac = np.frombuffer((report / entry["case_id"] / "generator.i16.bin").read_bytes(),
+                                        dtype='<i2').astype(float)
+                    for capture in entry["captures"]:
+                        received = (store.path / capture / "samples.adc.bin").read_bytes()
+                        indices = np.arange(len(received)//2) % len(dac)
+                        expected = np.rint((dac[indices]/32767+1)*4095/2).astype('<u2').tobytes()
+                        self.assertEqual(received, expected)
                 self.assertEqual(status.getvalue().count("开始测试"), 1)
         finally:
             instrument.close()
-        self.assertEqual(instrument.events, ["OFF", "OFF", "ON", "R", "OFF", "ON", "R", "OFF"])
+        self.assertEqual(instrument.events, ["OFF", "OFF", "ON", "R", "R", "OFF", "ON", "R", "R", "OFF"])
+
+    def test_failed_verdict_can_stop_early_and_turn_output_off(self):
+        instrument = ScpiServer()
+        status = io.StringIO()
+        port = ReplaySerial(instrument, status)
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                store = CaptureStore(directory)
+                service = SerialService(port, store, Engine(self.api, io.StringIO()), stderr=status)
+                from tools.ro_test import evaluate_ro as real_evaluate
+                def fail_first(*a, **kw):
+                    result = real_evaluate(*a, **kw)
+                    result.update(passed=False, verdict="FAIL", failure_reasons=["injected_failure"])
+                    return result
+                try:
+                    with patch('tools.ro_test.evaluate_ro', side_effect=fail_first):
+                        with self.assertRaisesRegex(RuntimeError, 'first failed verdict'):
+                            run(service, store, self.options(instrument, '--max-cases', '2',
+                                                            '--ro-stop-on-failure'), status)
+                finally:
+                    service.close()
+                report = next(store.path.glob('ro-*'))
+                summary = json.loads((report / 'summary.json').read_text())
+                self.assertEqual(summary['counts']['completed'], 1)
+                self.assertEqual(summary['counts']['failed'], 1)
+                self.assertEqual(len(summary['not_run']), 1)
+                self.assertFalse(summary['complete'])
+        finally:
+            instrument.close()
+        self.assertEqual(instrument.output, 'OFF')
 
     def test_readback_mismatch_never_starts_r_and_saves_incomplete_summary(self):
         instrument = ScpiServer(mismatch=True)
@@ -434,7 +478,7 @@ class ROTests(unittest.TestCase):
                 finally:
                     service.close()
                 self.assertEqual(code, 0, status.getvalue())
-                self.assertEqual(bytes(port.written), b"RRR")
+                self.assertEqual(bytes(port.written), b"RRRRR")
                 self.assertEqual(port.open_calls, 1)
                 self.assertEqual(len(output.getvalue().splitlines()), 2)
                 report = next(store.path.glob("ro-*"))
@@ -444,14 +488,14 @@ class ROTests(unittest.TestCase):
                 entries = json.loads((report / "results.json").read_text())["results"]
                 self.assertEqual([row["case_id"] for row in entries], [c.id for c in list(ro_matrix())[:2]])
                 records = sorted(store.path.glob("uart/*/capture.json"))
-                self.assertEqual(len(records), 3)
+                self.assertEqual(len(records), 5)
                 self.assertEqual(json.loads(records[0].read_text())["validation"], "invalid")
-                self.assertEqual(entries[0]["capture"], records[1].parent.relative_to(store.path).as_posix())
-                self.assertEqual(entries[1]["capture"], records[2].parent.relative_to(store.path).as_posix())
+                self.assertEqual(entries[0]["capture"], records[2].parent.relative_to(store.path).as_posix())
+                self.assertEqual(entries[1]["capture"], records[4].parent.relative_to(store.path).as_posix())
         finally:
             instrument.close()
         self.assertEqual(instrument.events,
-            ["OFF", "OFF", "ON", "R", "R", "OFF", "ON", "R", "OFF"])
+            ["OFF", "OFF", "ON", "R", "R", "R", "OFF", "ON", "R", "R", "OFF"])
 
     def test_bad_uart_checksum_stops_matrix_and_preserves_received_frame(self):
         instrument = ScpiServer()

@@ -47,7 +47,11 @@ class PlaybackTests(unittest.TestCase):
                                 code = run(service, store, self.options(instrument), io.StringIO())
                             else:
                                 with patch("tools.ro_test.calibrate_playback"):
-                                    code = run(service, store, self.options(instrument), io.StringIO())
+                                    # A clipped R block must abort the shared
+                                    # request; no partial RESULT is published.
+                                    with self.assertRaisesRegex(ValueError, r"R block .* rejected: status=[25]"):
+                                        run(service, store, self.options(instrument), io.StringIO())
+                                    code = 1
                         finally:
                             service.close()
                         report = next(store.path.glob("ro-*"))
@@ -69,8 +73,10 @@ class PlaybackTests(unittest.TestCase):
                                 self.assertFalse(np.any((raw == 0) | (raw == 4095)))
                         else:
                             self.assertEqual(code, 1)
-                            self.assertIn("dc_error_v", reasons)
-                            self.assertIn("algorithm_status_2", reasons)
+                            summary = json.loads((report / 'summary.json').read_text())
+                            self.assertFalse(summary['complete'])
+                            self.assertIn('rejected: status=', summary['error'])
+                            self.assertEqual(summary['shutdown_error'], '')
                         parameters = json.loads((Path(directory) / "algorithm_parameters.json").read_text())
                         self.assertNotIn("generator_calibration", parameters)
                         self.assertAlmostEqual(parameters["acquisition_calibration"]["adc_scale"], 1.016, delta=.0002)

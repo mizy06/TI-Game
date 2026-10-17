@@ -33,13 +33,21 @@ def prepare_analysis(payload, meta, record, profile, parameters_path):
     return payload, meta
 
 
-def measure_batch(service, frames=1, timeout=15.):
+def measure_batch(service, frames=2, timeout=15., *, return_result=False):
+    """Keep all captures and analyses in one request and one total deadline."""
+    if not 1 <= frames <= 8:
+        raise ValueError('R frames must be 1..8')
+    with service.request_lock:
+        return _measure_batch(service, frames, timeout, return_result=return_result)
+
+
+def _measure_batch(service, frames, timeout, *, return_result):
     """Average stable blocks without inventing sample times across UART gaps."""
     from tools.waveform_server import measurement_output
     started = time.perf_counter()
     deadline = started+timeout
     profile = service.refresh_calibration() if service.use_saved_calibration else None
-    records, results = [], []
+    records, captures, results = [], [], []
     engine = service.engine
     for index in range(frames):
         remaining = deadline-time.perf_counter()
@@ -47,22 +55,30 @@ def measure_batch(service, frames=1, timeout=15.):
             raise TimeoutError('R multi-frame deadline exhausted; no RESULT emitted')
         payload, meta, record = service.capture(remaining)
         records.append(record)
-        payload, meta = prepare_analysis(payload, meta, record, profile, service.parameters_path)
-        with engine.lock:
-            t = time.perf_counter()
-            from tools.unified_solver import SolverConfig
-            remaining = deadline-time.perf_counter()
-            if remaining <= 0:
-                raise TimeoutError('R analysis deadline exhausted; no RESULT emitted')
-            from dataclasses import replace
-            config = engine.config or SolverConfig()
-            line, details = host.analyze(engine.api, payload, meta,
-                config=replace(config,max_seconds=min(config.max_seconds,remaining)))
-            record.info.update(display_output='', batch_member=index+1)
-            record.result(line, details, time.perf_counter()-t)
-        if not details['ok']:
-            raise ValueError(f"R block {index+1} rejected: status={details['status']}; no RESULT emitted")
-        results.append(details)
+        captures.append((payload, meta, record))
+    # Receive successive blocks before doing any fitting. Each block retains
+    # its own time origin; UART transmission gaps are never concatenated.
+    algorithm_elapsed = 0.
+    parallel = engine.parallel_pool is not None and frames > 1
+    if parallel:
+        prepared = []
+        for index, (payload, meta, record) in enumerate(captures):
+            payload, meta = prepare_analysis(payload, meta, record, profile, service.parameters_path)
+            record.info['batch_member'] = index+1
+            prepared.append((payload, meta, record))
+        fitted, algorithm_elapsed = engine.process_frames(prepared, deadline=deadline)
+        results = [details for _, details, _ in fitted]
+        algorithm_work = sum(elapsed for _, _, elapsed in fitted)
+    else:
+        for index, (payload, meta, record) in enumerate(captures):
+            payload, meta = prepare_analysis(payload, meta, record, profile, service.parameters_path)
+            record.info['batch_member'] = index+1
+            line, details, elapsed = engine.process(payload, meta, record, deadline=deadline, emit=False)
+            algorithm_elapsed += elapsed
+            if not details['ok']:
+                raise ValueError(f"R block {index+1} rejected: status={details['status']}; no RESULT emitted")
+            results.append(details)
+        algorithm_work = algorithm_elapsed
     if time.perf_counter() >= deadline:
         raise TimeoutError('R analysis deadline exhausted; no RESULT emitted')
     if len({x['type'] for x in results}) != 1:
@@ -86,12 +102,31 @@ def measure_batch(service, frames=1, timeout=15.):
         'absolute_accuracy_verified': False,
         'note': 'Block scatter excludes calibration, model bias and coherent replay noise.',
         'captures': [str(r.path.relative_to(service.store.path)) for r in records],
+        'algorithm_elapsed_s': algorithm_elapsed,
+        'algorithm_work_s': algorithm_work,
+        'analysis_execution': 'parallel_processes' if parallel else 'serial',
+        'analysis_workers': min(engine.parallel_pool.workers, frames) if parallel else 1,
         'elapsed_s': time.perf_counter()-started}
+    aggregate = dict(results[-1])
+    aggregate.update(batch_frames=frames, batch_captures=batch['captures'],
+        measurement_sample_count=sum(r['measurement_sample_count'] for r in results),
+        classification_sample_count=sum(r['classification_sample_count'] for r in results),
+        **batch['measured'])
+    aggregate.update(frequency_millihz=round(f*1000), vpp_microvolts=round(vpp*1e6),
+        duty_ppm=round(duty*1e6))
     for record in records:
         record.info['r_batch'] = batch
         record.save()
+    record.info.update(display_output=output, batch_output=line, batch_algorithm=aggregate)
+    record.save()
     # The final durable write is inside the contest time limit as well.
     if time.perf_counter() >= deadline:
+        batch.update(display_output='', expired_request=True)
+        for record in records:
+            record.info.update(display_output='', expired_request=True)
+            record.save()
         raise TimeoutError('R archival deadline exhausted; no RESULT emitted')
     print(output, file=engine.output, flush=True)
+    if return_result:
+        return line, aggregate, algorithm_elapsed, meta, record
     return batch

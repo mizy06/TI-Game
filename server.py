@@ -1,4 +1,4 @@
-"""Single project entry: R for UART measurement, RT for local self-excitation."""
+"""Entry: R acquisition, RO finals matrix, RT self-test, RS calibration only."""
 from tools.waveform_server import main
 
 if __name__ == "__main__":

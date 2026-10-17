@@ -226,6 +226,11 @@ def _band_validation(y, s, a, fs, cutoff, background):
 def shape(kind, phase, duty=.5, rise=.03, fall=.03):
     """Unit half-amplitude; square duty is between edge midpoints."""
     p = np.asarray(phase) % 1
+    return _shape_wrapped(kind, p, duty, rise, fall)
+
+
+def _shape_wrapped(kind, p, duty=.5, rise=.03, fall=.03):
+    """Evaluate an already wrapped phase without a second array remainder."""
     if kind == 0:
         return np.sin(TAU * p)
     if kind == 2:
@@ -240,7 +245,7 @@ def shape(kind, phase, duty=.5, rise=.03, fall=.03):
 
 def _basis(kind, q, t):
     p = (q[0] * t + q[1]) % 1
-    s = shape(kind, p, *(q[2:] if kind == 1 else ()))
+    s = _shape_wrapped(kind, p, *(q[2:] if kind == 1 else ()))
     if kind == 0:
         slope = TAU * np.cos(TAU * p)
     elif kind == 2:
@@ -326,7 +331,7 @@ def _frequency_starts(y, fs, lo, hi, count):
     return seeds
 
 
-def _nuisance(f, t, order, kind):
+def _nuisance(f, t, order, kind, *, derivative=True):
     h = np.arange(2 if kind == 0 else 1, order + 1, dtype=float)
     ang = TAU * f * t[:, None] * h
     n_harm = len(h)
@@ -337,13 +342,15 @@ def _nuisance(f, t, order, kind):
         c_ang = np.cos(ang)
         B[:, 1:1 + n_harm] = s_ang
         B[:, 1 + n_harm:] = c_ang
+        if not derivative:
+            return B, None
         th = (TAU * t[:, None]) * h
         dB = np.empty_like(B)
         dB[:, 0] = 0.0
         dB[:, 1:1 + n_harm] = c_ang * th
         dB[:, 1 + n_harm:] = -s_ang * th
     else:
-        dB = np.zeros((len(t), 1), dtype=np.float64)
+        dB = np.zeros((len(t), 1), dtype=np.float64) if derivative else None
     return B, dB
 
 
@@ -916,7 +923,7 @@ def _detect_subharmonic_comb(r0, fs, f_carrier):
     return best_L, M_max
 
 
-def _build_subharmonic_basis(f, t, L, M, exclude_carrier=False):
+def _build_subharmonic_basis(f, t, L, M, exclude_carrier=False, *, derivative=True):
     ms = np.arange(1, M + 1, dtype=float)
     ratios = ms / L
     if exclude_carrier:
@@ -931,13 +938,15 @@ def _build_subharmonic_basis(f, t, L, M, exclude_carrier=False):
         c_a = np.cos(ang)
         B[:, 1:1 + n_h] = s_a
         B[:, 1 + n_h:] = c_a
+        if not derivative:
+            return B, None, ms
         th = (TAU * t[:, None]) * ratios[None, :]
         dB = np.empty_like(B)
         dB[:, 0] = 0.0
         dB[:, 1:1 + n_h] = c_a * th
         dB[:, 1 + n_h:] = -s_a * th
     else:
-        dB = np.zeros((len(t), 1), dtype=np.float64)
+        dB = np.zeros((len(t), 1), dtype=np.float64) if derivative else None
     return B, dB, ms
 
 
@@ -1074,7 +1083,7 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
         # Refine fractional L on r0 first
         def loss_L_ns(L_try):
             check_time()
-            B_l, _, _ = _build_subharmonic_basis(f0, t, L_try, min(80, M_raw + 1), exclude_carrier=True)
+            B_l, _, _ = _build_subharmonic_basis(f0, t, L_try, min(80, M_raw + 1), exclude_carrier=True, derivative=False)
             c_l = _fast_lstsq(B_l, r0)
             rem_l = r0 - B_l @ c_l
             return float(rem_l @ rem_l)
@@ -1085,7 +1094,7 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
     q_start = q0.copy()
     if kind == 1 and (q0[2] >= 0.88 or q0[2] <= 0.12) and is_int_L:
         try:
-            B_nc, _, _ = _build_subharmonic_basis(f0, t, L, min(120, M_raw + 1), exclude_carrier=True)
+            B_nc, _, _ = _build_subharmonic_basis(f0, t, L, min(120, M_raw + 1), exclude_carrier=True, derivative=False)
             Q_nc, _ = np.linalg.qr(B_nc, mode="reduced")
             yy_nc = y - Q_nc @ (Q_nc.T @ y)
             def ev_nocarrier(qv, jac=False):
@@ -1191,7 +1200,7 @@ def _subharmonic_refine(y, t, fit, step, fs, lo, hi, amin, amax, check_time, max
             rv, a_new, cb_new, en_new = cache[:4]
         else:
             s, _ = _source(kind, q_pol, t, cycle)
-            B_s, _, _ = _build_subharmonic_basis(q_pol[0], t, L, best_M, exclude_carrier=False)
+            B_s, _, _ = _build_subharmonic_basis(q_pol[0], t, L, best_M, exclude_carrier=False, derivative=False)
             rv, a_new, cb_new, en_new = _joint(y, s, None, B_s, None, amin, amax, positive_a=pos_flag)
         if kind == 1 and 0.5 * (q_pol[3] + q_pol[4]) > min(q_pol[2], 1.0 - q_pol[2]) + 1e-12:
             return fit, False
@@ -2021,7 +2030,7 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
 
             def harmonic_loss(f):
                 check_time()
-                B_h, _ = _nuisance(f, t, max(1, hmax), 2)
+                B_h, _ = _nuisance(f, t, max(1, hmax), 2, derivative=False)
                 c = _fast_lstsq(B_h, y)
                 r = B_h @ c - y
                 return float(r @ r)
@@ -2058,6 +2067,8 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
             orders = list(cfg.nuisance_orders)
             expanded = False
             max_init_k = max(orders)
+            triangle_grid = None
+            triangle_phases = {}
             _, Q_all_123, R_all_123 = _nuisance_interleaved_qr(seed, t, max_init_k, 1)
             _, Q_all_0, R_all_0 = _nuisance_interleaved_qr(seed, t, max_init_k, 2)
 
@@ -2077,7 +2088,7 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                         continue
                     source_cycle = ({"aperture_s": 1/fs} if observed else
                                     cycle if kind == 3 else None)
-                    B, _ = _nuisance(seed, t, K, kind)
+                    B, _ = _nuisance(seed, t, K, kind, derivative=False)
                     m_cols = B.shape[1]
                     if kind == 0:
                         Q_k = Q_all_0[:, :m_cols]
@@ -2124,13 +2135,24 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                             low = np.array([lower, base - .24] + ([cfg.duty_min, 1e-5, 1e-5] if kind == 1 else []))
                             high = np.array([upper, base + .24] + ([cfg.duty_max, edge_bound, edge_bound] if kind == 1 else []))
                             if kind == 2:
-                                phases = np.linspace(base - .239, base + .239, 65)
-                                sg = shape(kind, seed * t[:, None] + phases[None, :])
-                                zg = sg - Q_k @ (Q_k.T @ sg)
-                                en = np.sum(zg * zg, axis=0)
-                                av = np.clip((yy_k @ zg) / np.maximum(en, 1e-20), amin, amax)
-                                losses = np.sum((zg * av[None, :] - yy_k[:, None]) ** 2, axis=0)
-                                q0[1] = phases[int(np.argmin(losses))]
+                                # Both aperture models use this same sharp
+                                # triangle phase initialization. Only the
+                                # subsequent source fit uses the aperture.
+                                # Cache exact arrays/argmins within this seed;
+                                # no search point or arithmetic is changed.
+                                grid_key = (K, base)
+                                if grid_key not in triangle_phases:
+                                    if triangle_grid is None or triangle_grid[0] != base:
+                                        phases = np.linspace(base - .239, base + .239, 65)
+                                        sg = shape(kind, seed * t[:, None] + phases[None, :])
+                                        triangle_grid = (base, phases, sg)
+                                    _, phases, sg = triangle_grid
+                                    zg = sg - Q_k @ (Q_k.T @ sg)
+                                    en = np.sum(zg * zg, axis=0)
+                                    av = np.clip((yy_k @ zg) / np.maximum(en, 1e-20), amin, amax)
+                                    losses = np.sum((zg * av[None, :] - yy_k[:, None]) ** 2, axis=0)
+                                    triangle_phases[grid_key] = phases[int(np.argmin(losses))]
+                                q0[1] = triangle_phases[grid_key]
                             q0 = np.clip(q0, low + 1e-12, high - 1e-12)
                             scales = [fs / n, .1] + ([.1, .05, .05] if kind == 1 else [])
 

@@ -89,8 +89,12 @@ class AcquisitionCalibration:
     adc_offset_counts: float
     nominal_metadata: dict
     sample_rate_hz_exact: float | None = None
+    vpp_transfer: dict | None = None
 
     def __post_init__(self):
+        if self.vpp_transfer is not None:
+            from tools.amplitude_calibration import validate_transfer
+            validate_transfer(self.vpp_transfer)
         nominal = self.nominal_metadata
         if (not 1 <= self.sample_rate_millihz <= 100000000 or
                 not math.isfinite(self.adc_scale) or not .8 <= self.adc_scale <= 1.2 or
@@ -113,6 +117,7 @@ class AcquisitionCalibration:
         return payload, replace(meta, sample_rate_millihz=self.sample_rate_millihz,
             sample_rate_hz_exact=self.sample_rate_hz_exact or self.sample_rate_millihz / 1000,
             adc_scale=self.adc_scale, adc_offset_counts=self.adc_offset_counts,
+            vpp_transfer=self.vpp_transfer,
             flags=meta.flags | 6)
 
     def apply(self, payload, meta):
@@ -134,6 +139,8 @@ class AcquisitionCalibration:
         value = asdict(self)
         if value["sample_rate_hz_exact"] is None:
             del value["sample_rate_hz_exact"]  # Preserve old schema-1 checksums.
+        if value['vpp_transfer'] is None:
+            del value['vpp_transfer']
         return value
 
     @classmethod
@@ -179,7 +186,7 @@ def load_latest_calibration(path):
         if calibration is None and source is None:
             return None
         calibration = AcquisitionCalibration.from_dict(calibration)
-        if (not isinstance(source, dict) or source.get("command") != "RO" or
+        if (not isinstance(source, dict) or source.get("command") not in ("RO", "RS") or
                 any(not isinstance(source.get(k), str) or not source[k] for k in
                     ("calibrated_utc", "calibration_report"))):
             raise ValueError("missing successful RO calibration provenance")
@@ -203,7 +210,7 @@ def save_latest_calibration(path, report):
         raise ValueError("only a successful independent RO calibration can update algorithm parameters")
     calibration = AcquisitionCalibration.from_dict(document["calibration"])
     profile = CalibrationProfile(calibration, {
-        "command": "RO", "calibrated_utc": datetime.now(timezone.utc).isoformat(),
+        "command": "RS" if report.parent.name.startswith('rs-') else "RO", "calibrated_utc": datetime.now(timezone.utc).isoformat(),
         "calibration_report": str(report),
         "calibration_sha256": calibration_sha256(calibration)})
     atomic_json(path, profile.to_dict())

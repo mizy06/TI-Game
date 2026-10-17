@@ -148,6 +148,32 @@ class TruncatedSerial(StalledSerial):
         return super().write(data)
 
 
+class TimedReadSerial(TruncatedSerial):
+    """Like PySerial on Windows, wait for the requested count or timeout."""
+    timeout = 3.
+
+    def __init__(self, reply):
+        super().__init__(reply)
+        self.frame_read_timeouts = []
+
+    def read(self, count):
+        if count > 256:
+            self.frame_read_timeouts.append(self.timeout)
+        with self.condition:
+            deadline = time.monotonic() + self.timeout
+            while len(self.buffer) < count and self.is_open and not self.cancelled:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
+                self.condition.wait(remaining)
+            if self.cancelled:
+                self.cancelled = False
+                return b""
+            data = bytes(self.buffer[:count])
+            del self.buffer[:len(data)]
+            return data
+
+
 class ServerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -408,6 +434,114 @@ class ServerTests(unittest.TestCase):
             finally:
                 service.close()
 
+    def test_windows_partial_read_recovers_before_the_total_deadline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, output = CaptureStore(directory), io.StringIO()
+            port = TimedReadSerial(response(sine_payload()))
+            port.broken_reply = port.broken_reply[:-len(b"DUMP_END\r\nREADY\r\n")]
+            service = SerialService(port, store, Engine(self.api, output), stderr=io.StringIO())
+            try:
+                payload, _, record = service.capture(timeout=2.5)
+                self.assertEqual(payload, sine_payload())
+                self.assertEqual(record.info['metadata']['sequence'], 2)
+                self.assertEqual(bytes(port.written), b'RR')
+                self.assertEqual(port.timeout, 3.)
+                self.assertTrue(port.frame_read_timeouts)
+                self.assertLessEqual(max(port.frame_read_timeouts), .5)
+            finally:
+                service.close()
+            self.assertEqual((store.path/'uart_rx.bin').read_bytes(),
+                port.broken_reply.replace(b'seq=37,', b'seq=1,') +
+                port.complete_reply.replace(b'seq=37,', b'seq=2,'))
+            self.assertEqual(output.getvalue(), '')
+
+    def test_late_analysis_emits_nothing_and_cannot_satisfy_the_next_r(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, output = CaptureStore(directory), io.StringIO()
+            port = LiveSerial(response(sine_payload()))
+            service = SerialService(port, store, Engine(self.api, output), stderr=io.StringIO())
+            clock = [0.]
+            budgets = []
+
+            def analyze(api, payload, meta, *, config):
+                budgets.append(config.max_seconds)
+                if len(budgets) == 1:
+                    clock[0] = 2.
+                return 'sine,200,1,0,1.65', {'ok': True, 'status': 0}
+
+            try:
+                with patch('tools.waveform_server.time.perf_counter', side_effect=lambda: clock[0]), \
+                        patch('tools.waveform_server.host.analyze', side_effect=analyze):
+                    with self.assertRaisesRegex(TimeoutError, 'no RESULT emitted'):
+                        service.measure(timeout=1)
+                    self.assertEqual(output.getvalue(), '')
+                    service.measure(timeout=1)
+                self.assertEqual(len(output.getvalue().splitlines()), 1)
+                self.assertEqual(bytes(port.written), b'RR')
+                self.assertEqual(budgets, [1., 1.])
+            finally:
+                service.close()
+            first = json.loads(sorted(store.path.glob('uart/*/capture.json'))[0].read_text())
+            self.assertTrue(first['expired_request'])
+            self.assertEqual(first['display_output'], '')
+
+    def test_expired_frame_cannot_be_returned_to_a_new_request(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, output = CaptureStore(directory), io.StringIO()
+            wire = response(sine_payload())
+            port = LiveSerial(wire.replace(b'seq=37,', b'seq=1,'))
+            service = SerialService(port, store, Engine(self.api, output), stderr=io.StringIO())
+            release = threading.Event()
+            receive = host.receive_frame
+            write = port.write
+
+            def delayed_frame(*args, **kwargs):
+                result = receive(*args, **kwargs)
+                if result[1].sequence == 1:
+                    release.wait(2)
+                return result
+
+            def next_request(data):
+                release.set()
+                return write(data)
+
+            try:
+                with patch('tools.waveform_server.host.receive_frame', side_effect=delayed_frame):
+                    with self.assertRaisesRegex(TimeoutError, 'receiving ADC frame'):
+                        service.capture(timeout=.2)
+                    port.reply = wire.replace(b'seq=37,', b'seq=2,')
+                    port.write = next_request
+                    _, meta, _ = service.capture(timeout=2)
+                self.assertEqual(meta.sequence, 2)
+                self.assertEqual(bytes(port.written), b'RR')
+                self.assertEqual(output.getvalue(), '')
+            finally:
+                release.set()
+                service.close()
+            first = json.loads(sorted(store.path.glob('uart/*/capture.json'))[0].read_text())
+            self.assertTrue(first['expired_request'])
+
+    def test_archival_overrun_cannot_publish_a_result(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, output = CaptureStore(directory), io.StringIO()
+            payload, meta, record = host.receive_frame(PartialSerial(response(sine_payload())), store=store)
+            clock = [0.]
+            save_result = record.result
+
+            def slow_archive(*args):
+                save_result(*args)
+                clock[0] = 2.
+
+            with patch('tools.waveform_server.time.perf_counter', side_effect=lambda: clock[0]), \
+                    patch('tools.waveform_server.host.analyze', return_value=(
+                        'sine,200,1,0,1.65', {'ok': True, 'status': 0})), \
+                    patch.object(record, 'result', side_effect=slow_archive):
+                with self.assertRaisesRegex(TimeoutError, 'archiving ADC analysis'):
+                    Engine(self.api, output).process(payload, meta, record, deadline=1.)
+            self.assertEqual(output.getvalue(), '')
+            self.assertEqual(record.info['display_output'], '')
+            self.assertTrue(record.info['expired_request'])
+
     def test_timeout_without_a_trailer_recovers_without_parsing_late_binary(self):
         with tempfile.TemporaryDirectory() as directory:
             store, output = CaptureStore(directory), io.StringIO()
@@ -504,7 +638,8 @@ class ServerTests(unittest.TestCase):
                 self.assertNotRegex(line, r"[eE][+-]?\d")
                 if fields[1] != "square":
                     self.assertEqual(fields[4], "0")
-            self.assertEqual(result.stderr, "")
+            self.assertIn("Calibration:", result.stderr)
+            self.assertNotIn("RT done:", result.stderr)
             log = next(Path(directory).glob("*/server.log")).read_text()
             self.assertIn("RT done:", log)
             self.assertEqual(len(list(Path(directory).glob("*/rt/*/samples.adc.bin"))), 8)
@@ -525,7 +660,7 @@ class ServerTests(unittest.TestCase):
             result = subprocess.run([sys.executable, str(ROOT / "server.py"), "--data-dir", directory,
                 "--max-cases", "2"], input="bad\nR\nRT\nQ\n", capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn("server: enter R, RT or Q", result.stderr)
+            self.assertIn("server: enter R, RO, RT, RS or Q", result.stderr)
             self.assertIn("R requires --port", result.stderr)
             self.assertNotIn("RT done:", result.stderr)
             self.assertIn("R requires --port", next(Path(directory).glob("*/server.log")).read_text())

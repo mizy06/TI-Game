@@ -1,4 +1,4 @@
-"""RO: replay the 48+96+221 finals matrix set (or legacy RT cases) on a Siglent, then acquire through R."""
+"""RO: replay identifiable weak/strong finals cases and acquire through R."""
 from __future__ import annotations
 
 import csv
@@ -60,8 +60,12 @@ def _generate_finals_row(row, seed):
     clean = _finals_waveform(row["kind"], p, duty, rise, fall)
     rng = np.random.default_rng(int(seed))
     noise = np.zeros(n, dtype=float)
+    noise_audit = None
     if row.get("noise"):
-        if row.get("noise_model") == "multitone":
+        if row.get("noise_model") == "gaussian_notched_replay":
+            from tools.identifiable_finals import noise_samples
+            noise, noise_audit = noise_samples(row, seed)
+        elif row.get("noise_model") == "multitone":
             frequencies = np.asarray(row["interference_frequencies_hz"], dtype=float)
             phases = rng.uniform(0.0, 2.0 * np.pi, len(frequencies))
             weights = rng.uniform(0.4, 1.0, len(frequencies))
@@ -135,6 +139,8 @@ def _generate_finals_row(row, seed):
         "prequantization_clipped_samples": 0,
         "truth": truth,
     }
+    if noise_audit is not None:
+        facts["noise_identifiability"] = noise_audit
     return payload, meta, facts
 
 
@@ -180,7 +186,7 @@ def _fallback_finals_rows(group):
 
 
 @lru_cache(maxsize=1)
-def _cached_finals_bundle():
+def _cached_legacy_finals_bundle():
     cases = []
     by_id = {}
     for group, filename, seed0, expected_count in FINALS_SUITE_SPECS:
@@ -235,26 +241,49 @@ def _cached_finals_bundle():
     return tuple(cases), by_id
 
 
+@lru_cache(maxsize=1)
+def _cached_finals_bundle():
+    from tools.identifiable_finals import load_rows
+    cases, by_id = [], {}
+    ordinals = Counter()
+    for row in load_rows():
+        group = "final_" + row["group"]
+        ordinals[group] += 1
+        case_id = f"{group}-{ordinals[group]:04d}"
+        seed = int(row["seed"])
+        payload, meta, facts = _generate_finals_row(row, seed)
+        case = Case(id=case_id, suite="finals", group=group, wave=row["kind"],
+                    frequency_hz=row["frequency"], vpp_v=row["vpp"], dc_v=facts["truth"]["dc_v"],
+                    phase=row["phase"], duty=row["duty"], rise=row["rise"], fall=row["fall"],
+                    noise_pp_ratio=row["noise"], bandwidth_ratio=row["bandwidth"],
+                    noise_mode=row["noise_model"], fs_hz=row["fs"], seed=seed,
+                    source=json.dumps(row, sort_keys=True, separators=(",", ":")),
+                    impairment=row["tag"])
+        cases.append(case)
+        by_id[case_id] = case, row, payload, meta, facts
+    return tuple(cases), by_id
+
+
 def ro_matrix(seed=20261005, random_count=512):
-    """Return Finals RO cases strictly below 600 Hz, preserving their IDs."""
+    """Return both finals noise groups, including the strong 50% boundary."""
     del seed, random_count
     cases, _ = _cached_finals_bundle()
     return (case for case in cases
-            if (TEST_FREQUENCY_MIN_HZ <= case.frequency_hz < TEST_FREQUENCY_MAX_EXCLUSIVE_HZ
-                and case.noise_pp_ratio < TEST_NOISE_MAX_EXCLUSIVE))
+            if (100. <= case.frequency_hz <= 600. and case.noise_pp_ratio <= .5))
 
 
 def _is_finals_case(case):
     return (isinstance(getattr(case, "source", None), str) and
             case.source.startswith("{") and
-            getattr(case, "group", "") in ("new48", "fresh96", "paired221"))
+            getattr(case, "group", "") in ("new48", "fresh96", "paired221", "final_weak", "final_strong"))
 
 
 def generate_ro(case):
     """Generate ADC payload, metadata and ground-truth facts for an RO case."""
     if not _is_finals_case(case):
         return generate(case)
-    _, by_id = _cached_finals_bundle()
+    _, by_id = (_cached_finals_bundle() if case.group.startswith("final_")
+                else _cached_legacy_finals_bundle())
     cached = by_id.get(case.id)
     if cached is not None and cached[0] == case and not case.fault:
         return cached[2], cached[3], cached[4]
@@ -273,6 +302,10 @@ def close_record(case, adc):
     import numpy as np
     if _is_finals_case(case):
         row = json.loads(case.source)
+        if row.get("noise_model") == "gaussian_notched_replay":
+            # This record already closes source *and* interference. Appending
+            # a carrier-only tail would reintroduce a spectral seam.
+            return adc
         actual_fs = float(row.get("fs", case.fs_hz)) * (1.0 + float(row.get("clock_error_ppm", 0.0)) * 1e-6)
         f = float(case.frequency_hz)
         n = len(adc)
@@ -338,7 +371,7 @@ def board_levels():
     return tuple(values)
 
 
-def encode(case, vref, gain, level_mode="adc"):
+def encode(case, vref, gain, level_mode="adc", oversample=1):
     """Invert RT/RO ADC quantization, then encode signed little-endian DAC words."""
     import numpy as np
     if level_mode not in ("adc", "source"):
@@ -361,6 +394,31 @@ def encode(case, vref, gain, level_mode="adc"):
     error = float(np.max(np.abs(restored - volts)))
     if error > full_scale / (4 * 32767) + 1e-12:
         raise ValueError("RO DAC round-trip check failed")
+    if oversample not in (1,8,16,32):
+        raise ValueError('RO oversample must be 1, 8, 16 or 32')
+    source_rate=case.fs_hz
+    waveform_samples=len(adc)
+    if oversample>1:
+        if case.group not in ('final_weak','final_strong'):
+            raise ValueError('high resolution playback requires the identifiable finals source')
+        from tools.identifiable_finals import noise_samples
+        row=json.loads(case.source)
+        waveform_samples=int(row['samples'])*oversample
+        source_rate=case.fs_hz*oversample
+        phase=np.arange(waveform_samples)*case.frequency_hz/source_rate+row['phase']
+        clean=_finals_waveform(row['kind'],phase,row['duty'],row['rise'],row['fall'])
+        noise=noise_samples(row,case.seed)[0] if row['noise'] else np.zeros(int(row['samples']))
+        # Interpolate only the explicitly bandlimited interference. Evaluate
+        # the clean continuous source directly, retaining its original truth.
+        noise=np.fft.irfft(np.fft.rfft(noise),n=waveform_samples)*oversample
+        if row['noise']:
+            noise*=row['noise']*row['vpp']/np.ptp(noise)
+        source=(facts['truth']['dc_v']+.5*row['vpp']*clean+noise)*full_scale/(case.vref_v/case.gain)
+        if np.any((source<0)|(source>vref/gain)):
+            raise ValueError('high resolution source exceeds ADC input range')
+        dac=np.rint((2*source/full_scale-1)*32767).astype('<i2')
+        error=float(np.max(np.abs(.5*full_scale*(dac.astype(float)/32767+1)-source)))
+        volts=source
     scale = full_scale / (case.vref_v / case.gain)
     truth = dict(facts["truth"])
     truth.update(vpp_v=truth["vpp_v"] * scale, dc_v=truth["dc_v"] * scale)
@@ -370,34 +428,39 @@ def encode(case, vref, gain, level_mode="adc"):
         "rt_metadata": asdict(meta), "rt_generated": facts, "truth": truth,
         "level_mode": level_mode, "voltage_scale": scale,
         "amplitude_v": full_scale, "offset_v": .5 * full_scale,
-        "sample_rate_hz": case.fs_hz, "loop_frequency_hz": case.fs_hz / len(adc),
-        "waveform_samples": len(adc), "seam_bridge_samples": len(adc) - n_original,
+        "sample_rate_hz": source_rate, "loop_frequency_hz": source_rate / waveform_samples,
+        "waveform_samples": waveform_samples, "seam_bridge_samples": len(adc) - n_original,
+        "source_oversample": oversample,
         "original_samples": n_original,
         "input_min_v": float(volts.min()), "input_max_v": float(volts.max()),
         "dac_roundtrip_error_v": error, "dac_encoding": "signed int16 little-endian",
-        "note": "Original RT/RO codes are unchanged. A short carrier continuation closes the loop; "
-                "aperiodic noise/AM/interference still repeats, and R is not phase-locked."}
+        "note": ("Continuous clean source and periodic bandlimited noise evaluated at a finer DAC rate; "
+                 "the original RT payload and clean truth are retained; R acquisition is asynchronous."
+                 if oversample>1 else
+                 "Original RT/RO codes are unchanged. Closed periodic source is replayed asynchronously.")}
 
 
 def evaluate_ro(case, line, details, elapsed, facts=None):
-    """Evaluate RO capture using internal precision; handle coherent-sine wire carrier."""
+    """Evaluate against the clean source truth; carrier fit is diagnostic only."""
     eval_case = replace(case, group="final_strong") if _is_finals_case(case) else case
     check = evaluate(eval_case, line, details, elapsed, facts)
+    if case.group in ("final_weak", "final_strong"):
+        check["limits"]["vpp_pct"] = .1
+        # Strictly below 0.1%, using unrounded internal measurements.
+        if check["vpp_error_pct"] >= .1 and "vpp_error_pct" not in check["failure_reasons"]:
+            check["failure_reasons"].append("vpp_error_pct")
+        check["passed"] = not check["failure_reasons"]
+        check["verdict"] = "PASS" if check["passed"] else "FAIL"
     truth = (facts or {}).get("truth", {})
     if "wire_carrier_vpp_v" in truth and truth["wire_carrier_vpp_v"] > 0:
         wire_vpp = truth["wire_carrier_vpp_v"]
         wire_err_pct = abs(check["measured"]["vpp_v"] / wire_vpp - 1.0) * 100.0
         check["wire_carrier_vpp_error_pct"] = wire_err_pct
-        if "vpp_error_pct" in check["failure_reasons"] and wire_err_pct <= check["limits"]["vpp_pct"]:
-            reasons = [r for r in check["failure_reasons"] if r != "vpp_error_pct"]
-            check["failure_reasons"] = reasons
-            check["passed"] = not reasons
-            check["verdict"] = "FAIL" if reasons else "PASS"
     return check
 
 
 def select_ro_cases(args):
-    """Select sub-600-Hz Finals cases, or resolve eligible legacy competition-* IDs."""
+    """Select 100..600-Hz Finals cases, or explicitly selected historical IDs."""
     suite = getattr(args, "suite", "all")
     case_ids = list(getattr(args, "case_id", None) or [])
     seed = getattr(args, "seed", 20261005)
@@ -408,6 +471,12 @@ def select_ro_cases(args):
         any(cid.startswith("competition-") for cid in case_ids)
     )
     finals_pool = list(ro_matrix(seed, random_count))
+    if any(token in ("new48", "fresh96", "paired221") or
+           token.startswith(("new48-", "fresh96-", "paired221-")) for token in case_ids):
+        # Historical counterexamples are only explicitly selectable.
+        finals_pool += [c for c in _cached_legacy_finals_bundle()[0]
+                        if TEST_FREQUENCY_MIN_HZ <= c.frequency_hz < TEST_FREQUENCY_MAX_EXCLUSIVE_HZ
+                        and c.noise_pp_ratio < .5]
     if suite == "preliminary" or case_ids == ["preliminary"]:
         pool = list(matrix(seed, random_count))
     elif wants_legacy:
@@ -1283,6 +1352,9 @@ def calibrate_playback(service, store, args, stderr, instrument, report, vref, g
         # Re-quantizing every sample first can bias a short voltage difference.
         measured_dc = ((float(samples.mean()) - acquisition.adc_offset_counts) / acquisition.adc_scale *
                        full_scale / effective.adc_full_scale)
+        if acquisition.vpp_transfer is not None:
+            from tools.amplitude_calibration import voltage_values
+            measured_dc = float(voltage_values(samples,acquisition.vpp_transfer).mean())
         context["measured_dc_v"] = measured_dc
         context["adc_std_counts"] = float(samples.std()) / acquisition.adc_scale
         context["metadata"] = asdict(meta)
@@ -1319,8 +1391,8 @@ def calibrate_playback(service, store, args, stderr, instrument, report, vref, g
         atomic_json(path, info)
 
 
-def run(service, store, args, stderr):
-    """Replay the 48+96+221 finals matrix on the generator; measure through R when a board is attached.
+def run(service, store, args, stderr, *, calibration_only=False):
+    """Replay the identifiable weak/strong finals matrix and measure through R.
 
     ``service`` may be None.  The board link is only needed for the R leg, so
     without it RO still generates, encodes, uploads and readback-verifies every
@@ -1329,23 +1401,30 @@ def run(service, store, args, stderr):
     if not math.isfinite(args.ro_settle) or not 0 <= args.ro_settle <= 10:
         raise ValueError("RO settling time must be finite and between 0 and 10 seconds")
     measured = service is not None
+    if calibration_only and not measured:
+        raise ValueError("RS requires an attached ADC board (--port) and generator")
     generator = Generator(args.ro_host, args.ro_port, args.ro_channel, args.ro_timeout,
                           transport=getattr(args, "ro_transport", "vxi11"),
                           resource=getattr(args, "ro_resource", None),
                           visa_backend=getattr(args, "ro_visa_backend", None))
     generator.stderr = stderr
-    selected = select_ro_cases(args)
+    selected = [] if calibration_only else select_ro_cases(args)
     vref, gain = board_levels()
-    prepared = [encode(case, vref, gain, args.ro_level_mode) for case in selected]
-    report = store.path / ("ro-" + str(time.time_ns()))
+    prepared = [encode(case, vref, gain, args.ro_level_mode,getattr(args,'ro_oversample',1)) for case in selected]
+    report = store.path / (("rs-" if calibration_only else "ro-") + str(time.time_ns()))
     report.mkdir()
-    atomic_json(report / "matrix.json", {"schema": 1, "seed": args.seed,
-        "cases": [asdict(c) for c in selected]})
+    if not calibration_only:
+        from tools.identifiable_finals import DESIGN_SEED, REVISION
+        atomic_json(report / "matrix.json", {"schema": 1, "seed": DESIGN_SEED, "revision": REVISION,
+            "cases": [asdict(c) for c in selected]})
     results, counts = [], Counter()
     started, completed = time.perf_counter(), False
     error_text, failed_case = "", None
     calibration_snapshot = playback_snapshot = None
     previous_calibration_mode = service.use_saved_calibration if measured else None
+    parameters_before = (service.parameters_path.read_text(encoding='utf-8')
+                         if measured and service.parameters_path.exists() else None)
+    profile_before = service.calibration_profile if measured else None
     if not measured:
         print("RO: no board attached; encoding and uploading the matrix, R is not sent",
               file=stderr, flush=True)
@@ -1358,23 +1437,66 @@ def run(service, store, args, stderr):
                 print(f"RO: VXI-11 {args.ro_host}:{args.ro_port} / inst0", file=stderr, flush=True)
             with generator as instrument, (report / "results.jsonl").open("w", encoding="utf-8") as journal:
                 if measured:
-                    if getattr(args, "ro_calibrate", "auto") == "auto":
+                    reuse_report = None if calibration_only else getattr(args, 'ro_reuse_reference_report', None)
+                    calibration_mode = 'auto' if calibration_only else getattr(args, 'ro_calibrate', 'saved')
+                    if calibration_mode == 'saved' and not reuse_report:
+                        profile = service.refresh_calibration()
+                        if profile is None:
+                            raise ValueError('RO requires saved calibration; run RS first')
+                        reuse_report = str(Path(profile.source['calibration_report']).parent)
+                    if reuse_report:
+                        import shutil
+                        from tools.generator_calibration import GeneratorCalibration
+                        reference_dir=Path(reuse_report).resolve()
+                        calibration_snapshot=json.loads((reference_dir/'calibration.json').read_text())
+                        playback_snapshot=json.loads((reference_dir/'generator_calibration.json').read_text())
+                        amp_reference=json.loads((reference_dir/'amplitude_calibration.json').read_text())
+                        arb_reference=json.loads((reference_dir/'arb_voltage_transfer.json').read_text())
+                        if not all(x.get('complete') and not x.get('error') for x in
+                                   (calibration_snapshot,playback_snapshot,amp_reference,arb_reference)):
+                            raise ValueError('cannot reuse failed independent references')
+                        for filename in ('calibration.json','generator_calibration.json',
+                                         'amplitude_calibration.json','arb_voltage_transfer.json'):
+                            shutil.copy2(reference_dir/filename,report/filename)
+                        service.publish_calibration(report/'calibration.json')
+                        service.use_saved_calibration=True
+                        instrument.playback_calibration=GeneratorCalibration(**playback_snapshot['calibration'])
+                        instrument.playback_transfer=arb_reference['transfer']
+                        atomic_json(report/'reference_provenance.json',dict(source_report=str(reference_dir),
+                                    note='Reused independent references; fresh matrix ADC samples follow'))
+                    elif calibration_mode == "auto":
                         service.use_saved_calibration = True
                         calibration_snapshot = calibrate_link(service, store, args, stderr, instrument, report, vref, gain)
+                        if getattr(args,'ro_vpp_calibrate',False):
+                            from tools.dynamic_amplitude_calibration import calibrate_adc_transfer
+                            calibrate_adc_transfer(service,store,args,stderr,instrument,report,
+                                                   calibration_snapshot,vref/gain)
                         playback_snapshot = calibrate_playback(service, store, args, stderr, instrument, report, vref, gain)
+                        if getattr(args,'ro_vpp_calibrate',False):
+                            from tools.dynamic_amplitude_calibration import calibrate_dac_transfer
+                            calibrate_dac_transfer(service,store,args,stderr,instrument,report,vref/gain)
                     else:
                         service.use_saved_calibration = False
-                _run_cases(service, store, args, stderr, instrument, journal, report,
-                           selected, prepared, results, counts, vref, gain, measured)
+                if not calibration_only:
+                    _run_cases(service, store, args, stderr, instrument, journal, report,
+                               selected, prepared, results, counts, vref, gain, measured)
             completed = True
     except BaseException as error:
         completed = False
         error_text = f"{type(error).__name__}: {error}"
-        failed_case = selected[len(results)].id if len(results) < len(selected) else None
+        failed_case = (results[-1]['case_id'] if results and not results[-1]['result']['passed']
+                       else selected[len(results)].id if len(results) < len(selected) else None)
         raise
     finally:
         if measured:
             service.use_saved_calibration = previous_calibration_mode
+            if calibration_only and not completed:
+                # A partially successful RS must not replace the working profile.
+                if parameters_before is None:
+                    service.parameters_path.unlink(missing_ok=True)
+                else:
+                    atomic_text(service.parameters_path, parameters_before)
+                service.calibration_profile = profile_before
         generator.trace = None
         if isinstance(calibration_snapshot, dict):
             atomic_json(report / "calibration.json", calibration_snapshot)
@@ -1392,7 +1514,8 @@ def run(service, store, args, stderr):
         atomic_text(report / "results.csv", table.getvalue())
         atomic_json(report / "results.json", {"complete": completed, "results": results})
         summary = {"selected": len(selected), "complete": completed, "counts": dict(counts),
-            "board": measured, "mode": "full" if measured else "encode-only",
+            "board": measured, "mode": "calibration-only" if calibration_only else "full" if measured else "encode-only",
+            "frames_per_case": args.r_frames if measured else None,
             "all_passed": completed and not counts["failed"], "error": error_text,
             "shutdown_error": generator.shutdown_error,
             "failure": generator.failure, "failed_case": failed_case,
@@ -1405,14 +1528,15 @@ def run(service, store, args, stderr):
             "diagnostics": "scpi.jsonl",
             "not_run": [c.id for c in selected[len(results):]],
             "wall_time_s": time.perf_counter() - started,
-            "note": ("Real instrument/UART test on the 48+96+221 finals matrix set; adc mode scales "
+            "note": ("Independent ADC/ARB calibration only; no matrix cases generated or measured."
+                     if calibration_only else "Real instrument/UART test on identifiable weak/strong finals; adc mode scales "
                      "source volts to this board. Evaluation uses board metadata and, when enabled, "
                      "independent acquisition calibration; replay truth remains unchanged."
                      if measured else
                      "No board attached: every selected case was generated, encoded, uploaded and "
                      "readback-verified on the generator; R was not sent and nothing was measured.")}
         atomic_json(report / "summary.json", summary)
-        print(f"RO: {dict(counts)}; summary: {report / 'summary.json'}", file=stderr, flush=True)
+        print(f"{'RS' if calibration_only else 'RO'}: {dict(counts)}; summary: {report / 'summary.json'}", file=stderr, flush=True)
     return 0 if summary["all_passed"] else 1
 
 
@@ -1433,6 +1557,13 @@ def _run_cases(service, store, args, stderr, instrument, journal, report,
         "generator_calibration": (asdict(instrument.playback_calibration)
             if instrument.playback_calibration is not None else None)})
     for index, (case, (adc, dac, config)) in enumerate(zip(selected, prepared), 1):
+        transfer=getattr(instrument,'playback_transfer',None)
+        if transfer is not None:
+            from tools.amplitude_calibration import predistort_dac
+            config=dict(config)
+            config['uncompensated_dac_sha256']=hashlib.sha256(dac).hexdigest()
+            dac=predistort_dac(dac,config,transfer)
+            config['voltage_transfer_report']='arb_voltage_transfer.json'
         if instrument.playback_calibration is not None:
             config = instrument.playback_calibration.apply(config)
         source = report / case.id
@@ -1463,8 +1594,9 @@ def _run_cases(service, store, args, stderr, instrument, journal, report,
         instrument.stage, instrument.command = "R acquisition", "UART R"
         instrument.record("start", case_id=case.id)
         time.sleep(args.ro_settle)
-        line, details, elapsed, meta, record = service.measure(
-            timeout=args.ro_timeout, return_result=True)
+        from tools.precision_batch import measure_batch
+        line, details, elapsed, meta, record = measure_batch(
+            service, frames=args.r_frames, timeout=args.ro_timeout, return_result=True)
         instrument.record("ok", case_id=case.id)
         instrument.stage, instrument.command = "evaluate R capture", case.id
         # Real R metadata governs measurement units; source truth stays fixed.
@@ -1473,14 +1605,19 @@ def _run_cases(service, store, args, stderr, instrument, journal, report,
             vref_v=meta.reference_microvolts / 1e6, gain=meta.gain_ppm / 1e6,
             vpp_v=config["truth"]["vpp_v"], dc_v=config["truth"]["dc_v"])
         check = evaluate_ro(measured_case, line, details, elapsed, config)
-        record.info["context"].update(ro_case=asdict(case), generator=config,
-            ro_report=report.relative_to(store.path).as_posix())
-        record.info["self_test"] = check
-        record.save()
+        for capture in record.info["r_batch"]["captures"]:
+            capture_path = store.path / capture / "capture.json"
+            info = (record.info if capture_path.parent == record.path else
+                    json.loads(capture_path.read_text(encoding="utf-8")))
+            info["context"].update(ro_case=asdict(case), generator=config,
+                ro_report=report.relative_to(store.path).as_posix())
+            info["self_test"] = check
+            atomic_json(capture_path, info)
         entry = {"case_id": case.id, "case": asdict(case), "generator": config,
             "metadata": asdict(meta), "wire_metadata": record.info["metadata"],
             "result": check, "algorithm": details,
-            "capture": record.path.relative_to(store.path).as_posix()}
+            "capture": record.path.relative_to(store.path).as_posix(),
+            "captures": record.info["r_batch"]["captures"], "r_batch": record.info["r_batch"]}
         journal.write(json.dumps(entry, ensure_ascii=False, allow_nan=False) + "\n")
         journal.flush()
         os.fsync(journal.fileno())
@@ -1492,3 +1629,5 @@ def _run_cases(service, store, args, stderr, instrument, journal, report,
             failure += f"; ADC rails high={details['high_clip_samples']}, low={details['low_clip_samples']}"
         print(f"RO {index}/{len(selected)} {case.id}: {check['verdict']}" +
               (f" ({failure})" if not check["passed"] else ""), file=stderr, flush=True)
+        if not check["passed"] and getattr(args, "ro_stop_on_failure", False):
+            raise RuntimeError(f"RO first failed verdict: {case.id}: {failure}")

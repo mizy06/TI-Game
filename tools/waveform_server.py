@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from contextlib import redirect_stderr
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime, timezone
 import subprocess
 import sys
@@ -83,38 +83,109 @@ def measurement_output(line):
 
 
 class Engine:
-    def __init__(self, api, output=None, stderr=None, config=None):
+    def __init__(self, api, output=None, stderr=None, config=None, *, workers=1):
         self.api = api
         self.config = config
         self.lock = threading.Lock()  # Serialize output and acquisition records.
         self.output = output or sys.stdout
         self.stderr = stderr or sys.stderr
+        if not 1 <= workers <= 8:
+            raise ValueError('R workers must be 1..8')
+        from tools.parallel_analysis import FrameAnalysisPool
+        self.parallel_pool = FrameAnalysisPool(workers) if workers > 1 else None
 
-    def process(self, payload, meta, record):
-        with self.lock:
+    def warm(self):
+        if self.parallel_pool is not None:
+            self.parallel_pool.warm()
+
+    def close(self):
+        if self.parallel_pool is not None:
+            self.parallel_pool.close()
+
+    def process_frames(self, captures, *, deadline):
+        """Fit independent frames concurrently; archive only on the parent."""
+        pool = self.parallel_pool
+        acquired = self.lock.acquire(timeout=max(0., deadline-time.perf_counter()))
+        try:
+            if not acquired:
+                raise TimeoutError('R deadline exhausted waiting for analysis; no RESULT emitted')
+            pool.last_results = []
+            # Normally prewarmed before opening the UART. Recovery after a
+            # failed request also counts against the next request's deadline.
+            pool.warm(timeout=max(0., deadline-time.perf_counter()))
             started = time.perf_counter()
-            try:
-                line, details = host.analyze(self.api, payload, meta, config=self.config)
-            except Exception as error:
-                if record:
-                    record.info["algorithm_error"] = str(error)
-                    record.save()
-                raise
+            fitted = pool.analyze([(p, m) for p, m, _ in captures], self.config, deadline)
+            elapsed = time.perf_counter()-started
+            for (_, _, record), (line, details, frame_elapsed) in zip(captures, fitted):
+                record.info['display_output'] = ''
+                record.result(line, details, frame_elapsed)
+            if time.perf_counter() >= deadline:
+                raise TimeoutError('R parallel archival deadline exhausted; no RESULT emitted')
+            return fitted, elapsed
+        except Exception as error:
+            # Preserve any already completed/rejected frames. Children never
+            # own records or stdout, including on cancellation or worker loss.
+            for index, (_, _, record) in enumerate(captures):
+                if acquired and index < len(pool.last_results) and pool.last_results[index] is not None:
+                    line, details, frame_elapsed = pool.last_results[index]
+                    record.result(line, details, frame_elapsed)
+                record.info.update(algorithm_error=str(error), display_output='')
+                if isinstance(error, TimeoutError):
+                    record.info['expired_request'] = True
+                record.save()
+            raise
+        finally:
+            if acquired:
+                self.lock.release()
+
+    def process(self, payload, meta, record, *, deadline=None, emit=True):
+        def check_deadline(stage):
+            if deadline is not None and time.perf_counter() >= deadline:
+                raise TimeoutError(f"R deadline exhausted at {stage}; no RESULT emitted")
+
+        acquired = (self.lock.acquire() if deadline is None else
+                    self.lock.acquire(timeout=max(0., deadline - time.perf_counter())))
+        try:
+            if not acquired:
+                raise TimeoutError("R deadline exhausted waiting for analysis; no RESULT emitted")
+            started = time.perf_counter()
+            check_deadline("analyzing ADC frame")
+            config = self.config
+            if deadline is not None:
+                from tools.unified_solver import SolverConfig
+                config = config or SolverConfig()
+                config = replace(config, max_seconds=min(config.max_seconds,
+                                                         deadline - time.perf_counter()))
+                check_deadline("analyzing ADC frame")
+            line, details = host.analyze(self.api, payload, meta, config=config)
             elapsed = time.perf_counter() - started
+            check_deadline("analyzing ADC frame")
             output = measurement_output(line)
             if record:
-                record.info["display_output"] = output
+                record.info["display_output"] = output if emit else ""
                 record.result(line, details, elapsed)
-            if output:
+            check_deadline("archiving ADC analysis")
+            if emit and output:
                 print(output, file=self.output, flush=True)
-            else:
+            elif emit:
                 print(f"measurement rejected: status={details['status']}", file=self.stderr, flush=True)
-        return line, details, elapsed
+            return line, details, elapsed
+        except Exception as error:
+            if record:
+                record.info.update(algorithm_error=str(error), display_output="")
+                if deadline is not None and isinstance(error, TimeoutError):
+                    record.info["expired_request"] = True
+                record.save()
+            raise
+        finally:
+            if acquired:
+                self.lock.release()
 
 
 class SerialService:
     """Read unsolicited PB13 frames too, including while RT is running."""
     RESPONSE_GRACE_S = 3.
+    FRAME_READ_TIMEOUT_S = .5
     RX_BUFFER_BYTES = 64 * 1024
 
     def __init__(self, port, store, engine, stderr=None, *, parameters_path=None):
@@ -129,13 +200,12 @@ class SerialService:
         self.request_sequence = 0
         self.connection_log_lock = threading.Lock()
         self.pending_lock = threading.Lock()
-        self.request_lock = threading.Lock()
+        self.request_lock = threading.RLock()
         self.pending = None
         self.pending_error = None
         self.pending_result = None
         self.pending_started = None
         self.pending_stage = None
-        self.pending_raw = False
         self.drop_until_ready = False
         self.resynchronizing = False
         self.parameters_path = Path(parameters_path if parameters_path is not None else
@@ -147,7 +217,7 @@ class SerialService:
         except (ValueError, OSError) as error:
             # Raw RO reference captures can repair a broken parameters file.
             # Ordinary R must report the error instead of silently going nominal.
-            print(f"R calibration: {error}; run RO to replace the parameters", file=self.stderr, flush=True)
+            print(f"R calibration: {error}; run RS to replace the parameters", file=self.stderr, flush=True)
         self._configure_buffers()
         self._connection_event("opened", port=getattr(port, "port", None))
         self._start_reader()
@@ -231,7 +301,7 @@ class SerialService:
         if profile != self.calibration_profile:
             self.calibration_profile = profile
             if profile is not None:
-                print(f"R calibration loaded: {self.parameters_path}; RO at {profile.source['calibrated_utc']}",
+                print(f"R calibration loaded: {self.parameters_path}; {profile.source['command']} at {profile.source['calibrated_utc']}",
                       file=self.stderr, flush=True)
             else:
                 print("R calibration: no saved parameters; using nominal board metadata",
@@ -243,12 +313,12 @@ class SerialService:
         self.calibration_profile = profile
         return profile
 
-    def _signal(self, error=None, result=None):
+    def _signal(self, request, error=None, result=None):
         with self.pending_lock:
-            if self.pending is not None and not self.pending.is_set():
+            if request is not None and self.pending is request and not request.is_set():
                 self.pending_error = error
                 self.pending_result = result
-                self.pending.set()
+                request.set()
                 return True
         return False
 
@@ -259,15 +329,18 @@ class SerialService:
 
     def _reader(self):
         while not self.stop.is_set() and not self.receiver_stop.is_set():
+            frame_started = False
             try:
                 raw = self.port.read_until(b"\n", 256)
+                with self.pending_lock:
+                    request, requested = self.pending, self.pending_started
                 if not raw:
                     continue
                 if self.resynchronizing:
                     # The old frame can leave binary bytes or READY in flight.
                     # Only the next acquisition's CAPTURING boundary permits
                     # interpreting another frame as this request's response.
-                    if raw.rstrip(b"\r\n") == b"CAPTURING":
+                    if raw.rstrip(b"\r\n") == b"CAPTURING" and request is not None:
                         self.resynchronizing = self.drop_until_ready = False
                         self._stage("board ADC/DMA capture")
                         self._connection_event("frame_resynchronized")
@@ -276,22 +349,36 @@ class SerialService:
                     raise TimeoutError("serial line incomplete; received bytes saved in uart_rx.bin")
                 line = raw.decode("ascii").rstrip("\r\n")
                 if line.startswith("DUMP,"):
+                    frame_started = True
                     self._stage("receiving ADC frame")
-                    payload, meta, record = host.receive_frame(self.port, first_line=line, store=self.store)
-                    with self.pending_lock:
-                        requested = self.pending_started if self.pending is not None else None
-                        raw_only = self.pending_raw if self.pending is not None else False
+                    # A short timeout applies only to an active binary frame.
+                    # read_exact can span several reads, but a missing tail must
+                    # not consume two Windows 3 s reads before recovery starts.
+                    old_timeout = getattr(self.raw_port, "timeout", None)
+                    has_timeout = hasattr(self.raw_port, "timeout")
+                    try:
+                        if has_timeout:
+                            self.raw_port.timeout = (self.FRAME_READ_TIMEOUT_S if old_timeout is None else
+                                min(old_timeout, self.FRAME_READ_TIMEOUT_S))
+                        payload, meta, record = host.receive_frame(self.port, first_line=line, store=self.store)
+                    finally:
+                        if has_timeout:
+                            self.raw_port.timeout = old_timeout
                     if requested is not None:
                         record.info["request_to_received_s"] = time.perf_counter() - requested
                         record.save()
-                    if self.drop_until_ready:
+                    with self.pending_lock:
+                        expired = request is not None and self.pending is not request
+                    if self.drop_until_ready or expired:
                         record.info["expired_request"] = True
                         record.save()
                         # receive_frame already consumed this block's READY.
                         self.drop_until_ready = False
                         continue
-                    if raw_only:
-                        self._signal(result=(payload, meta, record))
+                    if request is not None:
+                        # The requesting thread owns analysis and its deadline;
+                        # the sole UART reader remains available for reception.
+                        self._signal(request, result=(payload, meta, record))
                     else:
                         try:
                             profile = self.refresh_calibration() if self.use_saved_calibration else None
@@ -301,9 +388,7 @@ class SerialService:
                             record.info["calibration_error"] = str(error)
                             record.save()
                             raise
-                        self._stage("analyzing ADC frame")
-                        result = self.engine.process(payload, meta, record)
-                        self._signal(result=(*result, meta, record))
+                        self.engine.process(payload, meta, record)
                 elif line.startswith("ERR_"):
                     raise RuntimeError(f"board capture failed: {line}")
                 elif line == "CAPTURING":
@@ -324,7 +409,10 @@ class SerialService:
                     self.receiver_error = str(error)
                     self.reconnect_needed = True
                 self._connection_event("receiver_error", error=f"{type(error).__name__}: {error}")
-                if not self._signal(error):
+                if not frame_started:
+                    with self.pending_lock:
+                        request = self.pending
+                if not self._signal(request, error=error):
                     print(f"UART: {error}", file=self.stderr, flush=True)
                 if isinstance(error, host.FrameReceiveError):
                     break
@@ -350,7 +438,6 @@ class SerialService:
             with self.pending_lock:
                 self.pending, self.pending_error = event, None
                 self.pending_result = None
-                self.pending_raw = raw
                 self.pending_started = started
                 self.pending_stage = "waiting for board response"
             try:
@@ -377,11 +464,9 @@ class SerialService:
                     if not event.wait(max(0., deadline - time.perf_counter())):
                         with self.pending_lock:
                             stage = self.pending_stage
-                            self.drop_until_ready = stage != "waiting for board response"
-                        if stage in ("waiting for board response", "receiving ADC frame"):
-                            self.reconnect_needed = callable(getattr(self.raw_port, "open", None))
-                            if stage == "receiving ADC frame":
-                                self.resynchronizing = True
+                            self.drop_until_ready = True
+                        self.reconnect_needed = callable(getattr(self.raw_port, "open", None))
+                        self.resynchronizing = True
                         self._connection_event("request_timeout", stage=stage,
                                                receiver_alive=self.thread.is_alive())
                         raise TimeoutError(f"R exceeded {timeout:g} s at {stage}; "
@@ -403,9 +488,22 @@ class SerialService:
                     if error:
                         raise error
                     break
+                result = self.pending_result
+                if not raw:
+                    payload, meta, record = result
+                    self._stage("analyzing ADC frame")
+                    try:
+                        profile = self.refresh_calibration() if self.use_saved_calibration else None
+                        from tools.precision_batch import prepare_analysis
+                        payload, meta = prepare_analysis(payload, meta, record, profile, self.parameters_path)
+                    except Exception as error:
+                        record.info["calibration_error"] = str(error)
+                        record.save()
+                        raise
+                    result = (*self.engine.process(payload, meta, record, deadline=deadline), meta, record)
                 self._connection_event("request_complete", elapsed_s=time.perf_counter() - started)
                 if return_result:
-                    return self.pending_result
+                    return result
             except Exception as error:
                 if isinstance(error, OSError) and not isinstance(error, TimeoutError):
                     self.reconnect_needed = True
@@ -415,7 +513,6 @@ class SerialService:
                 with self.pending_lock:
                     self.pending = self.pending_started = None
                     self.pending_stage = None
-                    self.pending_raw = False
 
     def close(self):
         self.stop.set()
@@ -427,14 +524,14 @@ class SerialService:
 
 
 def parser():
-    p = argparse.ArgumentParser(description="R: external ADC measurement; RT: complete host self-test matrix.")
-    p.add_argument("command", nargs="?", type=str.upper, choices=("R", "RT", "RO"))
+    p = argparse.ArgumentParser(description="R: acquisition; RO: finals matrix; RT: self-test; RS: calibration only.")
+    p.add_argument("command", nargs="?", type=str.upper, choices=("R", "RT", "RO", "RS"))
     p.add_argument("--port", help="XDS110 UART, e.g. COM6 or /dev/ttyACM0; RT and the RO "
                                   "encoding run without hardware")
     p.add_argument("--dll", help="explicit existing host library; default builds automatically when needed")
     p.add_argument("--data-dir", type=Path, default=PROJECT / "data")
     p.add_argument("--algorithm-parameters", type=Path, default=PROJECT / "algorithm_parameters.json",
-                   help="persistent parameters from the latest successful RO calibration; R loads them automatically")
+                   help="persistent parameters from the latest successful RS calibration; loaded automatically")
     p.add_argument("--sample-csv", action="store_true", help="also export all raw sample voltages to CSV (large)")
     p.add_argument("--verbose", action="store_true", help="also show progress on stderr; stdout is RESULT,type,frequency,vpp,duty (0 for non-square)")
     p.add_argument("--suite", choices=("all", "competition"), default="all",
@@ -447,7 +544,7 @@ def parser():
     p.add_argument("--list-matrix", action="store_true", help="save selected matrix JSON without running")
     p.add_argument("--ro-host", default="10.11.13.220", help="RO: Siglent SDG6022X-E address")
     p.add_argument("--ro-port", type=int, default=111, help="RO: VXI-11 portmapper port (111, not the 5025 SCPI socket)")
-    p.add_argument("--ro-transport", choices=("vxi11", "visa"), default="vxi11",
+    p.add_argument("--ro-transport", choices=("vxi11", "visa"), default="visa",
                    help="RO: generator transport; visa uses USBTMC")
     p.add_argument("--ro-resource",
                    default="USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR",
@@ -455,14 +552,23 @@ def parser():
     p.add_argument("--ro-visa-backend", default=None,
                    help="RO: optional VISA backend, e.g. @py or @ivi")
     p.add_argument("--ro-channel", type=int, choices=(1, 2), default=1, help="RO: connected output channel")
-    p.add_argument("--ro-timeout", type=float, default=10., help="RO: SCPI/R timeout in seconds")
+    p.add_argument("--ro-timeout", type=float, default=14., help="RO: SCPI timeout and total per-case R deadline in seconds")
     p.add_argument("--ro-settle", type=float, default=.15, help="RO: output settling time in seconds")
+    p.add_argument("--ro-stop-on-failure", action="store_true",
+                   help="RO: save the first failed verdict and shut down the generator immediately")
+    p.add_argument("--ro-vpp-calibrate", action=argparse.BooleanOptionalAction, default=True,
+                   help="RO: independently measure dense ADC and ARB voltage transfers for Vpp")
+    p.add_argument("--ro-oversample",type=int,choices=(1,8,16,32),default=32,
+                   help="RO: replay identifiable finals source at a finer time/voltage resolution")
+    p.add_argument('--ro-reuse-reference-report',help='RO: reuse archived independent ADC/ARB references')
     p.add_argument("--ro-level-mode", choices=("adc", "source"), default="adc",
                    help="RO: map original ADC codes to this board; source keeps original volts if safe")
-    p.add_argument("--ro-calibrate", choices=("auto", "off"), default="auto",
-                   help="RO: calibrate the connected ADC with independent generator references before the matrix; off uses nominal board metadata")
-    p.add_argument("--r-frames", type=int, default=1,
-                   help="R only: average 1 to 8 separately fitted stationary frames; RT/RO keep one frame per case")
+    p.add_argument("--ro-calibrate", choices=("saved", "auto", "off"), default="saved",
+                   help="RO: saved loads the latest independent references; auto recalibrates; off uses nominal metadata. RS always recalibrates")
+    p.add_argument("--r-frames", type=int, default=3,
+                   help="R/RO: acquire 1 to 8 successive frames before fitting and averaging; default 3")
+    p.add_argument("--r-workers", type=int, default=3,
+                   help="R/RO: persistent independent frame-fit processes, 1..8; 1 selects serial; default 3")
     p.add_argument("--r-timeout", type=float, default=15.,
                    help="R total capture/analysis/archive deadline, 0 < value <= 15 s")
     p.add_argument("--solver-fmin", type=float, default=0., help="search lower Hz; 0 uses 4 cycles/frame")
@@ -476,8 +582,10 @@ def main(argv=None):
     args = parser().parse_args(argv)
     if args.seed < 0 or args.random_count < 0 or (args.max_cases is not None and args.max_cases < 1):
         parser().error("seed/random-count must be nonnegative; max-cases must be positive")
-    if not 1 <= args.r_frames <= 8 or not 0 < args.r_timeout <= 15:
-        parser().error("r-frames must be 1..8 and r-timeout must be (0, 15] seconds")
+    if not 1 <= args.r_frames <= 8 or not 1 <= args.r_workers <= 8 or not 0 < args.r_timeout <= 15:
+        parser().error("r-frames/r-workers must be 1..8 and r-timeout must be (0, 15] seconds")
+    if not 0 < args.ro_timeout <= 14:
+        parser().error("ro-timeout must be (0, 14] seconds")
     import math
     if (not all(math.isfinite(x) for x in (args.solver_fmin,args.solver_fmax,args.solver_seconds)) or
             min(args.solver_fmin,args.solver_fmax)<0 or args.solver_starts<1 or
@@ -498,29 +606,42 @@ def main(argv=None):
 
 def run_server(args, store, error_output=None):
     service = None
+    engine = None
     errors = error_output or sys.stderr
     try:
         print(f"Data: {store.path}", file=sys.stderr, flush=True)
+        try:
+            profile = load_latest_calibration(args.algorithm_parameters)
+        except ValueError as error:
+            profile = None
+            print(f"Calibration: {error}; RS = repair", file=errors, flush=True)
+        print(f"Calibration: {args.algorithm_parameters}" if profile is not None else
+              "Calibration: no saved parameters; RS = calibrate", file=errors, flush=True)
         if args.list_matrix:
             from dataclasses import asdict
             from tools.capture_store import atomic_json
             if args.command == "RO":
                 from tools.ro_test import select_ro_cases
+                from tools.identifiable_finals import DESIGN_SEED
                 cases = select_ro_cases(args)
+                matrix_seed = DESIGN_SEED
             else:
                 from tools.self_test import matrix
+                matrix_seed = args.seed
                 cases = [c for c in matrix(args.seed, args.random_count)
                          if (args.suite == "all" or c.suite == args.suite) and
                          (not args.case_id or c.id in args.case_id)]
                 if args.max_cases is not None:
                     cases = cases[:args.max_cases]
-            atomic_json(store.path / "matrix.json", {"seed": args.seed, "cases": [asdict(c) for c in cases]})
+            atomic_json(store.path / "matrix.json", {"seed": matrix_seed, "cases": [asdict(c) for c in cases]})
             print(f"Matrix: {len(cases)} cases; {store.path/'matrix.json'}", file=sys.stderr)
             return 0
         from tools.unified_solver import SolverConfig
         engine = Engine(build_api(args.dll) if args.dll else None, stderr=errors,
             config=SolverConfig(frequency_min_hz=args.solver_fmin,frequency_max_hz=args.solver_fmax,
-                starts=args.solver_starts,max_seconds=args.solver_seconds))
+                starts=args.solver_starts,max_seconds=args.solver_seconds),
+            workers=(min(args.r_workers, args.r_frames) if args.command != 'RT' else 1))
+        engine.warm()
         # Connection layer: the board link is optional.  A missing or busy UART
         # must not take the whole server down, because RO only needs the board
         # for the R leg; its matrix encoding and generator upload run without it.
@@ -550,18 +671,18 @@ def run_server(args, store, error_output=None):
                 return run(engine.api, store, engine.process, suite=args.suite, seed=args.seed,
                            random_count=args.random_count, case_ids=args.case_id,
                            max_cases=args.max_cases)
-            if command == "RO":
+            if command in ("RO", "RS"):
                 # service may be None: then RO runs the generator encoding without the board.
                 from tools.ro_test import run
-                return run(service, store, args, stderr=errors)
+                return run(service, store, args, stderr=errors, calibration_only=command == "RS")
             if command in ("Q", "QUIT", "EXIT"):
                 return None
-            raise ValueError("enter R, RT or Q; RO = generator matrix test")
+            raise ValueError("enter R, RO, RT, RS or Q")
 
         if args.command:
             return dispatch(args.command)
         print("R = external measurement; RT = host self-test; "
-              "RO = generator matrix test (board optional); Q = quit", file=sys.stderr, flush=True)
+              "RO = 296-case finals matrix; RS = calibration only; Q = quit", file=errors, flush=True)
         for line in sys.stdin:
             command = line.strip().upper()
             if not command:
@@ -581,5 +702,9 @@ def run_server(args, store, error_output=None):
         print(f"server: {error}", file=errors, flush=True)
         return 2
     finally:
-        if service:
-            service.close()
+        try:
+            if service:
+                service.close()
+        finally:
+            if engine:
+                engine.close()
