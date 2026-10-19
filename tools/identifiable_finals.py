@@ -1,8 +1,7 @@
-"""Finals-only Gaussian replay with an identifiable clean periodic source.
+"""296-case Gaussian finals matrix following official parameter ranges.
 
-The generator's disjoint spectral support is test policy, not information
-available to the measurement algorithm. No truth or noise sample is passed
-to the solver. Old coherent counterexamples remain available separately.
+Each row records the published signal and group ranges with deterministic,
+band-limited Gaussian noise for repeatable replay.
 """
 from __future__ import annotations
 
@@ -12,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
-REVISION = "finals-identifiable-v2-296"
+REVISION = "finals-official-v1-296"
 DESIGN_SEED = 154660146
 MATRIX_PATH = Path(__file__).resolve().parents[1] / "matrices" / "finals_296.json"
 KINDS = ("sine", "square", "triangle", "sawtooth")
@@ -22,25 +21,21 @@ def design_rows():
     """Balanced boundary and continuous holdout coverage, without seed search."""
     rng = np.random.default_rng(DESIGN_SEED)
     rows = []
-    # 37 matched weak/strong pairs per family: 296 finals cases. Frequency
-    # limits are user policy; voltage/DC/duty limits remain local test policy.
-    # Independent permutations break the old amplitude/duty/noise coupling.
+    # 37 matched weak/strong pairs per family: 296 finals cases.
     schedules = {}
     for kind in KINDS:
-        frequencies = np.r_[100., 100.1, 125., 200., 300., 400., 599.9, 600.,
-                            100.+(np.arange(29)+rng.random(29))*500./29]
+        frequencies = np.r_[100., 100.1, 125., 200., 300., 399.9, 400., 250.,
+                            rng.uniform(100., 400., 29)]
         schedules[kind] = dict(
             frequency=frequencies[rng.permutation(37)],
-            vpp=rng.permutation(np.r_[.3, .8, 1.5, 2., rng.uniform(.3, 2., 33)]),
+            vpp=rng.permutation(np.r_[.8, 1., 1.2, 1.6, rng.uniform(.8, 1.6, 33)]),
             duty=rng.permutation(np.r_[.2, .5, .8, rng.uniform(.2, .8, 34)]),
-            rise=rng.permutation(np.r_[.005, .037, .1, rng.uniform(.002, .1, 34)]),
-            fall=rng.permutation(np.r_[.005, .081, .1, rng.uniform(.002, .1, 34)]),
-            dc=rng.permutation(np.r_[.1, .5, .9, rng.uniform(.1, .9, 34)]),
+            dc=rng.permutation(np.r_[1.4, 1.5, 1.7, 1.8, rng.uniform(1.4, 1.8, 33)]),
             phase=rng.permutation(np.r_[.0001, .5, .9999, rng.uniform(0., 1., 34)]),
-            weak_noise=rng.permutation(np.r_[np.tile([0., .05, .1, .15, .2], 5), rng.uniform(0., .2, 12)]),
-            strong_noise=rng.permutation(np.r_[np.tile([.3, .4, .5], 8), rng.uniform(.3, .5, 13)]),
-            weak_band=rng.permutation(np.r_[np.tile([5., 7., 10.], 8), rng.uniform(5., 10., 13)]),
-            strong_band=rng.permutation(np.r_[np.tile([1.5, 2.25, 3.], 8), rng.uniform(1.5, 3., 13)]))
+            weak_noise=rng.permutation(np.r_[.1, .15, .2, rng.uniform(.1, .2, 34)]),
+            strong_noise=rng.permutation(np.r_[.35, .4, .5, rng.uniform(.35, .5, 34)]),
+            weak_band=rng.permutation(np.r_[5., 6., 8., rng.uniform(5., 8., 34)]),
+            strong_band=rng.permutation(np.r_[1.5, 2.25, 3., rng.uniform(1.5, 3., 34)]))
     for index in range(37):
         for kind in KINDS:
             values = schedules[kind]
@@ -52,13 +47,11 @@ def design_rows():
             common = dict(kind=kind, frequency=requested_f, vpp=vpp,
                           phase=float(values['phase'][index]), fs=fs, samples=8192,
                           duty=float(values['duty'][index]),
-                          rise=float(values['rise'][index]),
-                          fall=float(values['fall'][index]),
-                          dc_position=float(values['dc'][index]),
-                          noise_model="gaussian_notched_replay", replay=cycles,
-                          guard_ratio=.18, cycles=cycles, inverted=False,
+                          rise=0., fall=0., dc_v=float(values['dc'][index]),
+                          noise_model="gaussian", replay=cycles,
+                          cycles=cycles, inverted=False,
                           scope=REVISION,
-                          tag="expanded_boundary_and_stratified_holdout")
+                          tag="official_ranges_boundary_and_stratified_holdout")
             # Matched weak/strong pairs preserve all source parameters.
             for group in ("weak", "strong"):
                 rows.append(dict(common, group=group,
@@ -69,28 +62,26 @@ def design_rows():
 
 
 def noise_samples(row, seed):
-    """Real Gaussian Fourier process on the *whole* cyclic ARB record."""
+    """Band-limited Gaussian Fourier process on the whole cyclic ARB record."""
     n, fs, f = int(row["samples"]), float(row["fs"]), float(row["frequency"])
     cycles = n * f / fs
     if abs(cycles - round(cycles)) > 1e-9:
         raise ValueError("identifiable replay must contain integer carrier cycles")
     freq = np.fft.rfftfreq(n, 1. / fs)
-    guard = float(row["guard_ratio"]) * f
-    # Protect DC and every source harmonic below Nyquist. The same mask is
-    # used for every family; no source coefficients enter its construction.
-    distance = np.abs(freq - np.rint(freq / f) * f)
-    mask = (freq <= float(row["bandwidth"]) * f) & (distance >= guard)
-    if np.count_nonzero(mask) < 8:
-        raise ValueError("insufficient independent Gaussian noise modes")
+    cutoff = float(row["bandwidth"]) * f
+    mask = freq <= cutoff
     spec = np.fft.rfft(np.random.default_rng(int(seed)).normal(size=n))
     spec[~mask] = 0.
+    spec[0] = 0.
     noise = np.fft.irfft(spec, n=n)
-    target = float(row["noise"]) * float(row["vpp"])
-    noise *= target / float(np.ptp(noise))
-    return noise, dict(model="gaussian_notched_replay", carrier_cycles=round(cycles),
-                       guard_hz=guard, active_fourier_bins=int(mask.sum()),
-                       maximum_protected_coefficient=float(np.max(np.abs(np.fft.rfft(noise)[~mask]))),
-                       period_samples=n, source_noise_support_disjoint=True)
+    target_pp = float(row["noise"]) * float(row["vpp"])
+    noise *= (target_pp / 6.0) / float(np.std(noise))
+    spectrum = np.fft.rfft(noise)
+    return noise, dict(model="gaussian", carrier_cycles=round(cycles),
+                       bandwidth_hz=cutoff, active_fourier_bins=int(mask.sum()),
+                       maximum_out_of_band_coefficient=float(np.max(np.abs(spectrum[~mask]))),
+                       period_samples=n, noise_std_v=float(np.std(noise)),
+                       expected_noise_pp_v=target_pp)
 
 
 def load_rows():
@@ -111,11 +102,18 @@ def publish():
         proofs.append(dict(seed=row["seed"], group=row["group"], kind=row["kind"],
                            adc_sha256=hashlib.sha256(payload).hexdigest(), **facts))
     MATRIX_PATH.parent.mkdir(parents=True, exist_ok=True)
-    atomic_json(MATRIX_PATH, dict(revision=REVISION, design_seed=DESIGN_SEED,
-                                frequency_range_hz=[100.,600.], rows=rows))
+    atomic_json(MATRIX_PATH, dict(
+        revision=REVISION, design_seed=DESIGN_SEED,
+        frequency_range_hz=[100.,400.], vpp_range_v=[.8,1.6],
+        dc_range_v=[1.4,1.8], duty_range_fraction=[.2,.8],
+        noise_type="gaussian",
+        noise_ratio_by_group={"weak":[.1,.2],"strong":[.35,.5]},
+        bandwidth_ratio_by_group={"weak":[5.,8.],"strong":[1.5,3.]},
+        gaussian_sigma_formula="noise_ratio * vpp / 6",
+        rows=rows))
     atomic_json(MATRIX_PATH.with_name("finals_identifiable_audit.json"),
                 dict(revision=REVISION, cases=len(rows), groups={g:sum(r["group"]==g for r in rows) for g in ("weak","strong")},
-                     policy="Finite cyclic Gaussian process with guard bands around DC and all carrier harmonics. Clean source truth unchanged.",
+                     policy="Finite cyclic Gaussian noise low-pass filtered to each published bandwidth limit; each row follows the published signal and group ranges.",
                      proofs=proofs))
     return MATRIX_PATH
 

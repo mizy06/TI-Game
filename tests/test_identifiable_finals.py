@@ -4,36 +4,51 @@ from collections import Counter
 
 import numpy as np
 
-from tools.identifiable_finals import design_rows, load_rows, noise_samples
+from tools.identifiable_finals import MATRIX_PATH, design_rows, load_rows, noise_samples
 from tools.ro_test import _generate_finals_row, board_levels, encode, ro_matrix
 
 
 class IdentifiableFinalsTests(unittest.TestCase):
     def test_published_design_and_balanced_finals_only(self):
         rows = load_rows()
+        self.assertEqual(len(rows),296)
         self.assertEqual(rows, design_rows())
+        policy=json.loads(MATRIX_PATH.read_text(encoding='utf-8'))
+        self.assertEqual(policy['frequency_range_hz'],[100.,400.])
+        self.assertEqual(policy['vpp_range_v'],[.8,1.6])
+        self.assertEqual(policy['dc_range_v'],[1.4,1.8])
+        self.assertEqual(policy['duty_range_fraction'],[.2,.8])
+        self.assertEqual(policy['noise_type'],'gaussian')
+        self.assertEqual(policy['noise_ratio_by_group'],{'weak':[.1,.2],'strong':[.35,.5]})
+        self.assertEqual(policy['bandwidth_ratio_by_group'],{'weak':[5.,8.],'strong':[1.5,3.]})
         self.assertEqual(Counter(r['group'] for r in rows), {'weak':148,'strong':148})
         self.assertEqual(Counter(r['kind'] for r in rows), dict.fromkeys(('sine','square','triangle','sawtooth'),74))
         self.assertEqual(min(r['frequency'] for r in rows),100.)
-        self.assertEqual(max(r['frequency'] for r in rows),600.)
+        self.assertEqual(max(r['frequency'] for r in rows),400.)
         for r in rows:
-            self.assertTrue(100 <= r['frequency'] <= 600)
-            self.assertLessEqual(r['rise'],.1)
-            self.assertLessEqual(r['fall'],.1)
+            self.assertTrue(100 <= r['frequency'] <= 400)
+            self.assertTrue(.8 <= r['vpp'] <= 1.6)
+            self.assertTrue(1.4 <= r['dc_v'] <= 1.8)
+            self.assertTrue(.2 <= r['duty'] <= .8)
+            self.assertEqual(r['noise_model'],'gaussian')
             if r['group']=='weak':
-                self.assertLessEqual(r['noise'],.2)
-                self.assertGreaterEqual(r['bandwidth'],5)
+                self.assertTrue(.1 <= r['noise'] <= .2)
+                self.assertTrue(5 <= r['bandwidth'] <= 8)
             else:
-                self.assertTrue(.3 <= r['noise'] <= .5)
+                self.assertTrue(.35 <= r['noise'] <= .5)
                 self.assertTrue(1.5 <= r['bandwidth'] <= 3)
 
-    def test_every_noise_has_zero_protected_spectrum_and_requested_strength(self):
+    def test_every_noise_is_bandlimited_gaussian_with_published_sigma(self):
         for r in load_rows():
             noise, audit = noise_samples(r,r['seed'])
-            self.assertLess(audit['maximum_protected_coefficient'],1e-10)
-            self.assertAlmostEqual(np.ptp(noise),r['noise']*r['vpp'],places=13)
+            self.assertLess(audit['maximum_out_of_band_coefficient'],1e-10)
+            self.assertAlmostEqual(np.std(noise),r['noise']*r['vpp']/6,places=13)
+            self.assertAlmostEqual(audit['expected_noise_pp_v'],r['noise']*r['vpp'])
+            self.assertGreater(np.ptp(noise),.5*r['noise']*r['vpp'])
+            self.assertLess(np.ptp(noise),1.5*r['noise']*r['vpp'])
             self.assertAlmostEqual(float(noise.mean()),0,places=13)
             self.assertGreater(audit['active_fourier_bins'],8)
+            self.assertAlmostEqual(audit['bandwidth_hz'],r['frequency']*r['bandwidth'])
 
     def test_entire_matrix_closes_both_source_and_noise_without_tail(self):
         for c in ro_matrix():
@@ -42,6 +57,7 @@ class IdentifiableFinalsTests(unittest.TestCase):
             self.assertEqual(len(dac),16384)
             self.assertEqual(config['seam_bridge_samples'],0)
             self.assertEqual(config['truth']['vpp_v'],c.vpp_v)
+            self.assertEqual(config['truth']['dc_v'],c.dc_v)
             self.assertEqual(config['rt_generated']['prequantization_clipped_samples'],0)
             self.assertTrue(0<config['input_min_v']<config['input_max_v']<3.3)
 

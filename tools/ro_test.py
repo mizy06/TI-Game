@@ -62,7 +62,7 @@ def _generate_finals_row(row, seed):
     noise = np.zeros(n, dtype=float)
     noise_audit = None
     if row.get("noise"):
-        if row.get("noise_model") == "gaussian_notched_replay":
+        if row.get("noise_model") in ("gaussian_notched_replay", "gaussian"):
             from tools.identifiable_finals import noise_samples
             noise, noise_audit = noise_samples(row, seed)
         elif row.get("noise_model") == "multitone":
@@ -94,7 +94,12 @@ def _generate_finals_row(row, seed):
     room = 3.3 - 0.08 - float(np.ptp(baseline))
     if room < 0:
         raise ValueError("test envelope exceeds ADC")
-    dc = 0.04 - float(baseline.min()) + float(row.get("dc_position", 0.5)) * room
+    if "dc_v" in row:
+        dc = float(row["dc_v"])
+        if dc + float(baseline.min()) < 0.04 or dc + float(baseline.max()) > 3.26:
+            raise ValueError("test offset and noise exceed ADC input range")
+    else:
+        dc = 0.04 - float(baseline.min()) + float(row.get("dc_position", 0.5)) * room
     adc = (dc + baseline) * 4095.0 / 3.3
     if row.get("adc_model") == "inl":
         adc = adc + 0.35 * np.sin(2.0 * np.pi * adc / 37.0)
@@ -302,7 +307,7 @@ def close_record(case, adc):
     import numpy as np
     if _is_finals_case(case):
         row = json.loads(case.source)
-        if row.get("noise_model") == "gaussian_notched_replay":
+        if row.get("noise_model") in ("gaussian_notched_replay", "gaussian"):
             # This record already closes source *and* interference. Appending
             # a carrier-only tail would reintroduce a spectral seam.
             return adc

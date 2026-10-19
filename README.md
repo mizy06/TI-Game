@@ -19,7 +19,7 @@ python server.py --port COM15
 
 也可以直接执行，例如 `python server.py RS --port COM15`。
 
-RO 矩阵位于 `matrices/finals_296.json`，版本 `finals-identifiable-v2-296`，种子 154660146，100–600 Hz，强弱各 148 项。噪声与源谐波保留保护带，避免单 ADC 不可辨识问题。RO 默认 32 倍回放采样；矩阵真值与此前对比保持一致。
+RO 矩阵位于 `matrices/finals_296.json`，版本 `finals-official-v1-296`，种子 154660146，共 296 项，弱强各 148 项。样本按决赛参数范围设置：100–400 Hz、0.8–1.6 Vpp、1.4–1.8 V 直流偏置；弱组高斯噪声为 10%–20%、带宽 5f–8f，强组为 35%–50%、带宽 1.5f–3f。RO 默认 32 倍回放采样。
 
 默认信号源使用 USB VISA：`USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR`。可用 `--ro-resource` 指定设备，或 `--ro-transport vxi11 --ro-host 地址` 使用网络。
 
