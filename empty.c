@@ -254,9 +254,9 @@ int main(void)
     uart_put_string("\r\nTI-CUP ADC DMA HOST V3\r\n");
     uart_put_string(BOARD_CLOCK_DESCRIPTION "\r\n");
     uart_put_string((DL_SYSCTL_getClockStatus() & DL_SYSCTL_CLK_STATUS_FCL_ON)
-        ? "SYSOSC_FCL=ON (retained); SAMPLE_CLOCK=HFXT_FIXED\r\n"
-        : "SYSOSC_FCL=OFF; SAMPLE_CLOCK=HFXT_FIXED\r\n");
-    uart_put_string("ADC_CLOCK=HFCLK/2; recalibrate host with RO after clock change\r\n");
+        ? "SYSOSC_FCL=ON (retained); ADC_CLOCK=ULPCLK\r\n"
+        : "SYSOSC_FCL=OFF; ADC_CLOCK=ULPCLK\r\n");
+    uart_put_string("SAMPCLK=ULPCLK/2; recalibrate host with RO after clock change\r\n");
     uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS=20000Hz, N=8192, MCLK=32MHz, SCOMP=32\r\n");
     uart_put_string("READY: server R -> raw ADC frame; RT runs on host\r\n");
     for (;;) {

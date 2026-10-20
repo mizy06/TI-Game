@@ -7,7 +7,7 @@
  */
 #define ACQ_SAMPLE_COUNT             (8192U)
 #define ACQ_PROTOCOL_VERSION         (3U)
-/* SCOMP0/1 register count; SysConfig retains sampling-clock divide-by-2.
+/* SCOMP0/1 register count; ADCCLK=ULPCLK and SAMPCLK=ULPCLK/2.
  * Leave ample analogue settling time within each 50 us timer interval. */
 #define ACQ_ADC_SAMPLE_TIMER_COUNT   (32U)
 #define ACQ_ADC_FULL_SCALE           (4095U)

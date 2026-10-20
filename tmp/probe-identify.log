@@ -1,0 +1,1271 @@
+0x00006508 1 3  JSON R: {"response":0}
+0x00006508 2 4  POLL I: TimeToSleep() found shorter sleep time of 5000 ms from class `anonymous namespace'::CommandSink
+0x00006508 2 3  JSON C: {"command":"blinkLEDs","data":["targetConfigs\\MSPM0G3507.ccxml",0]}
+0x00006508 2 3  COM_DBG_IF C: class dsDebugger::OnTaskStart()
+0x00006508 2 3  COM_DBG_IF R: class dsDebugger::OnTaskStart()
+0x00006508 2 5  COM_DBG_IF I: Final Release for class CoProgressTask (this = 000001F55A416158)
+0x00006508 3 5  COM_DBG_IF I: Final Release for class XPCOMFramework::Event<class XPCOMFramework::EventTemplateArgs<class dsIStringEvent,char const * __ptr64,class dsIStringEventCallback> > (this = 000001F55A425278)
+0x00006508 3 5  COM_DBG_IF I: Final Release for class XPCOMFramework::Event<class XPCOMFramework::EventTemplateArgs<class dsIObjectEvent,class nsISupports * __ptr64,class dsIObjectEventCallback> > (this = 000001F55A425B78)
+0x00006508 3 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":true,"name":"Reading configuration...","percent":null,"subActivity":"","task":""},"event":"progress.update"}
+0x00006508 42 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing connections/TIXDS110_Connection.xml","task":""},"event":"progress.update"}
+0x00006508 52 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing drivers/tixds510cs_dap.xml","task":""},"event":"progress.update"}
+0x00006508 61 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing drivers/tixds510cortexM0.xml","task":""},"event":"progress.update"}
+0x00006508 70 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing drivers/tixds510sec_ap.xml","task":""},"event":"progress.update"}
+0x00006508 77 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing devices/MSPM0G3507.xml","task":""},"event":"progress.update"}
+0x00006508 85 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing routers/cs_dap.xml","task":""},"event":"progress.update"}
+0x00006508 95 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ..\\Modules\\cs_dap_NotVisible.xml","task":""},"event":"progress.update"}
+0x00006508 106 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/CFGAP.xml","task":""},"event":"progress.update"}
+0x00006508 114 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/AP/SECAP.xml","task":""},"event":"progress.update"}
+0x00006508 122 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/AP/PWRAP.xml","task":""},"event":"progress.update"}
+0x00006508 130 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing cpus/cortex_m0p.xml","task":""},"event":"progress.update"}
+0x00006508 143 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ..\\Modules\\cortexM0_NotVisible.xml","task":""},"event":"progress.update"}
+0x00006508 156 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/ADC0_4MSPS_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 167 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/ADC1_4MSPS_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 179 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/AES_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 189 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/CANFD0_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 203 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/COMP0_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 213 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/COMP1_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 222 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/COMP2_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 231 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/CPUSS_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 240 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/CRC_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 249 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/DAC0_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 258 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/DEBUGSS_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 268 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/DMA_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 278 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/FLASH_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 285 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/FLASHCTL_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 294 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/GPIOA_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 311 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/GPIOB_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 330 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/I2C0_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 344 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/I2C1_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 356 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/IOMUX_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 366 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/MATHACL_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 374 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/OPA0_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 383 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/OPA1_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 392 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/RTC_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 403 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/SPI0_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 413 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/SPI1_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 424 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/SYSCTL_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 438 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/SYSMEM_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 447 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/TIMA0_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 459 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/TIMA1_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 471 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/TIMG0_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 480 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/TIMG12_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 491 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/TIMG6_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 502 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/TIMG7_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 512 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/TIMG8_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 521 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/TRNG_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 531 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/UART0_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 544 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/UART1_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 556 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/UART2_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 568 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/UART3_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 584 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/VREF_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 592 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/WUC_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 599 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/WWDT0_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 608 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/mspm0g1x0x_g3x0x/WWDT1_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 618 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/NVIC_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 629 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/SYSTICK_1.0.xml","task":""},"event":"progress.update"}
+0x00006508 638 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing ../Modules/msp/ETAP.xml","task":""},"event":"progress.update"}
+0x00006508 645 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing cpus/sec_ap.xml","task":""},"event":"progress.update"}
+0x00006508 660 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Initializing Register Database...","task":""},"event":"progress.update"}
+0x00006508 660 3  SETUP C: OpenDatabase( C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\targetdb.dat, C:\ti\ccs2101\ccs\ccs_base\common\targetdb\timestamp )
+0x00006508 671 3  SETUP I: SELECT sql FROM sqlite_master ORDER BY tbl_name, name
+0x00006508 672 3  SETUP R: OpenDatabase( C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\targetdb.dat, C:\ti\ccs2101\ccs\ccs_base\common\targetdb\timestamp ) = 000001F55A4109B0
+0x00006508 672 3  SETUP I: Loading repository "C:\ti\ccs2101\ccs\ccs_base\common\targetdb\"
+0x00006508 672 3  SETUP I: SELECT * FROM TargetDB_Repositories
+0x00006508 673 3  SETUP I: SELECT * FROM TargetDB_Repositories WHERE dbid=1
+0x00006508 673 3  SETUP I: PRAGMA journal_mode = MEMORY
+0x00006508 673 3  SETUP I: PRAGMA synchronous = OFF
+0x00006508 673 3  SETUP I: BEGIN IMMEDIATE TRANSACTION
+0x00006508 674 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="CS_DAP_0_regids.xml"
+0x00006508 675 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=1
+0x00006508 675 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="CS_DAP_PC_0_regids.xml"
+0x00006508 676 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=2
+0x00006508 676 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="DAP_V6_0_regids.xml"
+0x00006508 676 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=3
+0x00006508 677 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="ICEPick_C_regids.xml"
+0x00006508 677 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=4
+0x00006508 677 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="ICEPick_D_regids.xml"
+0x00006508 677 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=5
+0x00006508 677 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="ICEPick_M_regids.xml"
+0x00006508 678 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=6
+0x00006508 678 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="regids_mapping.xml"
+0x00006508 679 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=7
+0x00006508 679 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2000_regids.xml"
+0x00006508 679 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=8
+0x00006508 679 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2001_regids.xml"
+0x00006508 680 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=9
+0x00006508 680 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2002_regids.xml"
+0x00006508 680 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=10
+0x00006508 680 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2003_regids.xml"
+0x00006508 681 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=11
+0x00006508 681 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2004_regids.xml"
+0x00006508 681 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=12
+0x00006508 682 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2005_regids.xml"
+0x00006508 682 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=13
+0x00006508 682 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2006_regids.xml"
+0x00006508 682 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=14
+0x00006508 682 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2007_regids.xml"
+0x00006508 684 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=15
+0x00006508 684 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2008_regids.xml"
+0x00006508 684 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=16
+0x00006508 685 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2010_regids.xml"
+0x00006508 685 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=17
+0x00006508 685 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2011_regids.xml"
+0x00006508 686 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=18
+0x00006508 686 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2012_regids.xml"
+0x00006508 686 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=19
+0x00006508 686 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2013_regids.xml"
+0x00006508 686 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=20
+0x00006508 687 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2014_regids.xml"
+0x00006508 687 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=21
+0x00006508 687 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2015_regids.xml"
+0x00006508 688 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=22
+0x00006508 688 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2026_regids.xml"
+0x00006508 688 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=23
+0x00006508 689 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2027_regids.xml"
+0x00006508 689 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=24
+0x00006508 689 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2028_regids.xml"
+0x00006508 690 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=25
+0x00006508 690 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2029_regids.xml"
+0x00006508 690 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=26
+0x00006508 691 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2030_regids.xml"
+0x00006508 691 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=27
+0x00006508 691 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2031_regids.xml"
+0x00006508 691 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=28
+0x00006508 692 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2032_regids.xml"
+0x00006508 692 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=29
+0x00006508 692 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS225C00_regids.xml"
+0x00006508 692 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=30
+0x00006508 693 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS225C100_regids.xml"
+0x00006508 693 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=31
+0x00006508 693 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C28XX_regids.xml"
+0x00006508 693 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=32
+0x00006508 693 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C29XX_regids.xml"
+0x00006508 694 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=33
+0x00006508 694 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C55XX_regids.xml"
+0x00006508 694 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=34
+0x00006508 694 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C64XX_regids.xml"
+0x00006508 695 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=35
+0x00006508 695 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C66XX_regids.xml"
+0x00006508 695 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=36
+0x00006508 695 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C674X_regids.xml"
+0x00006508 696 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=37
+0x00006508 696 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C6XXX_regids.xml"
+0x00006508 696 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=38
+0x00006508 696 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C71XX_regids.xml"
+0x00006508 697 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=39
+0x00006508 697 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C75XX_regids.xml"
+0x00006508 697 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=40
+0x00006508 697 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS3CXX_regids.xml"
+0x00006508 697 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=41
+0x00006508 698 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R15X_regids.xml"
+0x00006508 698 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=42
+0x00006508 698 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R25X_regids.xml"
+0x00006508 699 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=43
+0x00006508 699 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R2X_regids.xml"
+0x00006508 699 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=44
+0x00006508 699 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R33X_regids.xml"
+0x00006508 700 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=45
+0x00006508 700 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R4X_regids.xml"
+0x00006508 701 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=46
+0x00006508 701 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R52X_regids.xml"
+0x00006508 701 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=47
+0x00006508 701 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R53X_regids.xml"
+0x00006508 702 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=48
+0x00006508 702 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R7X_regids.xml"
+0x00006508 702 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=49
+0x00006508 702 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R9X_regids.xml"
+0x00006508 703 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=50
+0x00006508 703 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470RAX_regids.xml"
+0x00006508 703 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=51
+0x00006508 703 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470RCX_regids.xml"
+0x00006508 704 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=52
+0x00006508 704 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470RDX_regids.xml"
+0x00006508 704 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=53
+0x00006508 705 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470REX_regids.xml"
+0x00006508 705 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=54
+0x00006508 705 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470RXX_regids.xml"
+0x00006508 706 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=55
+0x00006508 706 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS700C40XX_regids.xml"
+0x00006508 706 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=56
+0x00006508 706 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS700C41XX_regids.xml"
+0x00006508 707 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=57
+0x00006508 707 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS700C4X_regids.xml"
+0x00006508 707 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=58
+0x00006508 707 3  SETUP I: END TRANSACTION
+0x00006508 708 3  SETUP I: SELECT count(*) FROM TargetDB_Files WHERE State=0
+0x00006508 709 3  SETUP I: Scrubbing database
+0x00006508 709 3  SETUP I: SELECT * FROM TargetDB_Files
+0x00006508 745 3  SETUP I: PRAGMA journal_mode = MEMORY
+0x00006508 745 3  SETUP I: PRAGMA synchronous = OFF
+0x00006508 745 3  SETUP I: BEGIN IMMEDIATE TRANSACTION
+0x00006508 745 3  SETUP I: [TargetDB_Files.dbid=111] Removing related records
+0x00006508 745 3  SETUP I: DELETE FROM Bitfield_Enumerations WHERE Source_File=111
+0x00006508 746 3  SETUP I: DELETE FROM Bitfields WHERE Source_File=111
+0x00006508 747 3  SETUP I: DELETE FROM Boards WHERE Source_File=111
+0x00006508 747 3  SETUP I: DELETE FROM Configurations WHERE Source_File=111
+0x00006508 747 3  SETUP I: DELETE FROM Connections WHERE Source_File=111
+0x00006508 747 3  SETUP I: DELETE FROM Devices WHERE Source_File=111
+0x00006508 747 3  SETUP I: DELETE FROM Module_Instances WHERE Source_File=111
+0x00006508 752 3  SETUP I: DELETE FROM Modules WHERE Source_File=111
+0x00006508 753 3  SETUP I: DELETE FROM Platforms WHERE Source_File=111
+0x00006508 753 3  SETUP I: DELETE FROM Processors WHERE Source_File=111
+0x00006508 753 3  SETUP I: DELETE FROM Register_Groups WHERE Source_File=111
+0x00006508 753 3  SETUP I: DELETE FROM Registers WHERE Source_File=111
+0x00006508 754 3  SETUP I: DELETE FROM Register_ISA_Map WHERE Source_File=111
+0x00006508 754 3  SETUP I: DELETE FROM Register_Map WHERE Source_File=111
+0x00006508 754 3  SETUP I: DELETE FROM Subpath WHERE Source_File=111
+0x00006508 754 3  SETUP I: DELETE FROM Systems WHERE Source_File=111
+0x00006508 755 3  SETUP I: DELETE FROM Register_Cache
+0x00006508 830 3  SETUP I: DELETE FROM Memory_Pages
+0x00006508 830 3  SETUP I: DELETE FROM Register_Pages
+0x00006508 830 3  SETUP I: DELETE FROM Search
+0x00006508 953 3  SETUP I: DELETE FROM Module_Instances WHERE Instanced_File IS NULL AND Is_Virtual=0
+0x00006508 955 3  SETUP I: SELECT * FROM Module_Instances WHERE Instanced_File IS NULL AND Is_Virtual=1
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=695 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=932 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=695 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=933 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=758 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=934 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=758 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=935 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=758 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=936 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=758 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=937 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=758 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=938 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=758 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=939 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=802 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=940 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=802 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=941 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=802 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=942 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=973 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1210 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=973 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1211 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=1036 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1212 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=1036 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1213 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=1036 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1214 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=1036 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1215 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=1036 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1216 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=1036 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1217 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=1080 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1218 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=1080 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1219 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: UPDATE Module_Instances SET parent_dbid=1080 WHERE dbid IN ( SELECT dbid FROM Module_Instances WHERE parent_dbid=1220 AND parent_type="Module_Instances" )
+0x00006508 955 3  SETUP I: DELETE FROM Module_Instances WHERE Instanced_File IS NULL AND Is_Virtual=1
+0x00006508 955 3  SETUP I: [TargetDB_Files.dbid=111] Removing file record
+0x00006508 956 3  SETUP I: DELETE FROM TargetDB_Files WHERE dbid=111
+0x00006508 956 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="8146125793115690662.cache"
+0x00006508 956 3  SETUP I: INSERT INTO TargetDB_Files (Path, Filename, Hash, Type, State, Parse_Time) VALUES (NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 958 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=116
+0x00006508 958 3  SETUP I: UPDATE TargetDB_Files SET Path='C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\8146125793115690662.cache', Filename='8146125793115690662.cache', Hash='C=2026-Sep-22 10:34:31.361959; M=2026-Oct-20 06:26:13', Type=10, State=0, Parse_Time=0 WHERE dbid=116
+0x00006508 959 3  SETUP I: [TargetDB_Files.dbid=116] Created new file record
+0x00006508 959 3  SETUP I: UPDATE Module_Instances SET Instanced_File=116 WHERE Instanced_File=111
+0x00006508 959 3  SETUP I: END TRANSACTION
+0x00006508 960 3  SETUP I: Loading file "C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\8146125793115690662.cache"
+0x00006508 960 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="8146125793115690662.cache"
+0x00006508 961 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=116
+0x00006508 962 3  SETUP I: SELECT count(*) FROM TargetDB_Files WHERE State=0
+0x00006508 962 3  SETUP I: PRAGMA journal_mode = MEMORY
+0x00006508 962 3  SETUP I: PRAGMA synchronous = OFF
+0x00006508 962 3  SETUP I: BEGIN IMMEDIATE TRANSACTION
+0x00006508 962 3  SETUP I: SELECT * FROM TargetDB_Files WHERE State=0
+0x00006508 962 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing C:\\Users\\L\\AppData\\Local\\TEXASI~1\\CCS\\ccs2101\\1\\0\\8146125793115690662.cache","task":""},"event":"progress.update"}
+0x00006508 962 3  SETUP I: Parsing C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\8146125793115690662.cache
+0x00006508 963 3  SETUP I: INSERT INTO Systems (Name, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL)
+0x00006508 964 3  SETUP I: INSERT INTO Configurations (parent_dbid, Name, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 964 3  SETUP I: INSERT INTO Connections (parent_dbid, Name, Class, Short_Description, Long_Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 965 3  SETUP I: INSERT INTO Platforms (parent_dbid, Name, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 965 3  SETUP I: INSERT INTO Devices (parent_dbid, parent_type, Connection, Name, Part_Number, Short_Description, Long_Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 965 3  SETUP I: INSERT INTO Processors (parent_dbid, parent_type, Connection, Name, ISA, Display_Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 965 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 965 3  SETUP I: UPDATE Registers SET parent_dbid='19', parent_type='Processors', Name='IP_DUMMY', Offset=NULL, Page=NULL, Width='32', Description='', Line_Number='218', Column_Number='12', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1900'
+0x00006508 965 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 966 3  SETUP I: UPDATE Registers SET parent_dbid='19', parent_type='Processors', Name='DEVICE_ID', Offset=NULL, Page=NULL, Width='32', Description='', Line_Number='219', Column_Number='12', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1901'
+0x00006508 966 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 966 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="cs_dap_NotVisible.xml"
+0x00006508 966 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=60
+0x00006508 966 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 966 3  SETUP I: UPDATE Module_Instances SET parent_dbid='19', parent_type='Processors', Instanced_File='60', Name=NULL, Alias='Hidden', Description='', Base_Address=-9223372036854775808, Hidden='1', Line_Number='220', Column_Number='12', Source_File='116', Processor='19', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='997'
+0x00006508 966 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=997, 	parent_type="Module_Instances" WHERE 	parent_dbid=376 AND 	parent_type="Modules"
+0x00006508 966 3  SETUP I: UPDATE Modules SET Name=NULL, Description='', Line_Number='220', Column_Number='12', Source_File='116' WHERE dbid='376'
+0x00006508 966 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 966 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="CFGAP.xml"
+0x00006508 967 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=61
+0x00006508 967 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 967 3  SETUP I: UPDATE Module_Instances SET parent_dbid='19', parent_type='Processors', Instanced_File='61', Name=NULL, Alias='Hidden', Description='CFGAP', Base_Address=-9223372036854644480, Hidden='1', Line_Number='223', Column_Number='12', Source_File='116', Processor='19', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='998'
+0x00006508 967 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=998, 	parent_type="Module_Instances" WHERE 	parent_dbid=377 AND 	parent_type="Modules"
+0x00006508 967 3  SETUP I: UPDATE Modules SET Name=NULL, Description='CFGAP', Line_Number='223', Column_Number='12', Source_File='116' WHERE dbid='377'
+0x00006508 967 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 967 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="SECAP.xml"
+0x00006508 968 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=62
+0x00006508 968 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 968 3  SETUP I: UPDATE Module_Instances SET parent_dbid='19', parent_type='Processors', Instanced_File='62', Name=NULL, Alias='Hidden', Description='SECAP', Base_Address=-9223372036854644224, Hidden='1', Line_Number='224', Column_Number='12', Source_File='116', Processor='19', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='999'
+0x00006508 968 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=999, 	parent_type="Module_Instances" WHERE 	parent_dbid=378 AND 	parent_type="Modules"
+0x00006508 968 3  SETUP I: UPDATE Modules SET Name=NULL, Description='SECAP', Line_Number='224', Column_Number='12', Source_File='116' WHERE dbid='378'
+0x00006508 968 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 968 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="PWRAP.xml"
+0x00006508 968 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=63
+0x00006508 968 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 968 3  SETUP I: UPDATE Module_Instances SET parent_dbid='19', parent_type='Processors', Instanced_File='63', Name=NULL, Alias='Hidden', Description='PWRAP', Base_Address=-9223372036854643712, Hidden='1', Line_Number='225', Column_Number='12', Source_File='116', Processor='19', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1000'
+0x00006508 968 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1000, 	parent_type="Module_Instances" WHERE 	parent_dbid=379 AND 	parent_type="Modules"
+0x00006508 968 3  SETUP I: UPDATE Modules SET Name=NULL, Description='PWRAP', Line_Number='225', Column_Number='12', Source_File='116' WHERE dbid='379'
+0x00006508 968 3  SETUP I: INSERT INTO Subpath (parent_dbid, Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 968 3  SETUP I: INSERT INTO Processors (parent_dbid, parent_type, Connection, Name, ISA, Display_Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 969 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 969 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='PC', Offset=NULL, Page=NULL, Width='32', Description='Program Counter', Line_Number='248', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1902'
+0x00006508 969 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 969 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='SP', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 13 - Stack Pointer', Line_Number='249', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1903'
+0x00006508 969 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 969 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='LR', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 14 - Link Register', Line_Number='250', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1904'
+0x00006508 969 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 969 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 969 3  SETUP I: UPDATE Bitfields SET parent_dbid='1905', Name='N', Begin='31', End='31', Width='1', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Stores bit 31 of the result of the instruction. In other words stores the sign of the number', Line_Number='252', Column_Number='18', Source_File='116' WHERE dbid='6775'
+0x00006508 969 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 969 3  SETUP I: UPDATE Bitfields SET parent_dbid='1905', Name='Z', Begin='30', End='30', Width='1', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Is set to 1 if the result of the operation is zero else stays 0', Line_Number='253', Column_Number='18', Source_File='116' WHERE dbid='6776'
+0x00006508 969 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 969 3  SETUP I: UPDATE Bitfields SET parent_dbid='1905', Name='C', Begin='29', End='29', Width='1', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Stores the value of the carry bit if it occurred in an addition or the borrow bit in a subtraction. In a shift stores the last bit shifted out.', Line_Number='254', Column_Number='18', Source_File='116' WHERE dbid='6777'
+0x00006508 969 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 969 3  SETUP I: UPDATE Bitfields SET parent_dbid='1905', Name='V', Begin='28', End='28', Width='1', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Set to 1 if an overflow occurred ', Line_Number='255', Column_Number='18', Source_File='116' WHERE dbid='6778'
+0x00006508 969 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Bitfields SET parent_dbid='1905', Name='RESV', Begin='27', End='25', Width='3', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Reserved ', Line_Number='256', Column_Number='18', Source_File='116' WHERE dbid='6779'
+0x00006508 970 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Bitfields SET parent_dbid='1905', Name='T', Begin='24', End='24', Width='1', Reset_Value='1', Read_Access='1', Write_Access='0', Description='Thumb State ', Line_Number='257', Column_Number='18', Source_File='116' WHERE dbid='6780'
+0x00006508 970 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Bitfields SET parent_dbid='1905', Name='RESV2', Begin='23', End='10', Width='14', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Reserved ', Line_Number='258', Column_Number='18', Source_File='116' WHERE dbid='6781'
+0x00006508 970 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Bitfields SET parent_dbid='1905', Name='RESV3', Begin='9', End='9', Width='1', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Reserved ', Line_Number='259', Column_Number='18', Source_File='116' WHERE dbid='6782'
+0x00006508 970 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Bitfields SET parent_dbid='1905', Name='RESV4', Begin='8', End='6', Width='3', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Reserved ', Line_Number='260', Column_Number='18', Source_File='116' WHERE dbid='6783'
+0x00006508 970 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Bitfields SET parent_dbid='1905', Name='EXCEPTION', Begin='5', End='0', Width='6', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Exception Number ', Line_Number='261', Column_Number='18', Source_File='116' WHERE dbid='6784'
+0x00006508 970 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='xPSR', Offset=NULL, Page=NULL, Width='32', Description='Stores the status of interrupt enables and critical processor status signals', Line_Number='251', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1905'
+0x00006508 970 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R0', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 0', Line_Number='263', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1906'
+0x00006508 970 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R1', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 1', Line_Number='264', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1907'
+0x00006508 970 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R2', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 2', Line_Number='265', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1908'
+0x00006508 970 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R3', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 3', Line_Number='266', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1909'
+0x00006508 970 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R4', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 4', Line_Number='267', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1910'
+0x00006508 970 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R5', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 5', Line_Number='268', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1911'
+0x00006508 970 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R6', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 6', Line_Number='269', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1912'
+0x00006508 970 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R7', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 7', Line_Number='270', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1913'
+0x00006508 970 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 970 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R8', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 8', Line_Number='271', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1914'
+0x00006508 971 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R9', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 9', Line_Number='272', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1915'
+0x00006508 971 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R10', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 10', Line_Number='273', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1916'
+0x00006508 971 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R11', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 11', Line_Number='274', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1917'
+0x00006508 971 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R12', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 12', Line_Number='275', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1918'
+0x00006508 971 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R13', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 13', Line_Number='276', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1919'
+0x00006508 971 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='R14', Offset=NULL, Page=NULL, Width='32', Description='General Purpose Register 14', Line_Number='277', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1920'
+0x00006508 971 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='MSP', Offset=NULL, Page=NULL, Width='32', Description='MSP Register', Line_Number='278', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1921'
+0x00006508 971 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='PSP', Offset=NULL, Page=NULL, Width='32', Description='PSP Register', Line_Number='279', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1922'
+0x00006508 971 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Bitfields SET parent_dbid='1923', Name='CONTROL', Begin='31', End='24', Width='8', Reset_Value='0', Read_Access='1', Write_Access='1', Description='Control', Line_Number='281', Column_Number='18', Source_File='116' WHERE dbid='6785'
+0x00006508 971 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Bitfields SET parent_dbid='1923', Name='RESV', Begin='23', End='8', Width='16', Reset_Value='0', Read_Access='1', Write_Access='1', Description='Reserved', Line_Number='282', Column_Number='18', Source_File='116' WHERE dbid='6786'
+0x00006508 971 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 971 3  SETUP I: UPDATE Bitfields SET parent_dbid='1923', Name='PRIMASK', Begin='7', End='0', Width='8', Reset_Value='0', Read_Access='1', Write_Access='1', Description='Primask', Line_Number='283', Column_Number='18', Source_File='116' WHERE dbid='6787'
+0x00006508 971 3  SETUP I: UPDATE Registers SET parent_dbid='20', parent_type='Processors', Name='CTRL_PRI', Offset=NULL, Page=NULL, Width='32', Description='CM0+ Special Registers', Line_Number='280', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1923'
+0x00006508 971 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 972 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="cortexM0_NotVisible.xml"
+0x00006508 972 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=64
+0x00006508 972 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 972 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='64', Name=NULL, Alias='Hidden', Description='', Base_Address=-9223372036854775808, Hidden='1', Line_Number='285', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1001'
+0x00006508 972 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1001, 	parent_type="Module_Instances" WHERE 	parent_dbid=380 AND 	parent_type="Modules"
+0x00006508 972 3  SETUP I: UPDATE Modules SET Name=NULL, Description='', Line_Number='285', Column_Number='16', Source_File='116' WHERE dbid='380'
+0x00006508 972 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 972 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="ADC0_4MSPS_1.0.xml"
+0x00006508 973 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=65
+0x00006508 973 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 973 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='65', Name='adc0', Alias='adc0', Description='', Base_Address=-9223372035781033984, Hidden='0', Line_Number='286', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1002'
+0x00006508 973 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1002, 	parent_type="Module_Instances" WHERE 	parent_dbid=381 AND 	parent_type="Modules"
+0x00006508 973 3  SETUP I: UPDATE Modules SET Name='adc0', Description='', Line_Number='286', Column_Number='16', Source_File='116' WHERE dbid='381'
+0x00006508 973 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 973 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="ADC1_4MSPS_1.0.xml"
+0x00006508 973 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=66
+0x00006508 973 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 973 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='66', Name='adc1', Alias='adc1', Description='', Base_Address=-9223372035781025792, Hidden='0', Line_Number='287', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1003'
+0x00006508 973 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1003, 	parent_type="Module_Instances" WHERE 	parent_dbid=382 AND 	parent_type="Modules"
+0x00006508 973 3  SETUP I: UPDATE Modules SET Name='adc1', Description='', Line_Number='287', Column_Number='16', Source_File='116' WHERE dbid='382'
+0x00006508 973 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 973 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="AES_1.0.xml"
+0x00006508 974 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=67
+0x00006508 974 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 974 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='67', Name='aes', Alias='aes', Description='', Base_Address=-9223372035776569344, Hidden='0', Line_Number='288', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1004'
+0x00006508 974 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1004, 	parent_type="Module_Instances" WHERE 	parent_dbid=383 AND 	parent_type="Modules"
+0x00006508 974 3  SETUP I: UPDATE Modules SET Name='aes', Description='', Line_Number='288', Column_Number='16', Source_File='116' WHERE dbid='383'
+0x00006508 974 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 974 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="CANFD0_1.0.xml"
+0x00006508 975 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=68
+0x00006508 975 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 975 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='68', Name='canfd0', Alias='canfd0', Description='', Base_Address=-9223372035775758336, Hidden='0', Line_Number='289', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1005'
+0x00006508 975 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1005, 	parent_type="Module_Instances" WHERE 	parent_dbid=384 AND 	parent_type="Modules"
+0x00006508 975 3  SETUP I: UPDATE Modules SET Name='canfd0', Description='', Line_Number='289', Column_Number='16', Source_File='116' WHERE dbid='384'
+0x00006508 975 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 975 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="COMP0_1.0.xml"
+0x00006508 975 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=69
+0x00006508 975 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 975 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='69', Name='comp0', Alias='comp0', Description='', Base_Address=-9223372035781001216, Hidden='0', Line_Number='290', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1006'
+0x00006508 975 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1006, 	parent_type="Module_Instances" WHERE 	parent_dbid=385 AND 	parent_type="Modules"
+0x00006508 975 3  SETUP I: UPDATE Modules SET Name='comp0', Description='', Line_Number='290', Column_Number='16', Source_File='116' WHERE dbid='385'
+0x00006508 975 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 975 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="COMP1_1.0.xml"
+0x00006508 976 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=70
+0x00006508 976 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 976 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='70', Name='comp1', Alias='comp1', Description='', Base_Address=-9223372035780993024, Hidden='0', Line_Number='291', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1007'
+0x00006508 976 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1007, 	parent_type="Module_Instances" WHERE 	parent_dbid=386 AND 	parent_type="Modules"
+0x00006508 976 3  SETUP I: UPDATE Modules SET Name='comp1', Description='', Line_Number='291', Column_Number='16', Source_File='116' WHERE dbid='386'
+0x00006508 976 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 976 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="COMP2_1.0.xml"
+0x00006508 976 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=71
+0x00006508 976 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 977 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='71', Name='comp2', Alias='comp2', Description='', Base_Address=-9223372035780984832, Hidden='0', Line_Number='292', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1008'
+0x00006508 977 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1008, 	parent_type="Module_Instances" WHERE 	parent_dbid=387 AND 	parent_type="Modules"
+0x00006508 977 3  SETUP I: UPDATE Modules SET Name='comp2', Description='', Line_Number='292', Column_Number='16', Source_File='116' WHERE dbid='387'
+0x00006508 977 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 977 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="CPUSS_1.0.xml"
+0x00006508 977 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=72
+0x00006508 977 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 977 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='72', Name='cpuss', Alias='cpuss', Description='', Base_Address=-9223372035776839680, Hidden='0', Line_Number='293', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1009'
+0x00006508 977 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1009, 	parent_type="Module_Instances" WHERE 	parent_dbid=388 AND 	parent_type="Modules"
+0x00006508 977 3  SETUP I: UPDATE Modules SET Name='cpuss', Description='', Line_Number='293', Column_Number='16', Source_File='116' WHERE dbid='388'
+0x00006508 977 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 977 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="CRC_1.0.xml"
+0x00006508 978 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=73
+0x00006508 978 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 978 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='73', Name='crc', Alias='crc', Description='', Base_Address=-9223372035776577536, Hidden='0', Line_Number='294', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1010'
+0x00006508 978 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1010, 	parent_type="Module_Instances" WHERE 	parent_dbid=389 AND 	parent_type="Modules"
+0x00006508 978 3  SETUP I: UPDATE Modules SET Name='crc', Description='', Line_Number='294', Column_Number='16', Source_File='116' WHERE dbid='389'
+0x00006508 978 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 978 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="DAC0_1.0.xml"
+0x00006508 978 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=74
+0x00006508 978 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 978 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='74', Name='dac0', Alias='dac0', Description='', Base_Address=-9223372035780935680, Hidden='0', Line_Number='295', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1011'
+0x00006508 978 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1011, 	parent_type="Module_Instances" WHERE 	parent_dbid=390 AND 	parent_type="Modules"
+0x00006508 978 3  SETUP I: UPDATE Modules SET Name='dac0', Description='', Line_Number='295', Column_Number='16', Source_File='116' WHERE dbid='390'
+0x00006508 978 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 978 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="DEBUGSS_1.0.xml"
+0x00006508 979 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=75
+0x00006508 979 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 979 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='75', Name='debugss', Alias='debugss', Description='', Base_Address=-9223372035780218880, Hidden='0', Line_Number='296', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1012'
+0x00006508 979 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1012, 	parent_type="Module_Instances" WHERE 	parent_dbid=391 AND 	parent_type="Modules"
+0x00006508 979 3  SETUP I: UPDATE Modules SET Name='debugss', Description='', Line_Number='296', Column_Number='16', Source_File='116' WHERE dbid='391'
+0x00006508 979 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 979 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="DMA_1.0.xml"
+0x00006508 979 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=76
+0x00006508 979 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 980 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='76', Name='dma', Alias='dma', Description='', Base_Address=-9223372035776667648, Hidden='0', Line_Number='297', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1013'
+0x00006508 980 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1013, 	parent_type="Module_Instances" WHERE 	parent_dbid=392 AND 	parent_type="Modules"
+0x00006508 980 3  SETUP I: UPDATE Modules SET Name='dma', Description='', Line_Number='297', Column_Number='16', Source_File='116' WHERE dbid='392'
+0x00006508 980 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 980 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="FLASH_1.0.xml"
+0x00006508 980 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=77
+0x00006508 980 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 980 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='77', Name='flash', Alias='flash', Description='', Base_Address=-9223372036854775808, Hidden='0', Line_Number='298', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1014'
+0x00006508 980 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1014, 	parent_type="Module_Instances" WHERE 	parent_dbid=393 AND 	parent_type="Modules"
+0x00006508 980 3  SETUP I: UPDATE Modules SET Name='flash', Description='', Line_Number='298', Column_Number='16', Source_File='116' WHERE dbid='393'
+0x00006508 980 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 980 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="FLASHCTL_1.0.xml"
+0x00006508 981 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=78
+0x00006508 981 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 981 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='78', Name='flashctl', Alias='flashctl', Description='', Base_Address=-9223372035780194304, Hidden='0', Line_Number='299', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1015'
+0x00006508 981 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1015, 	parent_type="Module_Instances" WHERE 	parent_dbid=394 AND 	parent_type="Modules"
+0x00006508 981 3  SETUP I: UPDATE Modules SET Name='flashctl', Description='', Line_Number='299', Column_Number='16', Source_File='116' WHERE dbid='394'
+0x00006508 981 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 981 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="GPIOA_1.0.xml"
+0x00006508 981 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=79
+0x00006508 981 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 981 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='79', Name='gpioa', Alias='gpioa', Description='', Base_Address=-9223372035780378624, Hidden='0', Line_Number='300', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1016'
+0x00006508 981 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1016, 	parent_type="Module_Instances" WHERE 	parent_dbid=395 AND 	parent_type="Modules"
+0x00006508 981 3  SETUP I: UPDATE Modules SET Name='gpioa', Description='', Line_Number='300', Column_Number='16', Source_File='116' WHERE dbid='395'
+0x00006508 981 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 982 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="GPIOB_1.0.xml"
+0x00006508 982 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=80
+0x00006508 982 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 982 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='80', Name='gpiob', Alias='gpiob', Description='', Base_Address=-9223372035780370432, Hidden='0', Line_Number='301', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1017'
+0x00006508 982 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1017, 	parent_type="Module_Instances" WHERE 	parent_dbid=396 AND 	parent_type="Modules"
+0x00006508 982 3  SETUP I: UPDATE Modules SET Name='gpiob', Description='', Line_Number='301', Column_Number='16', Source_File='116' WHERE dbid='396'
+0x00006508 982 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 982 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="I2C0_1.0.xml"
+0x00006508 983 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=81
+0x00006508 983 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 983 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='81', Name='i2c0', Alias='i2c0', Description='', Base_Address=-9223372035780050944, Hidden='0', Line_Number='302', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1018'
+0x00006508 983 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1018, 	parent_type="Module_Instances" WHERE 	parent_dbid=397 AND 	parent_type="Modules"
+0x00006508 983 3  SETUP I: UPDATE Modules SET Name='i2c0', Description='', Line_Number='302', Column_Number='16', Source_File='116' WHERE dbid='397'
+0x00006508 983 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 983 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="I2C1_1.0.xml"
+0x00006508 983 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=82
+0x00006508 984 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 984 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='82', Name='i2c1', Alias='i2c1', Description='', Base_Address=-9223372035780042752, Hidden='0', Line_Number='303', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1019'
+0x00006508 984 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1019, 	parent_type="Module_Instances" WHERE 	parent_dbid=398 AND 	parent_type="Modules"
+0x00006508 984 3  SETUP I: UPDATE Modules SET Name='i2c1', Description='', Line_Number='303', Column_Number='16', Source_File='116' WHERE dbid='398'
+0x00006508 984 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 984 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="IOMUX_1.0.xml"
+0x00006508 984 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=83
+0x00006508 984 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 984 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='83', Name='iomux', Alias='iomux', Description='', Base_Address=-9223372035776675840, Hidden='0', Line_Number='304', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1020'
+0x00006508 984 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1020, 	parent_type="Module_Instances" WHERE 	parent_dbid=399 AND 	parent_type="Modules"
+0x00006508 984 3  SETUP I: UPDATE Modules SET Name='iomux', Description='', Line_Number='304', Column_Number='16', Source_File='116' WHERE dbid='399'
+0x00006508 984 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 984 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="MATHACL_1.0.xml"
+0x00006508 985 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=84
+0x00006508 985 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 985 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='84', Name='mathacl', Alias='mathacl', Description='', Base_Address=-9223372035776774144, Hidden='0', Line_Number='305', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1021'
+0x00006508 985 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1021, 	parent_type="Module_Instances" WHERE 	parent_dbid=400 AND 	parent_type="Modules"
+0x00006508 985 3  SETUP I: UPDATE Modules SET Name='mathacl', Description='', Line_Number='305', Column_Number='16', Source_File='116' WHERE dbid='400'
+0x00006508 985 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 985 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="OPA0_1.0.xml"
+0x00006508 985 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=85
+0x00006508 985 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 985 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='85', Name='opa0', Alias='opa0', Description='', Base_Address=-9223372035780902912, Hidden='0', Line_Number='306', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1022'
+0x00006508 985 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1022, 	parent_type="Module_Instances" WHERE 	parent_dbid=401 AND 	parent_type="Modules"
+0x00006508 985 3  SETUP I: UPDATE Modules SET Name='opa0', Description='', Line_Number='306', Column_Number='16', Source_File='116' WHERE dbid='401'
+0x00006508 985 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 985 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="OPA1_1.0.xml"
+0x00006508 986 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=86
+0x00006508 986 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 986 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='86', Name='opa1', Alias='opa1', Description='', Base_Address=-9223372035780894720, Hidden='0', Line_Number='307', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1023'
+0x00006508 986 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1023, 	parent_type="Module_Instances" WHERE 	parent_dbid=402 AND 	parent_type="Modules"
+0x00006508 986 3  SETUP I: UPDATE Modules SET Name='opa1', Description='', Line_Number='307', Column_Number='16', Source_File='116' WHERE dbid='402'
+0x00006508 986 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 986 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="RTC_1.0.xml"
+0x00006508 986 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=87
+0x00006508 986 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 987 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='87', Name='rtc', Alias='rtc', Description='', Base_Address=-9223372035780427776, Hidden='0', Line_Number='308', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1024'
+0x00006508 987 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1024, 	parent_type="Module_Instances" WHERE 	parent_dbid=403 AND 	parent_type="Modules"
+0x00006508 987 3  SETUP I: UPDATE Modules SET Name='rtc', Description='', Line_Number='308', Column_Number='16', Source_File='116' WHERE dbid='403'
+0x00006508 987 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 987 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="SPI0_1.0.xml"
+0x00006508 987 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=88
+0x00006508 987 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 987 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='88', Name='spi0', Alias='spi0', Description='', Base_Address=-9223372035776413696, Hidden='0', Line_Number='309', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1025'
+0x00006508 987 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1025, 	parent_type="Module_Instances" WHERE 	parent_dbid=404 AND 	parent_type="Modules"
+0x00006508 987 3  SETUP I: UPDATE Modules SET Name='spi0', Description='', Line_Number='309', Column_Number='16', Source_File='116' WHERE dbid='404'
+0x00006508 987 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 987 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="SPI1_1.0.xml"
+0x00006508 988 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=89
+0x00006508 988 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 988 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='89', Name='spi1', Alias='spi1', Description='', Base_Address=-9223372035776405504, Hidden='0', Line_Number='310', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1026'
+0x00006508 988 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1026, 	parent_type="Module_Instances" WHERE 	parent_dbid=405 AND 	parent_type="Modules"
+0x00006508 988 3  SETUP I: UPDATE Modules SET Name='spi1', Description='', Line_Number='310', Column_Number='16', Source_File='116' WHERE dbid='405'
+0x00006508 988 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 988 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="SYSCTL_1.0.xml"
+0x00006508 988 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=90
+0x00006508 988 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 988 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='90', Name='sysctl', Alias='sysctl', Description='', Base_Address=-9223372035780317184, Hidden='0', Line_Number='311', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1027'
+0x00006508 988 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1027, 	parent_type="Module_Instances" WHERE 	parent_dbid=406 AND 	parent_type="Modules"
+0x00006508 988 3  SETUP I: UPDATE Modules SET Name='sysctl', Description='', Line_Number='311', Column_Number='16', Source_File='116' WHERE dbid='406'
+0x00006508 988 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 988 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="SYSMEM_1.0.xml"
+0x00006508 989 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=91
+0x00006508 989 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 989 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='91', Name='sysmem', Alias='sysmem', Description='', Base_Address=-9223372036317904896, Hidden='0', Line_Number='312', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1028'
+0x00006508 989 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1028, 	parent_type="Module_Instances" WHERE 	parent_dbid=407 AND 	parent_type="Modules"
+0x00006508 989 3  SETUP I: UPDATE Modules SET Name='sysmem', Description='', Line_Number='312', Column_Number='16', Source_File='116' WHERE dbid='407'
+0x00006508 989 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 989 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TIMA0_1.0.xml"
+0x00006508 989 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=92
+0x00006508 989 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 989 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='92', Name='tima0', Alias='tima0', Description='', Base_Address=-9223372035772252160, Hidden='0', Line_Number='313', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1029'
+0x00006508 989 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1029, 	parent_type="Module_Instances" WHERE 	parent_dbid=408 AND 	parent_type="Modules"
+0x00006508 990 3  SETUP I: UPDATE Modules SET Name='tima0', Description='', Line_Number='313', Column_Number='16', Source_File='116' WHERE dbid='408'
+0x00006508 990 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 990 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TIMA1_1.0.xml"
+0x00006508 990 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=93
+0x00006508 990 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 990 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='93', Name='tima1', Alias='tima1', Description='', Base_Address=-9223372035772243968, Hidden='0', Line_Number='314', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1030'
+0x00006508 990 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1030, 	parent_type="Module_Instances" WHERE 	parent_dbid=409 AND 	parent_type="Modules"
+0x00006508 990 3  SETUP I: UPDATE Modules SET Name='tima1', Description='', Line_Number='314', Column_Number='16', Source_File='116' WHERE dbid='409'
+0x00006508 990 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 991 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TIMG0_1.0.xml"
+0x00006508 991 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=94
+0x00006508 991 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 991 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='94', Name='timg0', Alias='timg0', Description='', Base_Address=-9223372035780493312, Hidden='0', Line_Number='315', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1031'
+0x00006508 991 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1031, 	parent_type="Module_Instances" WHERE 	parent_dbid=410 AND 	parent_type="Modules"
+0x00006508 991 3  SETUP I: UPDATE Modules SET Name='timg0', Description='', Line_Number='315', Column_Number='16', Source_File='116' WHERE dbid='410'
+0x00006508 991 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 991 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TIMG12_1.0.xml"
+0x00006508 992 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=95
+0x00006508 992 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 992 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='95', Name='timg12', Alias='timg12', Description='', Base_Address=-9223372035772186624, Hidden='0', Line_Number='316', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1032'
+0x00006508 992 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1032, 	parent_type="Module_Instances" WHERE 	parent_dbid=411 AND 	parent_type="Modules"
+0x00006508 992 3  SETUP I: UPDATE Modules SET Name='timg12', Description='', Line_Number='316', Column_Number='16', Source_File='116' WHERE dbid='411'
+0x00006508 992 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 992 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TIMG6_1.0.xml"
+0x00006508 992 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=96
+0x00006508 992 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 992 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='96', Name='timg6', Alias='timg6', Description='', Base_Address=-9223372035772219392, Hidden='0', Line_Number='317', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1033'
+0x00006508 992 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1033, 	parent_type="Module_Instances" WHERE 	parent_dbid=412 AND 	parent_type="Modules"
+0x00006508 992 3  SETUP I: UPDATE Modules SET Name='timg6', Description='', Line_Number='317', Column_Number='16', Source_File='116' WHERE dbid='412'
+0x00006508 992 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 992 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TIMG7_1.0.xml"
+0x00006508 993 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=97
+0x00006508 993 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 993 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='97', Name='timg7', Alias='timg7', Description='', Base_Address=-9223372035772211200, Hidden='0', Line_Number='318', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1034'
+0x00006508 993 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1034, 	parent_type="Module_Instances" WHERE 	parent_dbid=413 AND 	parent_type="Modules"
+0x00006508 993 3  SETUP I: UPDATE Modules SET Name='timg7', Description='', Line_Number='318', Column_Number='16', Source_File='116' WHERE dbid='413'
+0x00006508 993 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 993 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TIMG8_1.0.xml"
+0x00006508 993 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=98
+0x00006508 993 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 993 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='98', Name='timg8', Alias='timg8', Description='', Base_Address=-9223372035780444160, Hidden='0', Line_Number='319', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1035'
+0x00006508 993 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1035, 	parent_type="Module_Instances" WHERE 	parent_dbid=414 AND 	parent_type="Modules"
+0x00006508 993 3  SETUP I: UPDATE Modules SET Name='timg8', Description='', Line_Number='319', Column_Number='16', Source_File='116' WHERE dbid='414'
+0x00006508 993 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 994 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TRNG_1.0.xml"
+0x00006508 994 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=99
+0x00006508 994 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 994 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='99', Name='trng', Alias='trng', Description='', Base_Address=-9223372035776561152, Hidden='0', Line_Number='320', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1036'
+0x00006508 994 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1036, 	parent_type="Module_Instances" WHERE 	parent_dbid=415 AND 	parent_type="Modules"
+0x00006508 994 3  SETUP I: UPDATE Modules SET Name='trng', Description='', Line_Number='320', Column_Number='16', Source_File='116' WHERE dbid='415'
+0x00006508 994 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 994 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="UART0_1.0.xml"
+0x00006508 994 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=100
+0x00006508 995 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 995 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='100', Name='uart0', Alias='uart0', Description='', Base_Address=-9223372035779952640, Hidden='0', Line_Number='321', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1037'
+0x00006508 995 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1037, 	parent_type="Module_Instances" WHERE 	parent_dbid=416 AND 	parent_type="Modules"
+0x00006508 995 3  SETUP I: UPDATE Modules SET Name='uart0', Description='', Line_Number='321', Column_Number='16', Source_File='116' WHERE dbid='416'
+0x00006508 995 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 995 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="UART1_1.0.xml"
+0x00006508 995 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=101
+0x00006508 995 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 995 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='101', Name='uart1', Alias='uart1', Description='', Base_Address=-9223372035779985408, Hidden='0', Line_Number='322', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1038'
+0x00006508 995 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1038, 	parent_type="Module_Instances" WHERE 	parent_dbid=417 AND 	parent_type="Modules"
+0x00006508 995 3  SETUP I: UPDATE Modules SET Name='uart1', Description='', Line_Number='322', Column_Number='16', Source_File='116' WHERE dbid='417'
+0x00006508 995 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 995 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="UART2_1.0.xml"
+0x00006508 996 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=102
+0x00006508 996 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 996 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='102', Name='uart2', Alias='uart2', Description='', Base_Address=-9223372035779977216, Hidden='0', Line_Number='323', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1039'
+0x00006508 996 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1039, 	parent_type="Module_Instances" WHERE 	parent_dbid=418 AND 	parent_type="Modules"
+0x00006508 996 3  SETUP I: UPDATE Modules SET Name='uart2', Description='', Line_Number='323', Column_Number='16', Source_File='116' WHERE dbid='418'
+0x00006508 996 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 996 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="UART3_1.0.xml"
+0x00006508 996 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=103
+0x00006508 996 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 996 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='103', Name='uart3', Alias='uart3', Description='', Base_Address=-9223372035775791104, Hidden='0', Line_Number='324', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1040'
+0x00006508 996 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1040, 	parent_type="Module_Instances" WHERE 	parent_dbid=419 AND 	parent_type="Modules"
+0x00006508 996 3  SETUP I: UPDATE Modules SET Name='uart3', Description='', Line_Number='324', Column_Number='16', Source_File='116' WHERE dbid='419'
+0x00006508 997 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 997 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="VREF_1.0.xml"
+0x00006508 997 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=104
+0x00006508 997 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 997 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='104', Name='vref', Alias='vref', Description='', Base_Address=-9223372035780837376, Hidden='0', Line_Number='325', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1041'
+0x00006508 997 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1041, 	parent_type="Module_Instances" WHERE 	parent_dbid=420 AND 	parent_type="Modules"
+0x00006508 997 3  SETUP I: UPDATE Modules SET Name='vref', Description='', Line_Number='325', Column_Number='16', Source_File='116' WHERE dbid='420'
+0x00006508 997 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 997 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="WUC_1.0.xml"
+0x00006508 997 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=105
+0x00006508 998 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 998 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='105', Name='wuc', Alias='wuc', Description='', Base_Address=-9223372035776692224, Hidden='0', Line_Number='326', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1042'
+0x00006508 998 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1042, 	parent_type="Module_Instances" WHERE 	parent_dbid=421 AND 	parent_type="Modules"
+0x00006508 998 3  SETUP I: UPDATE Modules SET Name='wuc', Description='', Line_Number='326', Column_Number='16', Source_File='116' WHERE dbid='421'
+0x00006508 998 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 998 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="WWDT0_1.0.xml"
+0x00006508 998 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=106
+0x00006508 998 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 998 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='106', Name='wwdt0', Alias='wwdt0', Description='', Base_Address=-9223372035780509696, Hidden='0', Line_Number='327', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1043'
+0x00006508 998 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1043, 	parent_type="Module_Instances" WHERE 	parent_dbid=422 AND 	parent_type="Modules"
+0x00006508 998 3  SETUP I: UPDATE Modules SET Name='wwdt0', Description='', Line_Number='327', Column_Number='16', Source_File='116' WHERE dbid='422'
+0x00006508 998 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 998 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="WWDT1_1.0.xml"
+0x00006508 999 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=107
+0x00006508 999 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 999 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='107', Name='wwdt1', Alias='wwdt1', Description='', Base_Address=-9223372035780501504, Hidden='0', Line_Number='328', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1044'
+0x00006508 999 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1044, 	parent_type="Module_Instances" WHERE 	parent_dbid=423 AND 	parent_type="Modules"
+0x00006508 999 3  SETUP I: UPDATE Modules SET Name='wwdt1', Description='', Line_Number='328', Column_Number='16', Source_File='116' WHERE dbid='423'
+0x00006508 999 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 999 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="NVIC_1.0.xml"
+0x00006508 999 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=108
+0x00006508 999 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1000 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='108', Name='nvic', Alias='nvic', Description='', Base_Address=-9223372036854775808, Hidden='0', Line_Number='329', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1045'
+0x00006508 1000 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1045, 	parent_type="Module_Instances" WHERE 	parent_dbid=424 AND 	parent_type="Modules"
+0x00006508 1000 3  SETUP I: UPDATE Modules SET Name='nvic', Description='', Line_Number='329', Column_Number='16', Source_File='116' WHERE dbid='424'
+0x00006508 1000 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 1000 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="SYSTICK_1.0.xml"
+0x00006508 1000 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=109
+0x00006508 1000 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1000 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='109', Name='systick', Alias='systick', Description='', Base_Address=-9223372036854775808, Hidden='0', Line_Number='330', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1046'
+0x00006508 1000 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1046, 	parent_type="Module_Instances" WHERE 	parent_dbid=425 AND 	parent_type="Modules"
+0x00006508 1000 3  SETUP I: UPDATE Modules SET Name='systick', Description='', Line_Number='330', Column_Number='16', Source_File='116' WHERE dbid='425'
+0x00006508 1000 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL)
+0x00006508 1000 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="ETAP.xml"
+0x00006508 1001 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=110
+0x00006508 1001 3  SETUP I: INSERT INTO Module_Instances (parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1001 3  SETUP I: UPDATE Module_Instances SET parent_dbid='20', parent_type='Processors', Instanced_File='110', Name=NULL, Alias='Hidden', Description='', Base_Address=-9223372036854775808, Hidden='1', Line_Number='331', Column_Number='16', Source_File='116', Processor='20', Is_Array_Element='0', Is_Virtual='0', config_reg_address=-9223372036854775808 WHERE dbid='1047'
+0x00006508 1001 3  SETUP I: UPDATE Module_Instances SET 	parent_dbid=1047, 	parent_type="Module_Instances" WHERE 	parent_dbid=426 AND 	parent_type="Modules"
+0x00006508 1001 3  SETUP I: UPDATE Modules SET Name=NULL, Description='', Line_Number='331', Column_Number='16', Source_File='116' WHERE dbid='426'
+0x00006508 1001 3  SETUP I: SELECT count(*) FROM Registers WHERE parent_dbid=20 AND parent_type="Processors"
+0x00006508 1001 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES ("Core Registers", "", 247, 14, 116)
+0x00006508 1001 3  SETUP I: INSERT INTO Module_Instances ( parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address ) VALUES ( "20", "Processors", 116, "Core Registers", "Core Registers", "Core Registers", -9223372036854775808, 0, 247, 14, 116, 20, 0, 0, -9223372036854775808)
+0x00006508 1001 3  SETUP I: UPDATE Registers SET parent_dbid=427, parent_type="Modules" WHERE parent_dbid=20 AND parent_type="Processors"
+0x00006508 1001 3  SETUP I: UPDATE Processors SET parent_dbid='13', parent_type='Subpath', Connection='7', Name='CORTEX_M0P', ISA='CORTEX_M0P', Display_Name='CORTEX_M0P', Description='Cortex M0+ CPU', Line_Number='247', Column_Number='14', Source_File='116' WHERE dbid='20'
+0x00006508 1001 3  SETUP I: UPDATE Subpath SET parent_dbid='19', Name='subpath_0', Description=NULL, Line_Number='241', Column_Number='12', Source_File='116' WHERE dbid='13'
+0x00006508 1001 3  SETUP I: INSERT INTO Subpath (parent_dbid, Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1001 3  SETUP I: INSERT INTO Processors (parent_dbid, parent_type, Connection, Name, ISA, Display_Name, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1001 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1002 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1002 3  SETUP I: UPDATE Bitfields SET parent_dbid='1924', Name='TXDAT', Begin='31', End='0', Width='32', Reset_Value='0', Read_Access='1', Write_Access='1', Description='Transmit Data.  Writing this sets the TXDATAVAIL bit in the Transmit Control Register', Line_Number='357', Column_Number='18', Source_File='116' WHERE dbid='6788'
+0x00006508 1002 3  SETUP I: UPDATE Registers SET parent_dbid='21', parent_type='Processors', Name='TRANSMIT_DATA', Offset=NULL, Page=NULL, Width='32', Description='Transmit Data Register', Line_Number='356', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1924'
+0x00006508 1002 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1002 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1002 3  SETUP I: UPDATE Bitfields SET parent_dbid='1925', Name='CONTROL', Begin='31', End='1', Width='31', Reset_Value='0', Read_Access='1', Write_Access='1', Description='Device specific control information for the system security logic.', Line_Number='360', Column_Number='18', Source_File='116' WHERE dbid='6789'
+0x00006508 1002 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1002 3  SETUP I: UPDATE Bitfields SET parent_dbid='1925', Name='TXDATAVAIL', Begin='0', End='0', Width='1', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Set automatically when the TX Data Register is written.  Cleared automatically when the system debug logic indicates it has accepted TX Data', Line_Number='361', Column_Number='18', Source_File='116' WHERE dbid='6790'
+0x00006508 1002 3  SETUP I: UPDATE Registers SET parent_dbid='21', parent_type='Processors', Name='TRANSMIT_CONTROL', Offset=NULL, Page=NULL, Width='32', Description='Transmit Control Register', Line_Number='359', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1925'
+0x00006508 1002 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1002 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1002 3  SETUP I: UPDATE Bitfields SET parent_dbid='1926', Name='RXDAT', Begin='31', End='0', Width='32', Reset_Value='0', Read_Access='1', Write_Access='1', Description='Receive Data.  Reading this clears the RXDATAVAIL bit in the Receive Control Register', Line_Number='364', Column_Number='18', Source_File='116' WHERE dbid='6791'
+0x00006508 1002 3  SETUP I: UPDATE Registers SET parent_dbid='21', parent_type='Processors', Name='RECEIVE_DATA', Offset=NULL, Page=NULL, Width='32', Description='Receive Data Register', Line_Number='363', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1926'
+0x00006508 1002 3  SETUP I: INSERT INTO Registers (parent_dbid, parent_type, Name, Offset, Page, Width, Description, Line_Number, Column_Number, Source_File, Module, Instance_Count, Instance_Address_Increment, Halted_Read_Access, Halted_Write_Access, Running_Read_Access, Running_Write_Access) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1002 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1002 3  SETUP I: UPDATE Bitfields SET parent_dbid='1927', Name='CONTROL', Begin='31', End='1', Width='31', Reset_Value='0', Read_Access='1', Write_Access='1', Description='Device specific control information for the system security logic.', Line_Number='367', Column_Number='18', Source_File='116' WHERE dbid='6792'
+0x00006508 1002 3  SETUP I: INSERT INTO Bitfields (parent_dbid, Name, Begin, End, Width, Reset_Value, Read_Access, Write_Access, Description, Line_Number, Column_Number, Source_File) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+0x00006508 1002 3  SETUP I: UPDATE Bitfields SET parent_dbid='1927', Name='RXDATAVAIL', Begin='0', End='0', Width='1', Reset_Value='0', Read_Access='1', Write_Access='0', Description='Set automatically when the system security logic indicates that RX Data Register is valid.  Cleared automatically when the RX data register is read', Line_Number='368', Column_Number='18', Source_File='116' WHERE dbid='6793'
+0x00006508 1002 3  SETUP I: UPDATE Registers SET parent_dbid='21', parent_type='Processors', Name='RECEIVE_CONTROL', Offset=NULL, Page=NULL, Width='32', Description='Receive Control Register', Line_Number='366', Column_Number='16', Source_File='116', Module=NULL, Instance_Count=NULL, Instance_Address_Increment=NULL, Halted_Read_Access=NULL, Halted_Write_Access=NULL, Running_Read_Access=NULL, Running_Write_Access=NULL WHERE dbid='1927'
+0x00006508 1002 3  SETUP I: SELECT count(*) FROM Registers WHERE parent_dbid=21 AND parent_type="Processors"
+0x00006508 1002 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES ("Core Registers", "", 355, 14, 116)
+0x00006508 1003 3  SETUP I: INSERT INTO Module_Instances ( parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address ) VALUES ( "21", "Processors", 116, "Core Registers", "Core Registers", "Core Registers", -9223372036854775808, 0, 355, 14, 116, 21, 0, 0, -9223372036854775808)
+0x00006508 1003 3  SETUP I: UPDATE Registers SET parent_dbid=428, parent_type="Modules" WHERE parent_dbid=21 AND parent_type="Processors"
+0x00006508 1003 3  SETUP I: UPDATE Processors SET parent_dbid='14', parent_type='Subpath', Connection='7', Name='SEC_AP', ISA='SEC_AP', Display_Name='SEC_AP', Description='SEC_AP', Line_Number='355', Column_Number='14', Source_File='116' WHERE dbid='21'
+0x00006508 1003 3  SETUP I: UPDATE Subpath SET parent_dbid='19', Name='subpath_1', Description=NULL, Line_Number='353', Column_Number='12', Source_File='116' WHERE dbid='14'
+0x00006508 1003 3  SETUP I: SELECT count(*) FROM Registers WHERE parent_dbid=19 AND parent_type="Processors"
+0x00006508 1003 3  SETUP I: INSERT INTO Modules (Name, Description, Line_Number, Column_Number, Source_File) VALUES ("Core Registers", "", 217, 10, 116)
+0x00006508 1003 3  SETUP I: INSERT INTO Module_Instances ( parent_dbid, parent_type, Instanced_File, Name, Alias, Description, Base_Address, Hidden, Line_Number, Column_Number, Source_File, Processor, Is_Array_Element, Is_Virtual, config_reg_address ) VALUES ( "19", "Processors", 116, "Core Registers", "Core Registers", "Core Registers", -9223372036854775808, 0, 217, 10, 116, 19, 0, 0, -9223372036854775808)
+0x00006508 1003 3  SETUP I: UPDATE Registers SET parent_dbid=429, parent_type="Modules" WHERE parent_dbid=19 AND parent_type="Processors"
+0x00006508 1003 3  SETUP I: UPDATE Processors SET parent_dbid='7', parent_type='Devices', Connection='7', Name='CS_DAP_0', ISA='CS_DAP', Display_Name='CS_DAP_0', Description='CS_DAP Router', Line_Number='217', Column_Number='10', Source_File='116' WHERE dbid='19'
+0x00006508 1003 3  SETUP I: UPDATE Devices SET parent_dbid='7', parent_type='Platforms', Connection='7', Name='MSPM0G3507', Part_Number='MSPM0G3507', Short_Description='MSPM0G3507', Long_Description='ARM Cortex-M0 Plus MCU', Line_Number='200', Column_Number='8', Source_File='116' WHERE dbid='7'
+0x00006508 1003 3  SETUP I: UPDATE Platforms SET parent_dbid='7', Name='platform_0', Line_Number='199', Column_Number='6', Source_File='116' WHERE dbid='7'
+0x00006508 1003 3  SETUP I: UPDATE Connections SET parent_dbid='7', Name='Texas Instruments XDS110 USB Debug Probe', Class='185076', Short_Description='Texas Instruments XDS110 USB Debug Probe', Long_Description=NULL, Line_Number='5', Column_Number='4', Source_File='116' WHERE dbid='7'
+0x00006508 1003 3  SETUP I: UPDATE Configurations SET parent_dbid='7', Name='configuration_0', Line_Number='4', Column_Number='2', Source_File='116' WHERE dbid='7'
+0x00006508 1003 3  SETUP I: UPDATE Systems SET Name=NULL, Line_Number='2', Column_Number='0', Source_File='116' WHERE dbid='7'
+0x00006508 1003 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=116
+0x00006508 1003 3  SETUP I: UPDATE TargetDB_Files SET Path='C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\8146125793115690662.cache', Filename='8146125793115690662.cache', Hash='C=2026-Sep-22 10:34:31.361959; M=2026-Oct-20 06:26:13', Type=10, State=1, Parse_Time=40 WHERE dbid=116
+0x00006508 1003 3  SETUP I:   [310 elements,  0.04s]
+0x00006508 1003 3  SETUP I: END TRANSACTION
+0x00006508 1004 3  SETUP I: Parsed 310 XML element(s), from 1 file(s), in 0.042 seconds
+0x00006508 1004 3  SETUP I: SELECT Systems.dbid FROM Systems, TargetDB_Files WHERE Systems.Source_File = TargetDB_Files.dbid AND TargetDB_Files.dbid = 116
+0x00006508 1004 3  SETUP I: SELECT * FROM Systems WHERE dbid=7
+0x00006508 1005 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":true,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Parsing C:\\Users\\L\\AppData\\Local\\TEXASI~1\\CCS\\ccs2101\\1\\0\\8146125793115690662.cache","task":""},"event":"progress.update"}
+0x00006508 1005 3  LIB C: dlopen( "C:\ti\ccs2101\ccs\ccs_base\DebugServer\bin\GTIRemoteProxy.dll", 0 )
+0x00006508 1029 3  LIB R: dlopen( "C:\ti\ccs2101\ccs\ccs_base\DebugServer\bin\GTIRemoteProxy.dll", 0 ) = 00007FFB34BC0000
+0x00006508 1029 3  LIB C: dlsym( 00007FFB34BC0000, "remote_dlopen" )
+0x00006508 1029 3  LIB R: dlsym( 00007FFB34BC0000, "remote_dlopen" ) = 00007FFB34BC4630
+0x00006508 1029 3  LIB C: dlsym( 00007FFB34BC0000, "remote_dlsym" )
+0x00006508 1029 3  LIB R: dlsym( 00007FFB34BC0000, "remote_dlsym" ) = 00007FFB34BC4AA0
+0x00006508 1029 3  LIB C: dlsym( 00007FFB34BC0000, "remote_dlclose" )
+0x00006508 1029 3  LIB R: dlsym( 00007FFB34BC0000, "remote_dlclose" ) = 00007FFB34BC4E40
+0x00006508 1029 3  LIB C: dlsym( 00007FFB34BC0000, "remote_dlerror" )
+0x00006508 1029 3  LIB R: dlsym( 00007FFB34BC0000, "remote_dlerror" ) = 00007FFB34BC4ED0
+0x00006508 1029 3  GTI C: remote_dlopen( "C:\ti\ccs2101\ccs\ccs_base\emulation\drivers\tixds510cs_dap.dvr" )
+0x00006508 1029 3  GTI R: remote_dlopen( "C:\ti\ccs2101\ccs\ccs_base\emulation\drivers\tixds510cs_dap.dvr" ) = 0x0000000000000000
+0x00006508 1029 3  GTI C: remote_dlerror()
+0x00006508 1029 3  GTI R: remote_dlerror() = ""
+0x00006508 1029 3  LIB C: dlopen( "C:\ti\ccs2101\ccs\ccs_base\emulation\drivers\tixds510cs_dap.dvr", 0 )
+0x00006508 1101 3  LIB R: dlopen( "C:\ti\ccs2101\ccs\ccs_base\emulation\drivers\tixds510cs_dap.dvr", 0 ) = 000001F55C910000
+0x00006508 1101 3  LIB C: dlsym( 000001F55C910000, "GTI_BLINK_LEDS" )
+0x00006508 1101 3  LIB R: dlsym( 000001F55C910000, "GTI_BLINK_LEDS" ) = 000001F55C9153F0
+0x00006508 1103 3  LIB C: dlopen( "C:\ti\ccs2101\ccs\ccs_base\common\uscif\jtagdata.dll", 0 )
+0x00006508 1126 3  LIB R: dlopen( "C:\ti\ccs2101\ccs\ccs_base\common\uscif\jtagdata.dll", 0 ) = 000001F55CA20000
+0x00006508 1126 3  LIB C: dlsym( 000001F55CA20000, "JTAGDataUM_AddFile" )
+0x00006508 1126 3  LIB R: dlsym( 000001F55CA20000, "JTAGDataUM_AddFile" ) = 000001F55CA222F0
+0x00006508 1126 3  LIB C: dlsym( 000001F55CA20000, "JTAGDataUM_AddVariable" )
+0x00006508 1126 3  LIB R: dlsym( 000001F55CA20000, "JTAGDataUM_AddVariable" ) = 000001F55CA22280
+0x00006508 1126 3  LIB C: dlsym( 000001F55CA20000, "JTAGDataUM_CreateJtagDeviceList" )
+0x00006508 1126 3  LIB R: dlsym( 000001F55CA20000, "JTAGDataUM_CreateJtagDeviceList" ) = 000001F55CA221F0
+0x00006508 1126 3  LIB C: dlsym( 000001F55CA20000, "JTAGDataUM_GetErrorString" )
+0x00006508 1126 3  LIB R: dlsym( 000001F55CA20000, "JTAGDataUM_GetErrorString" ) = 000001F55CA22410
+0x00006508 1126 3  LIB C: dlsym( 000001F55CA20000, "JTAGDataUM_Output" )
+0x00006508 1126 3  LIB R: dlsym( 000001F55CA20000, "JTAGDataUM_Output" ) = 000001F55CA223C0
+0x00006508 1126 3  LIB C: dlsym( 000001F55CA20000, "JTAGDataUM_DestroyJtagDeviceList" )
+0x00006508 1126 3  LIB R: dlsym( 000001F55CA20000, "JTAGDataUM_DestroyJtagDeviceList" ) = 000001F55CA22250
+0x00006508 1126 3  LIB C: dlsym( 000001F55CA20000, "JTAGDataUM_AddDevice" )
+0x00006508 1126 3  LIB R: dlsym( 000001F55CA20000, "JTAGDataUM_AddDevice" ) = 000001F55CA22330
+0x00006508 1126 3  LIB C: dlsym( 000001F55CA20000, "JTAGDataUM_AddDeviceEx" )
+0x00006508 1126 3  LIB R: dlsym( 000001F55CA20000, "JTAGDataUM_AddDeviceEx" ) = 000001F55CA22340
+0x00006508 1126 3  LIB C: dlsym( 000001F55CA20000, "JTAGDataUM_AddSubpath" )
+0x00006508 1126 3  LIB R: dlsym( 000001F55CA20000, "JTAGDataUM_AddSubpath" ) = 000001F55CA22360
+0x00006508 1126 3  LIB C: dlsym( 000001F55CA20000, "JTAGDataUM_AddVariableEx" )
+0x00006508 1126 3  LIB R: dlsym( 000001F55CA20000, "JTAGDataUM_AddVariableEx" ) = 000001F55CA22290
+0x00006508 1126 3  GTI C: JTAGData_CreateJtagDeviceList()
+0x00006508 1172 3  GTI R: JTAGData_CreateJtagDeviceList() = 000001F55A44E020
+0x00006508 1172 3  GTI C: JTAGData_AddVariable( 000001F55A44E020, BOARD_DATAFILE_VERSION, *00000077514FF450 = 2 )
+0x00006508 1172 3  GTI R: JTAGData_AddVariable( 000001F55A44E020, BOARD_DATAFILE_VERSION, *00000077514FF450 = 2 ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, SEPK.POD_DRVR, jioxds110.dll )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, SEPK.POD_DRVR, jioxds110.dll ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, SEPK.POD_PORT, 0 )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, SEPK.POD_PORT, 0 ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, SEPK.POD_SUPPLY, 0 )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, SEPK.POD_SUPPLY, 0 ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, SEPK.POD_VOLTAGE_SELECTION, 0 )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, SEPK.POD_VOLTAGE_SELECTION, 0 ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, SEPK.POD_VOLTAGE, 0 )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, SEPK.POD_VOLTAGE, 0 ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, PRODUCT.TITLE, Texas Instruments XDS110 USB )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, PRODUCT.TITLE, Texas Instruments XDS110 USB ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, PRODUCT.ALIAS, TI_XDS110_USB )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, PRODUCT.ALIAS, TI_XDS110_USB ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, PRODUCT.NAME, XDS110 )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, PRODUCT.NAME, XDS110 ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.TDOEDGE, FALL )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.TDOEDGE, FALL ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.TCLK_PROGRAM, SPECIFIC )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.TCLK_PROGRAM, SPECIFIC ) = 1
+0x00006508 1172 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.TCLK_FREQUENCY, 1MHz )
+0x00006508 1172 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.TCLK_FREQUENCY, 1MHz ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.JTAG_ISOLATE, enable )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.JTAG_ISOLATE, enable ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, DOT7.DTS_USAGE, nothing )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, DOT7.DTS_USAGE, nothing ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, SWD.SWD_DEBUG, enabled )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, SWD.SWD_DEBUG, enabled ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, SWD.SWO_DATA, tdo_pin )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, SWD.SWO_DATA, tdo_pin ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.UART_BAUD_RATE_THRESHOLD, 115200 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.UART_BAUD_RATE_THRESHOLD, 115200 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.DUAL_UART_FOR_RADAR, yes )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.DUAL_UART_FOR_RADAR, yes ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, SWD.SWJ_DP_DEFAULT_MODE, 0 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, SWD.SWJ_DP_DEFAULT_MODE, 0 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, SWD.APPY_PIN_RESET_DORMANT_WAKEUP, 0 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, SWD.APPY_PIN_RESET_DORMANT_WAKEUP, 0 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.DORMANT_SWITCHING, no )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, USCIF.DORMANT_SWITCHING, no ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, etparams.ahbap_index, 0 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, etparams.ahbap_index, 0 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, etparams.etap_index, 3 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, etparams.etap_index, 3 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, etparams.regsel_value, 3 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, etparams.regsel_value, 3 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, etparams.domainctrl_value, 1 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, etparams.domainctrl_value, 1 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddDeviceEx( 000001F55A44E020, CS_DAP_0, 224, 1, 0, 5, ROUTER, 4294967295, 0, 2 )
+0x00006508 1173 3  GTI R: JTAGData_AddDeviceEx( 000001F55A44E020, CS_DAP_0, 224, 1, 0, 5, ROUTER, 4294967295, 0, 2 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, device.identify, 0x0 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, device.identify, 0x0 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, device.Revision, Power-AP )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, device.Revision, Power-AP ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, device.SystemResetWhileConnected, 1 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, device.SystemResetWhileConnected, 1 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddSubpath( 000001F55A44E020, subpath_1, CS_DAP_0, 1 )
+0x00006508 1173 3  GTI R: JTAGData_AddSubpath( 000001F55A44E020, subpath_1, CS_DAP_0, 1 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.address, 1 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.address, 1 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.initial, 0 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.initial, 0 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.custom, 0 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.custom, 0 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.type, legacy )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.type, legacy ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.force, 1 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.force, 1 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.pseudo, 1 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.pseudo, 1 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddDevice( 000001F55A44E020, SEC_AP, 225, 0, 0, 4, DSP_CPU, -1 )
+0x00006508 1173 3  GTI R: JTAGData_AddDevice( 000001F55A44E020, SEC_AP, 225, 0, 0, 4, DSP_CPU, -1 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, device.identify, 0x02000002 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, device.identify, 0x02000002 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddSubpath( 000001F55A44E020, subpath_0, CS_DAP_0, 1 )
+0x00006508 1173 3  GTI R: JTAGData_AddSubpath( 000001F55A44E020, subpath_0, CS_DAP_0, 1 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.address, 0 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.address, 0 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.initial, 0 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.initial, 0 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.custom, 0 )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.custom, 0 ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.type, debug )
+0x00006508 1173 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.type, debug ) = 1
+0x00006508 1173 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.force, 1 )
+0x00006508 1174 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.force, 1 ) = 1
+0x00006508 1174 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, subpath.pseudo, 0 )
+0x00006508 1174 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, subpath.pseudo, 0 ) = 1
+0x00006508 1174 3  GTI C: JTAGData_AddDevice( 000001F55A44E020, CORTEX_M0P, 470, 10, 0, 0, DSP_CPU, -1 )
+0x00006508 1174 3  GTI R: JTAGData_AddDevice( 000001F55A44E020, CORTEX_M0P, 470, 10, 0, 0, DSP_CPU, -1 ) = 1
+0x00006508 1174 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, device.identify, 0x02000000 )
+0x00006508 1174 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, device.identify, 0x02000000 ) = 1
+0x00006508 1174 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, device.traceId, 0x0 )
+0x00006508 1174 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, device.traceId, 0x0 ) = 1
+0x00006508 1174 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, adi.version, 5 )
+0x00006508 1174 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, adi.version, 5 ) = 1
+0x00006508 1174 3  GTI C: JTAGData_AddVariableEx( 000001F55A44E020, device.adiv6_port, 0x0 )
+0x00006508 1174 3  GTI R: JTAGData_AddVariableEx( 000001F55A44E020, device.adiv6_port, 0x0 ) = 1
+0x00006508 1174 3  GTI C: JTAGData_Output( 000001F55A44E020, C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\BrdDat\testBoard.dat )
+0x00006508 1175 3  GTI R: JTAGData_Output( 000001F55A44E020, C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\BrdDat\testBoard.dat ) = 1
+0x00006508 1175 3  GTI C: JTAGData_DestroyJtagDeviceList( 000001F55A44E020 )
+0x00006508 1176 3  GTI R: JTAGData_DestroyJtagDeviceList( 000001F55A44E020 ) = 0000000000000000
+0x00006508 1176 3  GTI C: GTI_BLINK_LEDS( "C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\BrdDat\testBoard.dat" )
+0x00006508 1275 3  XDS110 C: XDS_SetProperty((*XDSInform) 00000077514FD010, XDS_PROPERTY_LOGGING_ENABLED, 1 ("enable"))
+0x00006508 1275 3  XDS110 R: XDS_SetProperty((*XDSInform) 00000077514FD010, XDS_PROPERTY_LOGGING_ENABLED, 1 ("enable")) = 0
+0x00006508 1275 3  XDS110 C: Executing command 0x28 (XDS_CONNECTET)
+0x00006508 1375 3  XDS110 R: Executed command 0x28 (XDS_CONNECTET), return code: 0x00000000
+0x00006508 1375 3  XDS110 C: Executing command 0x03 (XDS_VERSION)
+0x00006508 1376 3  XDS110 R: Executed command 0x03 (XDS_VERSION), return code: 0x00000000
+0x00006508 1376 3  XDS110 C: Executing command 0x04 (XDS_SETTCLKDELAY)
+0x00006508 1376 3  XDS110 R: Executed command 0x04 (XDS_SETTCLKDELAY), return code: 0x00000000
+0x00006508 1376 3  XDS110 I: id=0x00000004 value=0x00000001
+0x00006508 1376 3  XDS110 C: Executing command 0x49 (XDS_SET_PROPERTY)
+0x00006508 1377 3  XDS110 R: Executed command 0x49 (XDS_SET_PROPERTY), return code: 0x00000000
+0x00006508 1377 3  XDS110 I: id=0x00000005 value=0x00000000
+0x00006508 1377 3  XDS110 C: Executing command 0x49 (XDS_SET_PROPERTY)
+0x00006508 1377 3  XDS110 R: Executed command 0x49 (XDS_SET_PROPERTY), return code: 0x00000000
+0x00006508 1377 3  XDS110 C: Executing command 0x2a (XDS_REGWRITE)
+0x00006508 3520 3  XDS110 R: Executed command 0x2a (XDS_REGWRITE), return code: 0x00000000
+0x00006508 3520 3  XDS110 C: Executing command 0x02 (XDS_DISCONNECT)
+0x00006508 3621 3  XDS110 R: Executed command 0x02 (XDS_DISCONNECT), return code: 0x00000000
+0x00006508 3623 3  GTI R: GTI_BLINK_LEDS( "C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\BrdDat\testBoard.dat" ) = 0x00000000
+0x00006508 3623 3  LIB C: dlclose( 000001F55C910000 )
+0x00006508 3623 3  LIB R: dlclose( 000001F55C910000 ) = 1
+0x00006508 3625 3  JSON R: {"response":0}
+0x00006508 3625 4  POLL I: TimeToSleep() found shorter sleep time of 5000 ms from class `anonymous namespace'::CommandSink
+0x000024D0 3625 3  XPCOM E: System is already shut down
+0x00006508 3625 3  JSON C: ~Translator()
+0x00006508 3625 3  JSON R: ~Translator()
+0x00006508 3625 5  COM_DBG_IF I: Final Release for class DbgProperties::DebugPropertiesManager (this = 000001F55A3E7258)
+0x000024D0 3625 3  LIB C: dlclose( 00007FFB60F30000 )
+0x000024D0 3625 3  LIB R: dlclose( 00007FFB60F30000 ) = 1
+0x000024D0 3625 3  LIB C: dlclose( 00007FFB34BC0000 )
+0x000024D0 3625 3  LIB R: dlclose( 00007FFB34BC0000 ) = 1
+0x000024D0 3627 3  LIB C: dlclose( 00007FFB60F30000 )
+0x000024D0 3627 3  LIB R: dlclose( 00007FFB60F30000 ) = 1
+0x000024D0 3627 3  LIB C: dlclose( 00007FFB31DD0000 )
+0x000024D0 3627 3  LIB R: dlclose( 00007FFB31DD0000 ) = 1
+0x000024D0 3627 3  LIB C: dlclose( 000001F55CA20000 )
+0x000024D0 3627 3  LIB R: dlclose( 000001F55CA20000 ) = 1
+0x00005278 0 3  JSON R: {"response":0}
+0x00005278 1 4  POLL I: TimeToSleep() found shorter sleep time of 5000 ms from class `anonymous namespace'::CommandSink
+0x00005278 1 3  JSON C: {"command":"blinkLEDs","data":["targetConfigs\\MSPM0G3507.ccxml",0]}
+0x00005278 1 3  COM_DBG_IF C: class dsDebugger::OnTaskStart()
+0x00005278 1 3  COM_DBG_IF R: class dsDebugger::OnTaskStart()
+0x00005278 1 5  COM_DBG_IF I: Final Release for class CoProgressTask (this = 0000018CC2451948)
+0x00005278 1 5  COM_DBG_IF I: Final Release for class XPCOMFramework::Event<class XPCOMFramework::EventTemplateArgs<class dsIStringEvent,char const * __ptr64,class dsIStringEventCallback> > (this = 0000018CC2462ED8)
+0x00005278 1 5  COM_DBG_IF I: Final Release for class XPCOMFramework::Event<class XPCOMFramework::EventTemplateArgs<class dsIObjectEvent,class nsISupports * __ptr64,class dsIObjectEventCallback> > (this = 0000018CC2462158)
+0x00005278 1 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":true,"name":"Reading configuration...","percent":null,"subActivity":"","task":""},"event":"progress.update"}
+0x00005278 56 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":false,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Initializing Register Database...","task":""},"event":"progress.update"}
+0x00005278 56 3  SETUP C: OpenDatabase( C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\targetdb.dat, C:\ti\ccs2101\ccs\ccs_base\common\targetdb\timestamp )
+0x00005278 60 3  SETUP I: SELECT sql FROM sqlite_master ORDER BY tbl_name, name
+0x00005278 60 3  SETUP R: OpenDatabase( C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\targetdb.dat, C:\ti\ccs2101\ccs\ccs_base\common\targetdb\timestamp ) = 0000018CC2449100
+0x00005278 60 3  SETUP I: Loading repository "C:\ti\ccs2101\ccs\ccs_base\common\targetdb\"
+0x00005278 60 3  SETUP I: SELECT * FROM TargetDB_Repositories
+0x00005278 61 3  SETUP I: SELECT * FROM TargetDB_Repositories WHERE dbid=1
+0x00005278 62 3  SETUP I: PRAGMA journal_mode = MEMORY
+0x00005278 62 3  SETUP I: PRAGMA synchronous = OFF
+0x00005278 62 3  SETUP I: BEGIN IMMEDIATE TRANSACTION
+0x00005278 63 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="CS_DAP_0_regids.xml"
+0x00005278 63 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=1
+0x00005278 64 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="CS_DAP_PC_0_regids.xml"
+0x00005278 64 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=2
+0x00005278 64 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="DAP_V6_0_regids.xml"
+0x00005278 64 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=3
+0x00005278 65 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="ICEPick_C_regids.xml"
+0x00005278 65 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=4
+0x00005278 65 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="ICEPick_D_regids.xml"
+0x00005278 65 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=5
+0x00005278 65 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="ICEPick_M_regids.xml"
+0x00005278 66 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=6
+0x00005278 66 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="regids_mapping.xml"
+0x00005278 66 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=7
+0x00005278 66 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2000_regids.xml"
+0x00005278 67 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=8
+0x00005278 67 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2001_regids.xml"
+0x00005278 67 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=9
+0x00005278 67 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2002_regids.xml"
+0x00005278 68 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=10
+0x00005278 68 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2003_regids.xml"
+0x00005278 68 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=11
+0x00005278 68 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2004_regids.xml"
+0x00005278 68 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=12
+0x00005278 68 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2005_regids.xml"
+0x00005278 69 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=13
+0x00005278 69 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2006_regids.xml"
+0x00005278 69 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=14
+0x00005278 69 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2007_regids.xml"
+0x00005278 70 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=15
+0x00005278 70 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2008_regids.xml"
+0x00005278 70 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=16
+0x00005278 70 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2010_regids.xml"
+0x00005278 71 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=17
+0x00005278 71 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2011_regids.xml"
+0x00005278 71 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=18
+0x00005278 71 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2012_regids.xml"
+0x00005278 71 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=19
+0x00005278 72 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2013_regids.xml"
+0x00005278 72 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=20
+0x00005278 72 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2014_regids.xml"
+0x00005278 72 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=21
+0x00005278 72 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2015_regids.xml"
+0x00005278 73 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=22
+0x00005278 73 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2026_regids.xml"
+0x00005278 73 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=23
+0x00005278 73 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2027_regids.xml"
+0x00005278 74 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=24
+0x00005278 74 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2028_regids.xml"
+0x00005278 75 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=25
+0x00005278 75 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2029_regids.xml"
+0x00005278 75 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=26
+0x00005278 75 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2030_regids.xml"
+0x00005278 76 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=27
+0x00005278 76 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2031_regids.xml"
+0x00005278 76 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=28
+0x00005278 76 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS192C2032_regids.xml"
+0x00005278 76 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=29
+0x00005278 76 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS225C00_regids.xml"
+0x00005278 76 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=30
+0x00005278 76 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS225C100_regids.xml"
+0x00005278 77 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=31
+0x00005278 77 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C28XX_regids.xml"
+0x00005278 77 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=32
+0x00005278 79 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C29XX_regids.xml"
+0x00005278 79 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=33
+0x00005278 79 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C55XX_regids.xml"
+0x00005278 80 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=34
+0x00005278 80 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C64XX_regids.xml"
+0x00005278 80 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=35
+0x00005278 80 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C66XX_regids.xml"
+0x00005278 81 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=36
+0x00005278 81 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C674X_regids.xml"
+0x00005278 81 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=37
+0x00005278 81 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C6XXX_regids.xml"
+0x00005278 81 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=38
+0x00005278 82 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C71XX_regids.xml"
+0x00005278 82 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=39
+0x00005278 82 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS320C75XX_regids.xml"
+0x00005278 82 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=40
+0x00005278 83 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS3CXX_regids.xml"
+0x00005278 83 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=41
+0x00005278 83 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R15X_regids.xml"
+0x00005278 83 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=42
+0x00005278 83 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R25X_regids.xml"
+0x00005278 84 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=43
+0x00005278 84 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R2X_regids.xml"
+0x00005278 84 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=44
+0x00005278 84 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R33X_regids.xml"
+0x00005278 85 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=45
+0x00005278 85 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R4X_regids.xml"
+0x00005278 85 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=46
+0x00005278 85 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R52X_regids.xml"
+0x00005278 86 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=47
+0x00005278 86 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R53X_regids.xml"
+0x00005278 86 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=48
+0x00005278 86 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R7X_regids.xml"
+0x00005278 87 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=49
+0x00005278 87 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470R9X_regids.xml"
+0x00005278 87 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=50
+0x00005278 87 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470RAX_regids.xml"
+0x00005278 88 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=51
+0x00005278 88 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470RCX_regids.xml"
+0x00005278 88 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=52
+0x00005278 88 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470RDX_regids.xml"
+0x00005278 89 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=53
+0x00005278 89 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470REX_regids.xml"
+0x00005278 89 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=54
+0x00005278 89 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS470RXX_regids.xml"
+0x00005278 89 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=55
+0x00005278 90 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS700C40XX_regids.xml"
+0x00005278 90 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=56
+0x00005278 90 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS700C41XX_regids.xml"
+0x00005278 90 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=57
+0x00005278 91 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="TMS700C4X_regids.xml"
+0x00005278 91 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=58
+0x00005278 91 3  SETUP I: END TRANSACTION
+0x00005278 91 3  SETUP I: SELECT count(*) FROM TargetDB_Files WHERE State=0
+0x00005278 91 3  SETUP I: Scrubbing database
+0x00005278 91 3  SETUP I: SELECT * FROM TargetDB_Files
+0x00005278 130 3  SETUP I: Loading file "C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\8146125793115690662.cache"
+0x00005278 130 3  SETUP I: SELECT * FROM TargetDB_Files WHERE Filename="8146125793115690662.cache"
+0x00005278 132 3  SETUP I: SELECT * FROM TargetDB_Files WHERE dbid=116
+0x00005278 132 3  SETUP I: SELECT count(*) FROM TargetDB_Files WHERE State=0
+0x00005278 132 3  SETUP I: SELECT Systems.dbid FROM Systems, TargetDB_Files WHERE Systems.Source_File = TargetDB_Files.dbid AND TargetDB_Files.dbid = 116
+0x00005278 133 3  SETUP I: SELECT * FROM Systems WHERE dbid=7
+0x00005278 133 3  JSON R: {"data":{"id":0,"isCancellable":false,"isComplete":true,"isFirstUpdate":false,"name":"Reading configuration...","percent":null,"subActivity":"Initializing Register Database...","task":""},"event":"progress.update"}
+0x00005278 133 3  LIB C: dlopen( "C:\ti\ccs2101\ccs\ccs_base\DebugServer\bin\GTIRemoteProxy.dll", 0 )
+0x00005278 134 3  LIB R: dlopen( "C:\ti\ccs2101\ccs\ccs_base\DebugServer\bin\GTIRemoteProxy.dll", 0 ) = 00007FFB34BC0000
+0x00005278 134 3  LIB C: dlsym( 00007FFB34BC0000, "remote_dlopen" )
+0x00005278 134 3  LIB R: dlsym( 00007FFB34BC0000, "remote_dlopen" ) = 00007FFB34BC4630
+0x00005278 134 3  LIB C: dlsym( 00007FFB34BC0000, "remote_dlsym" )
+0x00005278 134 3  LIB R: dlsym( 00007FFB34BC0000, "remote_dlsym" ) = 00007FFB34BC4AA0
+0x00005278 134 3  LIB C: dlsym( 00007FFB34BC0000, "remote_dlclose" )
+0x00005278 134 3  LIB R: dlsym( 00007FFB34BC0000, "remote_dlclose" ) = 00007FFB34BC4E40
+0x00005278 134 3  LIB C: dlsym( 00007FFB34BC0000, "remote_dlerror" )
+0x00005278 134 3  LIB R: dlsym( 00007FFB34BC0000, "remote_dlerror" ) = 00007FFB34BC4ED0
+0x00005278 134 3  GTI C: remote_dlopen( "C:\ti\ccs2101\ccs\ccs_base\emulation\drivers\tixds510cs_dap.dvr" )
+0x00005278 134 3  GTI R: remote_dlopen( "C:\ti\ccs2101\ccs\ccs_base\emulation\drivers\tixds510cs_dap.dvr" ) = 0x0000000000000000
+0x00005278 134 3  GTI C: remote_dlerror()
+0x00005278 134 3  GTI R: remote_dlerror() = ""
+0x00005278 135 3  LIB C: dlopen( "C:\ti\ccs2101\ccs\ccs_base\emulation\drivers\tixds510cs_dap.dvr", 0 )
+0x00005278 140 3  LIB R: dlopen( "C:\ti\ccs2101\ccs\ccs_base\emulation\drivers\tixds510cs_dap.dvr", 0 ) = 0000018CC45E0000
+0x00005278 140 3  LIB C: dlsym( 0000018CC45E0000, "GTI_BLINK_LEDS" )
+0x00005278 140 3  LIB R: dlsym( 0000018CC45E0000, "GTI_BLINK_LEDS" ) = 0000018CC45E53F0
+0x00005278 141 3  LIB C: dlopen( "C:\ti\ccs2101\ccs\ccs_base\common\uscif\jtagdata.dll", 0 )
+0x00005278 142 3  LIB R: dlopen( "C:\ti\ccs2101\ccs\ccs_base\common\uscif\jtagdata.dll", 0 ) = 0000018CC46F0000
+0x00005278 142 3  LIB C: dlsym( 0000018CC46F0000, "JTAGDataUM_AddFile" )
+0x00005278 142 3  LIB R: dlsym( 0000018CC46F0000, "JTAGDataUM_AddFile" ) = 0000018CC46F22F0
+0x00005278 142 3  LIB C: dlsym( 0000018CC46F0000, "JTAGDataUM_AddVariable" )
+0x00005278 142 3  LIB R: dlsym( 0000018CC46F0000, "JTAGDataUM_AddVariable" ) = 0000018CC46F2280
+0x00005278 142 3  LIB C: dlsym( 0000018CC46F0000, "JTAGDataUM_CreateJtagDeviceList" )
+0x00005278 142 3  LIB R: dlsym( 0000018CC46F0000, "JTAGDataUM_CreateJtagDeviceList" ) = 0000018CC46F21F0
+0x00005278 142 3  LIB C: dlsym( 0000018CC46F0000, "JTAGDataUM_GetErrorString" )
+0x00005278 142 3  LIB R: dlsym( 0000018CC46F0000, "JTAGDataUM_GetErrorString" ) = 0000018CC46F2410
+0x00005278 142 3  LIB C: dlsym( 0000018CC46F0000, "JTAGDataUM_Output" )
+0x00005278 142 3  LIB R: dlsym( 0000018CC46F0000, "JTAGDataUM_Output" ) = 0000018CC46F23C0
+0x00005278 142 3  LIB C: dlsym( 0000018CC46F0000, "JTAGDataUM_DestroyJtagDeviceList" )
+0x00005278 142 3  LIB R: dlsym( 0000018CC46F0000, "JTAGDataUM_DestroyJtagDeviceList" ) = 0000018CC46F2250
+0x00005278 142 3  LIB C: dlsym( 0000018CC46F0000, "JTAGDataUM_AddDevice" )
+0x00005278 142 3  LIB R: dlsym( 0000018CC46F0000, "JTAGDataUM_AddDevice" ) = 0000018CC46F2330
+0x00005278 142 3  LIB C: dlsym( 0000018CC46F0000, "JTAGDataUM_AddDeviceEx" )
+0x00005278 142 3  LIB R: dlsym( 0000018CC46F0000, "JTAGDataUM_AddDeviceEx" ) = 0000018CC46F2340
+0x00005278 142 3  LIB C: dlsym( 0000018CC46F0000, "JTAGDataUM_AddSubpath" )
+0x00005278 142 3  LIB R: dlsym( 0000018CC46F0000, "JTAGDataUM_AddSubpath" ) = 0000018CC46F2360
+0x00005278 142 3  LIB C: dlsym( 0000018CC46F0000, "JTAGDataUM_AddVariableEx" )
+0x00005278 142 3  LIB R: dlsym( 0000018CC46F0000, "JTAGDataUM_AddVariableEx" ) = 0000018CC46F2290
+0x00005278 142 3  GTI C: JTAGData_CreateJtagDeviceList()
+0x00005278 146 3  GTI R: JTAGData_CreateJtagDeviceList() = 0000018CC437DAA0
+0x00005278 146 3  GTI C: JTAGData_AddVariable( 0000018CC437DAA0, BOARD_DATAFILE_VERSION, *00000032466FEEA0 = 2 )
+0x00005278 146 3  GTI R: JTAGData_AddVariable( 0000018CC437DAA0, BOARD_DATAFILE_VERSION, *00000032466FEEA0 = 2 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, SEPK.POD_DRVR, jioxds110.dll )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, SEPK.POD_DRVR, jioxds110.dll ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, SEPK.POD_PORT, 0 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, SEPK.POD_PORT, 0 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, SEPK.POD_SUPPLY, 0 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, SEPK.POD_SUPPLY, 0 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, SEPK.POD_VOLTAGE_SELECTION, 0 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, SEPK.POD_VOLTAGE_SELECTION, 0 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, SEPK.POD_VOLTAGE, 0 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, SEPK.POD_VOLTAGE, 0 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, PRODUCT.TITLE, Texas Instruments XDS110 USB )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, PRODUCT.TITLE, Texas Instruments XDS110 USB ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, PRODUCT.ALIAS, TI_XDS110_USB )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, PRODUCT.ALIAS, TI_XDS110_USB ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, PRODUCT.NAME, XDS110 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, PRODUCT.NAME, XDS110 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.TDOEDGE, FALL )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.TDOEDGE, FALL ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.TCLK_PROGRAM, SPECIFIC )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.TCLK_PROGRAM, SPECIFIC ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.TCLK_FREQUENCY, 1MHz )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.TCLK_FREQUENCY, 1MHz ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.JTAG_ISOLATE, enable )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.JTAG_ISOLATE, enable ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, DOT7.DTS_USAGE, nothing )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, DOT7.DTS_USAGE, nothing ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, SWD.SWD_DEBUG, enabled )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, SWD.SWD_DEBUG, enabled ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, SWD.SWO_DATA, tdo_pin )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, SWD.SWO_DATA, tdo_pin ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.UART_BAUD_RATE_THRESHOLD, 115200 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.UART_BAUD_RATE_THRESHOLD, 115200 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.DUAL_UART_FOR_RADAR, yes )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.DUAL_UART_FOR_RADAR, yes ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, SWD.SWJ_DP_DEFAULT_MODE, 0 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, SWD.SWJ_DP_DEFAULT_MODE, 0 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, SWD.APPY_PIN_RESET_DORMANT_WAKEUP, 0 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, SWD.APPY_PIN_RESET_DORMANT_WAKEUP, 0 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.DORMANT_SWITCHING, no )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, USCIF.DORMANT_SWITCHING, no ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, etparams.ahbap_index, 0 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, etparams.ahbap_index, 0 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, etparams.etap_index, 3 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, etparams.etap_index, 3 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, etparams.regsel_value, 3 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, etparams.regsel_value, 3 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, etparams.domainctrl_value, 1 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, etparams.domainctrl_value, 1 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddDeviceEx( 0000018CC437DAA0, CS_DAP_0, 224, 1, 0, 5, ROUTER, 4294967295, 0, 2 )
+0x00005278 146 3  GTI R: JTAGData_AddDeviceEx( 0000018CC437DAA0, CS_DAP_0, 224, 1, 0, 5, ROUTER, 4294967295, 0, 2 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, device.identify, 0x0 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, device.identify, 0x0 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, device.Revision, Power-AP )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, device.Revision, Power-AP ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, device.SystemResetWhileConnected, 1 )
+0x00005278 146 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, device.SystemResetWhileConnected, 1 ) = 1
+0x00005278 146 3  GTI C: JTAGData_AddSubpath( 0000018CC437DAA0, subpath_1, CS_DAP_0, 1 )
+0x00005278 146 3  GTI R: JTAGData_AddSubpath( 0000018CC437DAA0, subpath_1, CS_DAP_0, 1 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.address, 1 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.address, 1 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.initial, 0 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.initial, 0 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.custom, 0 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.custom, 0 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.type, legacy )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.type, legacy ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.force, 1 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.force, 1 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.pseudo, 1 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.pseudo, 1 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddDevice( 0000018CC437DAA0, SEC_AP, 225, 0, 0, 4, DSP_CPU, -1 )
+0x00005278 147 3  GTI R: JTAGData_AddDevice( 0000018CC437DAA0, SEC_AP, 225, 0, 0, 4, DSP_CPU, -1 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, device.identify, 0x02000002 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, device.identify, 0x02000002 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddSubpath( 0000018CC437DAA0, subpath_0, CS_DAP_0, 1 )
+0x00005278 147 3  GTI R: JTAGData_AddSubpath( 0000018CC437DAA0, subpath_0, CS_DAP_0, 1 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.address, 0 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.address, 0 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.initial, 0 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.initial, 0 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.custom, 0 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.custom, 0 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.type, debug )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.type, debug ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.force, 1 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.force, 1 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.pseudo, 0 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, subpath.pseudo, 0 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddDevice( 0000018CC437DAA0, CORTEX_M0P, 470, 10, 0, 0, DSP_CPU, -1 )
+0x00005278 147 3  GTI R: JTAGData_AddDevice( 0000018CC437DAA0, CORTEX_M0P, 470, 10, 0, 0, DSP_CPU, -1 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, device.identify, 0x02000000 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, device.identify, 0x02000000 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, device.traceId, 0x0 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, device.traceId, 0x0 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, adi.version, 5 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, adi.version, 5 ) = 1
+0x00005278 147 3  GTI C: JTAGData_AddVariableEx( 0000018CC437DAA0, device.adiv6_port, 0x0 )
+0x00005278 147 3  GTI R: JTAGData_AddVariableEx( 0000018CC437DAA0, device.adiv6_port, 0x0 ) = 1
+0x00005278 147 3  GTI C: JTAGData_Output( 0000018CC437DAA0, C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\BrdDat\testBoard.dat )
+0x00005278 148 3  GTI R: JTAGData_Output( 0000018CC437DAA0, C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\BrdDat\testBoard.dat ) = 1
+0x00005278 148 3  GTI C: JTAGData_DestroyJtagDeviceList( 0000018CC437DAA0 )
+0x00005278 148 3  GTI R: JTAGData_DestroyJtagDeviceList( 0000018CC437DAA0 ) = 0000000000000000
+0x00005278 148 3  GTI C: GTI_BLINK_LEDS( "C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\BrdDat\testBoard.dat" )
+0x00005278 180 3  XDS110 C: XDS_SetProperty((*XDSInform) 00000032466FCA60, XDS_PROPERTY_LOGGING_ENABLED, 1 ("enable"))
+0x00005278 181 3  XDS110 R: XDS_SetProperty((*XDSInform) 00000032466FCA60, XDS_PROPERTY_LOGGING_ENABLED, 1 ("enable")) = 0
+0x00005278 181 3  XDS110 C: Executing command 0x28 (XDS_CONNECTET)
+0x00005278 282 3  XDS110 R: Executed command 0x28 (XDS_CONNECTET), return code: 0x00000000
+0x00005278 282 3  XDS110 C: Executing command 0x03 (XDS_VERSION)
+0x00005278 282 3  XDS110 R: Executed command 0x03 (XDS_VERSION), return code: 0x00000000
+0x00005278 282 3  XDS110 C: Executing command 0x04 (XDS_SETTCLKDELAY)
+0x00005278 282 3  XDS110 R: Executed command 0x04 (XDS_SETTCLKDELAY), return code: 0x00000000
+0x00005278 282 3  XDS110 I: id=0x00000004 value=0x00000001
+0x00005278 282 3  XDS110 C: Executing command 0x49 (XDS_SET_PROPERTY)
+0x00005278 283 3  XDS110 R: Executed command 0x49 (XDS_SET_PROPERTY), return code: 0x00000000
+0x00005278 283 3  XDS110 I: id=0x00000005 value=0x00000000
+0x00005278 283 3  XDS110 C: Executing command 0x49 (XDS_SET_PROPERTY)
+0x00005278 283 3  XDS110 R: Executed command 0x49 (XDS_SET_PROPERTY), return code: 0x00000000
+0x00005278 283 3  XDS110 C: Executing command 0x2a (XDS_REGWRITE)
+0x00005278 2425 3  XDS110 R: Executed command 0x2a (XDS_REGWRITE), return code: 0x00000000
+0x00005278 2425 3  XDS110 C: Executing command 0x02 (XDS_DISCONNECT)
+0x00005278 2526 3  XDS110 R: Executed command 0x02 (XDS_DISCONNECT), return code: 0x00000000
+0x00005278 2529 3  GTI R: GTI_BLINK_LEDS( "C:\Users\L\AppData\Local\TEXASI~1\CCS\ccs2101\1\0\BrdDat\testBoard.dat" ) = 0x00000000
+0x00005278 2529 3  LIB C: dlclose( 0000018CC45E0000 )
+0x00005278 2529 3  LIB R: dlclose( 0000018CC45E0000 ) = 1
+0x00005278 2529 3  JSON R: {"response":0}
+0x00005278 2529 4  POLL I: TimeToSleep() found shorter sleep time of 5000 ms from class `anonymous namespace'::CommandSink
+0x00008FB0 2529 3  XPCOM E: System is already shut down
+0x00005278 2529 3  JSON C: ~Translator()
+0x00005278 2529 3  JSON R: ~Translator()
+0x00005278 2529 5  COM_DBG_IF I: Final Release for class DbgProperties::DebugPropertiesManager (this = 0000018CC241FF78)
+0x00008FB0 2530 3  LIB C: dlclose( 00007FFB60F30000 )
+0x00008FB0 2530 3  LIB R: dlclose( 00007FFB60F30000 ) = 1
+0x00008FB0 2530 3  LIB C: dlclose( 00007FFB34BC0000 )
+0x00008FB0 2530 3  LIB R: dlclose( 00007FFB34BC0000 ) = 1
+0x00008FB0 2530 3  LIB C: dlclose( 00007FFB60F30000 )
+0x00008FB0 2530 3  LIB R: dlclose( 00007FFB60F30000 ) = 1
+0x00008FB0 2530 3  LIB C: dlclose( 00007FFB31DD0000 )
+0x00008FB0 2530 3  LIB R: dlclose( 00007FFB31DD0000 ) = 1
+0x00008FB0 2531 3  LIB C: dlclose( 0000018CC46F0000 )
+0x00008FB0 2531 3  LIB R: dlclose( 0000018CC46F0000 ) = 1
