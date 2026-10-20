@@ -1,0 +1,26 @@
+{
+  "selected": 0,
+  "complete": false,
+  "counts": {},
+  "board": true,
+  "mode": "calibration-only",
+  "frames_per_case": 3,
+  "all_passed": false,
+  "error": "ValueError: ADC transfer has an implausible local gain",
+  "shutdown_error": "",
+  "failure": {
+    "stage": "configure calibration reference",
+    "command": "C1:OUTP?",
+    "error": "ValueError: ADC transfer has an implausible local gain"
+  },
+  "failed_case": null,
+  "waveform_readback": null,
+  "calibration": "calibration.json",
+  "generator_calibration": null,
+  "transport": "VISA USBTMC",
+  "resource": "USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR",
+  "diagnostics": "scpi.jsonl",
+  "not_run": [],
+  "wall_time_s": 93.82665710000583,
+  "note": "Independent ADC/ARB calibration only; no matrix cases generated or measured."
+}

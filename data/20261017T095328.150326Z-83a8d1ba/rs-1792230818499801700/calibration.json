@@ -1,0 +1,270 @@
+{
+  "complete": true,
+  "captures": [
+    {
+      "reference": {
+        "wave": "dc",
+        "offset_v": 0.495,
+        "amplitude_v": 0.0,
+        "frequency_hz": 0.0
+      },
+      "validation": false,
+      "capture": "uart/000002",
+      "metadata": {
+        "sequence": 3003,
+        "sample_rate_millihz": 20000000,
+        "reference_microvolts": 3300000,
+        "gain_ppm": 1000000,
+        "adc_full_scale": 4095,
+        "flags": 1,
+        "checksum": 3816287191,
+        "sample_rate_hz_exact": null,
+        "adc_scale": 1.0,
+        "adc_offset_counts": 0.0,
+        "payload_bytes": 16384,
+        "protocol_version": 3,
+        "vpp_transfer": null
+      }
+    },
+    {
+      "reference": {
+        "wave": "dc",
+        "offset_v": 1.65,
+        "amplitude_v": 0.0,
+        "frequency_hz": 0.0
+      },
+      "validation": false,
+      "capture": "uart/000003",
+      "metadata": {
+        "sequence": 3004,
+        "sample_rate_millihz": 20000000,
+        "reference_microvolts": 3300000,
+        "gain_ppm": 1000000,
+        "adc_full_scale": 4095,
+        "flags": 1,
+        "checksum": 3303375667,
+        "sample_rate_hz_exact": null,
+        "adc_scale": 1.0,
+        "adc_offset_counts": 0.0,
+        "payload_bytes": 16384,
+        "protocol_version": 3,
+        "vpp_transfer": null
+      }
+    },
+    {
+      "reference": {
+        "wave": "dc",
+        "offset_v": 2.805,
+        "amplitude_v": 0.0,
+        "frequency_hz": 0.0
+      },
+      "validation": false,
+      "capture": "uart/000004",
+      "metadata": {
+        "sequence": 3005,
+        "sample_rate_millihz": 20000000,
+        "reference_microvolts": 3300000,
+        "gain_ppm": 1000000,
+        "adc_full_scale": 4095,
+        "flags": 1,
+        "checksum": 1502891215,
+        "sample_rate_hz_exact": null,
+        "adc_scale": 1.0,
+        "adc_offset_counts": 0.0,
+        "payload_bytes": 16384,
+        "protocol_version": 3,
+        "vpp_transfer": null
+      }
+    },
+    {
+      "reference": {
+        "wave": "sine",
+        "offset_v": 1.65,
+        "amplitude_v": 0.99,
+        "frequency_hz": 100.0
+      },
+      "validation": false,
+      "capture": "uart/000005",
+      "metadata": {
+        "sequence": 3006,
+        "sample_rate_millihz": 20000000,
+        "reference_microvolts": 3300000,
+        "gain_ppm": 1000000,
+        "adc_full_scale": 4095,
+        "flags": 1,
+        "checksum": 1679207607,
+        "sample_rate_hz_exact": null,
+        "adc_scale": 1.0,
+        "adc_offset_counts": 0.0,
+        "payload_bytes": 16384,
+        "protocol_version": 3,
+        "vpp_transfer": null
+      }
+    },
+    {
+      "reference": {
+        "wave": "sine",
+        "offset_v": 1.65,
+        "amplitude_v": 0.99,
+        "frequency_hz": 400.0
+      },
+      "validation": false,
+      "capture": "uart/000006",
+      "metadata": {
+        "sequence": 3007,
+        "sample_rate_millihz": 20000000,
+        "reference_microvolts": 3300000,
+        "gain_ppm": 1000000,
+        "adc_full_scale": 4095,
+        "flags": 1,
+        "checksum": 4222034448,
+        "sample_rate_hz_exact": null,
+        "adc_scale": 1.0,
+        "adc_offset_counts": 0.0,
+        "payload_bytes": 16384,
+        "protocol_version": 3,
+        "vpp_transfer": null
+      }
+    },
+    {
+      "reference": {
+        "wave": "dc",
+        "offset_v": 0.99,
+        "amplitude_v": 0.0,
+        "frequency_hz": 0.0
+      },
+      "validation": true,
+      "capture": "uart/000007",
+      "metadata": {
+        "sequence": 3008,
+        "sample_rate_millihz": 20000000,
+        "reference_microvolts": 3300000,
+        "gain_ppm": 1000000,
+        "adc_full_scale": 4095,
+        "flags": 1,
+        "checksum": 1746993500,
+        "sample_rate_hz_exact": null,
+        "adc_scale": 1.0,
+        "adc_offset_counts": 0.0,
+        "payload_bytes": 16384,
+        "protocol_version": 3,
+        "vpp_transfer": null
+      }
+    },
+    {
+      "reference": {
+        "wave": "dc",
+        "offset_v": 2.31,
+        "amplitude_v": 0.0,
+        "frequency_hz": 0.0
+      },
+      "validation": true,
+      "capture": "uart/000008",
+      "metadata": {
+        "sequence": 3009,
+        "sample_rate_millihz": 20000000,
+        "reference_microvolts": 3300000,
+        "gain_ppm": 1000000,
+        "adc_full_scale": 4095,
+        "flags": 1,
+        "checksum": 3812148280,
+        "sample_rate_hz_exact": null,
+        "adc_scale": 1.0,
+        "adc_offset_counts": 0.0,
+        "payload_bytes": 16384,
+        "protocol_version": 3,
+        "vpp_transfer": null
+      }
+    },
+    {
+      "reference": {
+        "wave": "sine",
+        "offset_v": 1.65,
+        "amplitude_v": 0.99,
+        "frequency_hz": 250.0
+      },
+      "validation": true,
+      "capture": "uart/000009",
+      "metadata": {
+        "sequence": 3010,
+        "sample_rate_millihz": 20000000,
+        "reference_microvolts": 3300000,
+        "gain_ppm": 1000000,
+        "adc_full_scale": 4095,
+        "flags": 1,
+        "checksum": 2990583543,
+        "sample_rate_hz_exact": null,
+        "adc_scale": 1.0,
+        "adc_offset_counts": 0.0,
+        "payload_bytes": 16384,
+        "protocol_version": 3,
+        "vpp_transfer": null
+      }
+    }
+  ],
+  "calibration": {
+    "sample_rate_millihz": 19999328,
+    "adc_scale": 1.0030907445109452,
+    "adc_offset_counts": -9.324718656993188,
+    "nominal_metadata": {
+      "sample_rate_millihz": 20000000,
+      "reference_microvolts": 3300000,
+      "gain_ppm": 1000000,
+      "adc_full_scale": 4095
+    },
+    "sample_rate_hz_exact": 19999.327533422358
+  },
+  "error": "",
+  "references_independent_of_matrix": true,
+  "metadata_capture": "uart/000001",
+  "verification": {
+    "dc_fit_max_error_v": 0.0007005365242613859,
+    "dc_quadratic_curvature_counts_per_v2": 0.980478925386165,
+    "reference_sample_rates_hz": [
+      19999.32640333506,
+      19999.327604052814
+    ],
+    "unweighted_sample_rate_hz": 19999.327003693936,
+    "timebase_weighting": "fisher_f2",
+    "reference_rate_spread_ppm": 0.060037906365172394,
+    "reference_tone_ac_gains": [
+      1.0015782568122509,
+      1.0015540776628393
+    ],
+    "absolute_accuracy_verified": false,
+    "independent_checks": [
+      {
+        "reference": {
+          "wave": "dc",
+          "offset_v": 0.99,
+          "amplitude_v": 0.0,
+          "frequency_hz": 0.0
+        },
+        "dc_error_v": 0.0004261826794258461
+      },
+      {
+        "reference": {
+          "wave": "dc",
+          "offset_v": 2.31,
+          "amplitude_v": 0.0,
+          "frequency_hz": 0.0
+        },
+        "dc_error_v": 0.00369237059596772
+      },
+      {
+        "reference": {
+          "wave": "sine",
+          "offset_v": 1.65,
+          "amplitude_v": 0.99,
+          "frequency_hz": 250.0
+        },
+        "sample_rate_error_fraction": 1.0462812094491625e-06,
+        "amplitude_v": 0.9913681687064791,
+        "harmonic_amplitude_v": 0.9918812119951146,
+        "ac_gain_ratio": 1.0019002141364795
+      }
+    ],
+    "note": "Dedicated generator references only; matrix results are not fitted. Voltage calibration is relative to the generator; clipped data stay clipped."
+  },
+  "algorithm_parameters_file": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\algorithm_parameters.json"
+}

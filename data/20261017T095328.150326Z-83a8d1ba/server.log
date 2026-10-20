@@ -1,0 +1,131 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261017T095328.150326Z-83a8d1ba
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-17T07:11:48.594611+00:00
+R = external measurement; RT = host self-test; RO = 296-case finals matrix; RS = calibration only; Q = quit
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO: checking board metadata and calibrating the ADC with independent references
+RO calibration 1/8: dc 0 Hz, offset 0.495 V
+RO calibration 2/8: dc 0 Hz, offset 1.65 V
+RO calibration 3/8: dc 0 Hz, offset 2.805 V
+RO calibration 4/8: sine 100 Hz, offset 1.65 V
+RO calibration 5/8: sine 400 Hz, offset 1.65 V
+RO calibration 6/8: dc 0 Hz, offset 0.99 V
+RO calibration 7/8: dc 0 Hz, offset 2.31 V
+RO calibration 8/8: sine 250 Hz, offset 1.65 V
+RO calibration OK: sample rate 19999.328 Hz, ADC scale 1.0030907, offset -9.32472 counts
+RO calibration saved for R: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+RO dynamic ADC reference 1/9: DC=0.4, Vpp=0.72
+RO dynamic ADC reference 2/9: DC=0.72, Vpp=0.72
+RO dynamic ADC reference 3/9: DC=1.04, Vpp=0.72
+RO dynamic ADC reference 4/9: DC=1.36, Vpp=0.72
+RO dynamic ADC reference 5/9: DC=1.68, Vpp=0.72
+RO dynamic ADC reference 6/9: DC=2, Vpp=0.72
+RO dynamic ADC reference 7/9: DC=2.32, Vpp=0.72
+RO dynamic ADC reference 8/9: DC=2.64, Vpp=0.72
+RO dynamic ADC reference 9/9: DC=2.9, Vpp=0.72
+RS: {}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261017T095328.150326Z-83a8d1ba\rs-1792230818499801700\summary.json
+server: ADC transfer has an implausible local gain
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO 1/296 final_weak-0001: uploading and verifying waveform
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+开始测试
+RO 1/296 final_weak-0001: PASS
+RO 2/296 final_strong-0001: uploading and verifying waveform
+RO 2/296 final_strong-0001: PASS
+RO 3/296 final_weak-0002: uploading and verifying waveform
+RO 3/296 final_weak-0002: PASS
+RO 4/296 final_strong-0002: uploading and verifying waveform
+RO 4/296 final_strong-0002: PASS
+RO 5/296 final_weak-0003: uploading and verifying waveform
+RO 5/296 final_weak-0003: PASS
+RO 6/296 final_strong-0003: uploading and verifying waveform
+RO 6/296 final_strong-0003: PASS
+RO 7/296 final_weak-0004: uploading and verifying waveform
+RO 7/296 final_weak-0004: PASS
+RO 8/296 final_strong-0004: uploading and verifying waveform
+RO 8/296 final_strong-0004: PASS
+RO 9/296 final_weak-0005: uploading and verifying waveform
+RO 9/296 final_weak-0005: PASS
+RO 10/296 final_strong-0005: uploading and verifying waveform
+RO 10/296 final_strong-0005: PASS
+RO 11/296 final_weak-0006: uploading and verifying waveform
+RO 11/296 final_weak-0006: PASS
+RO 12/296 final_strong-0006: uploading and verifying waveform
+RO 12/296 final_strong-0006: PASS
+RO 13/296 final_weak-0007: uploading and verifying waveform
+RO 13/296 final_weak-0007: PASS
+RO 14/296 final_strong-0007: uploading and verifying waveform
+RO 14/296 final_strong-0007: PASS
+RO 15/296 final_weak-0008: uploading and verifying waveform
+RO 15/296 final_weak-0008: PASS
+RO 16/296 final_strong-0008: uploading and verifying waveform
+RO 16/296 final_strong-0008: PASS
+RO 17/296 final_weak-0009: uploading and verifying waveform
+RO 17/296 final_weak-0009: PASS
+RO 18/296 final_strong-0009: uploading and verifying waveform
+RO 18/296 final_strong-0009: PASS
+RO 19/296 final_weak-0010: uploading and verifying waveform
+RO 19/296 final_weak-0010: PASS
+RO 20/296 final_strong-0010: uploading and verifying waveform
+RO 20/296 final_strong-0010: PASS
+RO 21/296 final_weak-0011: uploading and verifying waveform
+RO 21/296 final_weak-0011: PASS
+RO 22/296 final_strong-0011: uploading and verifying waveform
+RO 22/296 final_strong-0011: PASS
+RO 23/296 final_weak-0012: uploading and verifying waveform
+RO 23/296 final_weak-0012: PASS
+RO 24/296 final_strong-0012: uploading and verifying waveform
+RO 24/296 final_strong-0012: PASS
+RO 25/296 final_weak-0013: uploading and verifying waveform
+RO 25/296 final_weak-0013: PASS
+RO 26/296 final_strong-0013: uploading and verifying waveform
+RO 26/296 final_strong-0013: PASS
+RO 27/296 final_weak-0014: uploading and verifying waveform
+RO 27/296 final_weak-0014: PASS
+RO 28/296 final_strong-0014: uploading and verifying waveform
+RO 28/296 final_strong-0014: PASS
+RO 29/296 final_weak-0015: uploading and verifying waveform
+RO 29/296 final_weak-0015: PASS
+RO 30/296 final_strong-0015: uploading and verifying waveform
+RO 30/296 final_strong-0015: PASS
+RO 31/296 final_weak-0016: uploading and verifying waveform
+RO 31/296 final_weak-0016: PASS
+RO 32/296 final_strong-0016: uploading and verifying waveform
+RO 32/296 final_strong-0016: PASS
+RO 33/296 final_weak-0017: uploading and verifying waveform
+RO 33/296 final_weak-0017: PASS
+RO 34/296 final_strong-0017: uploading and verifying waveform
+RO 34/296 final_strong-0017: PASS
+RO 35/296 final_weak-0018: uploading and verifying waveform
+RO 35/296 final_weak-0018: PASS
+RO 36/296 final_strong-0018: uploading and verifying waveform
+RO 36/296 final_strong-0018: PASS
+RO 37/296 final_weak-0019: uploading and verifying waveform
+RO 37/296 final_weak-0019: PASS
+RO 38/296 final_strong-0019: uploading and verifying waveform
+RO 38/296 final_strong-0019: PASS
+RO 39/296 final_weak-0020: uploading and verifying waveform
+RO 39/296 final_weak-0020: PASS
+RO 40/296 final_strong-0020: uploading and verifying waveform
+RO 40/296 final_strong-0020: PASS
+RO 41/296 final_weak-0021: uploading and verifying waveform
+RO 41/296 final_weak-0021: PASS
+RO 42/296 final_strong-0021: uploading and verifying waveform
+RO 42/296 final_strong-0021: PASS
+RO 43/296 final_weak-0022: uploading and verifying waveform
+RO 43/296 final_weak-0022: PASS
+RO 44/296 final_strong-0022: uploading and verifying waveform
+RO 44/296 final_strong-0022: PASS
+RO 45/296 final_weak-0023: uploading and verifying waveform
+RO 45/296 final_weak-0023: PASS
+RO 46/296 final_strong-0023: uploading and verifying waveform
+RO 46/296 final_strong-0023: PASS
+RO 47/296 final_weak-0024: uploading and verifying waveform
+RO 47/296 final_weak-0024: PASS
+RO 48/296 final_strong-0024: uploading and verifying waveform
+RO 48/296 final_strong-0024: PASS
+RO 49/296 final_weak-0025: uploading and verifying waveform
+RO: {'completed': 48, 'passed': 48}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261017T095328.150326Z-83a8d1ba\ro-1792230927035266300\summary.json

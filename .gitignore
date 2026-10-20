@@ -10,7 +10,6 @@ Release/
 *.dylib
 __pycache__/
 tests/.build/
-data/
 
 # Local IDE settings, validation archives and generated submission bundles.
 .vscode/
