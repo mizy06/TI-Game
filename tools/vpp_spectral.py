@@ -173,9 +173,15 @@ def joint_frame_amplitude(frames, kind):
             value,info=harmonic_amplitude(y,frame['fs'],kind,frame['frequency'],
                 frame['duty'],frame['rise'],frame['fall'])
             estimates.append(value)
+        estimates=np.asarray(estimates,dtype=float)
         result=float(np.median(estimates))
+        relative_rms=(float(np.sqrt(np.mean(np.square(estimates/result-1))))
+                      if np.isfinite(result) and result>0 and
+                      np.isfinite(estimates).all() and (estimates>0).all()
+                      else float('inf'))
         return dict(vpp_v=result,method='median_reset_harmonic_across_frames',
-                    frame_vpp=estimates,elapsed_s=time.perf_counter()-started)
+                    frame_vpp=estimates.tolist(),relative_rms=relative_rms,
+                    elapsed_s=time.perf_counter()-started)
 
     frequencies=np.asarray([float(frame['frequency']) for frame in frames])
     rates=np.asarray([float(frame['fs']) for frame in frames])
@@ -259,4 +265,5 @@ def joint_frame_amplitude(frames, kind):
         return None
     return dict(vpp_v=result,method='phase_aligned_joint_harmonics',
                 harmonics=harmonics,frames=len(frames),cost=float(fit.cost),
+                relative_rms=float(np.sqrt(np.mean(np.square(fit.fun)))),
                 elapsed_s=time.perf_counter()-started)

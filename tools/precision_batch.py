@@ -8,14 +8,18 @@ import numpy as np
 from tools import host_waveform as host
 
 
-def _reconcile_joint_vpp(frame_vpps, joint_vpp):
-    """Keep a joint estimate only when independent frames support its correction."""
+def _reconcile_joint_vpp(frame_vpps, joint_vpp, joint_relative_rms=None):
+    """Reconcile frame consensus with independently measured joint-fit quality."""
+    valid_joint = bool(joint_vpp is not None and np.isfinite(joint_vpp) and
+                       joint_vpp > 0)
     values = np.asarray(frame_vpps, dtype=float)
     values = values[np.isfinite(values) & (values > 0)]
     if not len(values):
-        return joint_vpp, dict(accepted=joint_vpp is not None,
+        return joint_vpp, dict(accepted=valid_joint,
             selected_method="joint_frame_fit", relative_disagreement=None,
-            relative_frame_mad=None, agreement_limit=None)
+            relative_frame_mad=None, agreement_limit=None,
+            joint_fit_relative_rms=joint_relative_rms,
+            joint_fit_quality_support=False)
 
     center = float(np.median(values))
     mad = float(np.median(np.abs(values - center))) / center
@@ -23,14 +27,22 @@ def _reconcile_joint_vpp(frame_vpps, joint_vpp):
                     if joint_vpp is not None and np.isfinite(joint_vpp) and joint_vpp > 0
                     else float("inf"))
     limit = max(.0005, 5 * mad)
-    accepted = disagreement <= limit
+    joint_fit_quality_limit = .0005
+    joint_fit_quality_support = bool(valid_joint and
+        joint_relative_rms is not None and np.isfinite(joint_relative_rms) and
+        0 <= joint_relative_rms <= joint_fit_quality_limit)
+    accepted = bool(valid_joint and
+                    (disagreement <= limit or joint_fit_quality_support))
     return (float(joint_vpp) if accepted else center), dict(
         accepted=accepted,
         selected_method="joint_frame_fit" if accepted else "independent_frame_median",
         independent_frame_median_vpp=center,
         relative_disagreement=disagreement,
         relative_frame_mad=mad,
-        agreement_limit=limit)
+        agreement_limit=limit,
+        joint_fit_relative_rms=joint_relative_rms,
+        joint_fit_quality_limit=joint_fit_quality_limit,
+        joint_fit_quality_support=joint_fit_quality_support)
 
 
 def prepare_analysis(payload, meta, record, profile, parameters_path):
@@ -135,7 +147,8 @@ def _measure_batch(service, frames, timeout, *, return_result):
             algorithm_elapsed += batch_elapsed
             algorithm_work += batch_elapsed
             selected_vpp, consensus = _reconcile_joint_vpp(
-                values[:, 1], batch_vpp.get('vpp_v'))
+                values[:, 1], batch_vpp.get('vpp_v'),
+                batch_vpp.get('relative_rms') if kind in (1, 3) else None)
             batch_vpp.update(consensus, selected_vpp_v=selected_vpp)
             if selected_vpp is not None:
                 mean[1] = selected_vpp
