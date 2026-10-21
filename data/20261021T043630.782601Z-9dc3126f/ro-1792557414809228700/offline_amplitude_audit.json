@@ -1,0 +1,733 @@
+{
+  "note": "Offline diagnostic only. Ideal ADC and generator, exact requested waveform and timing supplied to amplitude estimator; no hardware involved. Original truth and thresholds unchanged.",
+  "cases": [
+    {
+      "case_id": "final_weak-0001",
+      "wave": "sine",
+      "truth_vpp_v": 1.4871562231891813,
+      "real_vpp_bias_pct": 0.04408602991001764,
+      "ideal_vpp_v": 1.4874591501810768,
+      "ideal_vpp_bias_pct": 0.020369547406784427,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.8612247476091717,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.4869602038713712,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.004435779348915859
+          }
+        },
+        {
+          "vpp_v": 1.4874894728702208,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.0026470407334203984
+          }
+        },
+        {
+          "vpp_v": 1.487927773801638,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.0037010897269269265
+          }
+        }
+      ],
+      "full_record_carrier_vpp_v": 1.4896912006439529,
+      "full_record_carrier_bias_pct": 0.170458047059463
+    },
+    {
+      "case_id": "final_strong-0001",
+      "wave": "sine",
+      "truth_vpp_v": 1.4871562231891813,
+      "real_vpp_bias_pct": 0.5065735983892594,
+      "ideal_vpp_v": 1.4867917517865068,
+      "ideal_vpp_bias_pct": -0.024507943213447625,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.7334815906957272,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.4979166088393667,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.020739345191422016
+          }
+        },
+        {
+          "vpp_v": 1.4851869922822791,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.016443062928472283
+          }
+        },
+        {
+          "vpp_v": 1.4772716542378745,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.015349515065817014
+          }
+        }
+      ],
+      "full_record_carrier_vpp_v": 1.4882177053882593,
+      "full_record_carrier_bias_pct": 0.07137664372620645
+    },
+    {
+      "case_id": "final_weak-0002",
+      "wave": "square",
+      "truth_vpp_v": 1.2553968313699038,
+      "real_vpp_bias_pct": 0.11135900681940036,
+      "ideal_vpp_v": 1.253781467276265,
+      "ideal_vpp_bias_pct": -0.12867358378434446,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.8898137329710698,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.2571625324599038,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.04517183526273171,
+              0.78629276920059,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6285812662299519
+            ],
+            "relative_rms": 0.0005961175391611078
+          }
+        },
+        {
+          "vpp_v": 1.250219690960075,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.3693998312828619,
+              0.7761349738674795,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6251098454800375
+            ],
+            "relative_rms": 0.0023745740475444002
+          }
+        },
+        {
+          "vpp_v": 1.2539621784088162,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.47850182008189657,
+              0.7753797719872191,
+              0.010992516543370419,
+              1.0000100707624801e-05,
+              0.6269810892044081
+            ],
+            "relative_rms": 0.0017558086052674423
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0002",
+      "wave": "square",
+      "truth_vpp_v": 1.2553968313699038,
+      "real_vpp_bias_pct": -0.8675837034579859,
+      "ideal_vpp_v": 1.248458037458844,
+      "ideal_vpp_bias_pct": -0.5527171757704674,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 1.4486796668968764,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.2513252255454101,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.04499581153708439,
+              0.7867750495957551,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6256626127727051
+            ],
+            "relative_rms": 0.002341982110989586
+          }
+        },
+        {
+          "vpp_v": 1.2437198243019196,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.36934745843986205,
+              0.776083544426325,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6218599121509598
+            ],
+            "relative_rms": 0.0032532138919537388
+          }
+        },
+        {
+          "vpp_v": 1.2503290625292018,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.4782141625858217,
+              0.7799937037044247,
+              0.008383086176158884,
+              1.0000100000000001e-05,
+              0.6251645312646009
+            ],
+            "relative_rms": 0.0010976465803640787
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0003",
+      "wave": "triangle",
+      "truth_vpp_v": 1.0287515399761442,
+      "real_vpp_bias_pct": 0.39182123185383944,
+      "ideal_vpp_v": 1.031685713954217,
+      "ideal_vpp_bias_pct": 0.2852169706730967,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.6109148164163829,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.033437813481237,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 0.3853224789925965,
+            "relative_rms": 0.0005675688428976757
+          }
+        },
+        {
+          "vpp_v": 1.030561534492109,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 0.2730058356698257,
+            "relative_rms": 0.000527408238484173
+          }
+        },
+        {
+          "vpp_v": 1.0310577938893053,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 0.6287019603635207,
+            "relative_rms": 0.0003210286219976343
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0003",
+      "wave": "triangle",
+      "truth_vpp_v": 1.0287515399761442,
+      "real_vpp_bias_pct": 0.2609509063531412,
+      "ideal_vpp_v": 1.0316598890400888,
+      "ideal_vpp_bias_pct": 0.28270665471004097,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 1.3991045130342055,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.031824670903083,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 0.5968139632519107,
+            "relative_rms": 0.00029814785884508784
+          }
+        },
+        {
+          "vpp_v": 1.032898568067082,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 0.584557970863765,
+            "relative_rms": 0.0002490979338368182
+          }
+        },
+        {
+          "vpp_v": 1.0302564281501017,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 1.1510187629830287e-15,
+            "relative_rms": 0.0011795389343071826
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0004",
+      "wave": "sawtooth",
+      "truth_vpp_v": 1.0723386402658859,
+      "real_vpp_bias_pct": 0.09608960822424795,
+      "ideal_vpp_v": 1.073365599517265,
+      "ideal_vpp_bias_pct": 0.09576818486412009,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.7673959233616647,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.075504553410713,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.017433051270221725
+          }
+        },
+        {
+          "vpp_v": 1.07477365432301,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.018944348216535033
+          }
+        },
+        {
+          "vpp_v": 1.0698185908180722,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.014746662148758954
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0004",
+      "wave": "sawtooth",
+      "truth_vpp_v": 1.0723386402658859,
+      "real_vpp_bias_pct": 0.023144193184099215,
+      "ideal_vpp_v": 1.0835856499254228,
+      "ideal_vpp_bias_pct": 1.0488300278677087,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.7862387259075889,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.1012150735101351,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.04846177693557694
+          }
+        },
+        {
+          "vpp_v": 1.1051357736183556,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.038395251911506105
+          }
+        },
+        {
+          "vpp_v": 1.044406102647778,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.035687704522836365
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0005",
+      "wave": "sine",
+      "truth_vpp_v": 1.1794739019091423,
+      "real_vpp_bias_pct": 0.15400383339181367,
+      "ideal_vpp_v": 1.1797169145275854,
+      "ideal_vpp_bias_pct": 0.020603475672476,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.7186987551451044,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.18096013224719,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.004117085611849964
+          }
+        },
+        {
+          "vpp_v": 1.1790423270046588,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.004231607853204647
+          }
+        },
+        {
+          "vpp_v": 1.179148284330908,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.00342862322965027
+          }
+        }
+      ],
+      "full_record_carrier_vpp_v": 1.1801902552570704,
+      "full_record_carrier_bias_pct": 0.060734989283672824
+    },
+    {
+      "case_id": "final_strong-0005",
+      "wave": "sine",
+      "truth_vpp_v": 1.1794739019091423,
+      "real_vpp_bias_pct": 0.42655936462638877,
+      "ideal_vpp_v": 1.1841324986053536,
+      "ideal_vpp_bias_pct": 0.3949724270007726,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.9163567225638202,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.1861353671700547,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.008927485072156367
+          }
+        },
+        {
+          "vpp_v": 1.1834755793738994,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.008759942559542006
+          }
+        },
+        {
+          "vpp_v": 1.1827865492721066,
+          "diagnostic": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.012342565652096682
+          }
+        }
+      ],
+      "full_record_carrier_vpp_v": 1.1826993393430196,
+      "full_record_carrier_bias_pct": 0.2734640782349196
+    },
+    {
+      "case_id": "final_weak-0006",
+      "wave": "square",
+      "truth_vpp_v": 1.4144903112933818,
+      "real_vpp_bias_pct": 0.13046972939934065,
+      "ideal_vpp_v": 1.4167606932327959,
+      "ideal_vpp_bias_pct": 0.16050883638347724,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.9313995164977158,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.416825237593873,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.4976020227426353,
+              0.23934766929085782,
+              0.005503950921459322,
+              0.0057918130674097104,
+              0.7084126187969365
+            ],
+            "relative_rms": 0.001105763747864233
+          }
+        },
+        {
+          "vpp_v": 1.4151410995817708,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.4873805444389815,
+              0.2394622291626324,
+              0.0031534603371189463,
+              1.0000100000000004e-05,
+              0.7075705497908854
+            ],
+            "relative_rms": 0.0009278936168947746
+          }
+        },
+        {
+          "vpp_v": 1.4183157425227437,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.49280488922579585,
+              0.2396459332590133,
+              1.0000510282483934e-05,
+              0.008111742302566942,
+              0.7091578712613719
+            ],
+            "relative_rms": 0.0009468005877596491
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0006",
+      "wave": "square",
+      "truth_vpp_v": 1.4144903112933818,
+      "real_vpp_bias_pct": -0.3943130999070954,
+      "ideal_vpp_v": 1.3960055878097897,
+      "ideal_vpp_bias_pct": -1.3068116010416575,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 1.902833936267593,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.3904361516950465,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.49697945889937056,
+              0.23967168256600135,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6952180758475233
+            ],
+            "relative_rms": 0.0033259070977925075
+          }
+        },
+        {
+          "vpp_v": 1.3847229302599289,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.4881579904475421,
+              0.23963657186598505,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6923614651299644
+            ],
+            "relative_rms": 0.003457474605788058
+          }
+        },
+        {
+          "vpp_v": 1.4128576814743936,
+          "diagnostic": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.492295525098922,
+              0.2399549891770007,
+              0.00677923803858593,
+              1.0000100000000001e-05,
+              0.7064288407371968
+            ],
+            "relative_rms": 0.0026171286085121723
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0007",
+      "wave": "triangle",
+      "truth_vpp_v": 1.2980247037749653,
+      "real_vpp_bias_pct": 0.11614917042854778,
+      "ideal_vpp_v": 1.3002183746157432,
+      "ideal_vpp_bias_pct": 0.1690007004025551,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.7891983969849125,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.301439706480703,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 5.574482568638721e-14,
+            "relative_rms": 0.0006969016229736516
+          }
+        },
+        {
+          "vpp_v": 1.3007465104213816,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 0.9075184264871776,
+            "relative_rms": 0.0009453524077249835
+          }
+        },
+        {
+          "vpp_v": 1.2984689069451454,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 1.8007893051529147e-13,
+            "relative_rms": 0.0014898542164803335
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0007",
+      "wave": "triangle",
+      "truth_vpp_v": 1.2980247037749653,
+      "real_vpp_bias_pct": -0.11242939940320218,
+      "ideal_vpp_v": 1.301198949694788,
+      "ideal_vpp_bias_pct": 0.24454433806933018,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 1.7302432341379348,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.3058697864715056,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 1.145433638002207,
+            "relative_rms": 0.00020486626507191459
+          }
+        },
+        {
+          "vpp_v": 1.3059326786415106,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 1.1524983974308551,
+            "relative_rms": 0.00020985384965472957
+          }
+        },
+        {
+          "vpp_v": 1.2917943839713475,
+          "diagnostic": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 6.701912801292799e-09,
+            "relative_rms": 0.000235945219141124
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0008",
+      "wave": "sawtooth",
+      "truth_vpp_v": 1.0170017336546844,
+      "real_vpp_bias_pct": -0.29658954617726163,
+      "ideal_vpp_v": 1.0148573117574033,
+      "ideal_vpp_bias_pct": -0.2108572509089912,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 0.9327761622848464,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.0106259747751305,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.011157474508256817
+          }
+        },
+        {
+          "vpp_v": 1.0188511239481821,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.012481488453888733
+          }
+        },
+        {
+          "vpp_v": 1.0150948365488976,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.011782246132803499
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0008",
+      "wave": "sawtooth",
+      "truth_vpp_v": 1.0170017336546844,
+      "real_vpp_bias_pct": -1.348402217358391,
+      "ideal_vpp_v": 1.0024839131524395,
+      "ideal_vpp_bias_pct": -1.4275118735613046,
+      "real_spectral_background": {
+        "accepted": false,
+        "background_gap_ratio": 1.0653868060925236,
+        "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+      },
+      "ideal_frames": [
+        {
+          "vpp_v": 1.003892198901392,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.014311918597919394
+          }
+        },
+        {
+          "vpp_v": 1.0095869717802772,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.013053867918995595
+          }
+        },
+        {
+          "vpp_v": 0.9939725687756492,
+          "diagnostic": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.021239959074247236
+          }
+        }
+      ]
+    }
+  ]
+}

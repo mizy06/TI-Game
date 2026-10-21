@@ -3,7 +3,7 @@ from dataclasses import replace
 import numpy as np
 from tools import host_waveform as host
 from tools.amplitude_calibration import validate_transfer, voltage_values, predistort_dac
-from tools.vpp_spectral import harmonic_amplitude
+from tools.vpp_spectral import harmonic_amplitude, spectral_separation
 from tools.finals_matrix import waveform
 
 
@@ -75,6 +75,78 @@ class AmplitudePathTests(unittest.TestCase):
             self.assertEqual(old[field],new[field],field)
         self.assertTrue(new['spectral_vpp']['accepted'])
         self.assertLess(abs(new['vpp_v']/.8-1),.001)
+
+    def test_quiet_quantized_reference_has_negligible_background_without_a_gap(self):
+        fs,f=20000.,237.193
+        y=1.65+.4*np.sin(2*np.pi*f*np.arange(8192)/fs+.71)
+        voltage=np.rint(y*4095/3.3)*3.3/4095
+        diagnostic=spectral_separation(voltage,fs,f)
+        self.assertGreater(diagnostic['background_gap_ratio'],.12)
+        self.assertTrue(diagnostic['background_negligible'])
+        self.assertTrue(diagnostic['accepted'])
+
+    def test_carrier_leakage_does_not_hide_notched_triangle_background(self):
+        n,fs=8192,20000.
+        f=fs*41/8192
+        phase=np.arange(n)*f/fs+.23
+        rng=np.random.default_rng(915477)
+        freq=np.fft.rfftfreq(n,1/fs)
+        spec=np.fft.rfft(rng.normal(size=n))
+        distance=np.abs(freq-np.rint(freq/f)*f)
+        spec[(distance<.18*f)|(freq>6*f)]=0
+        noise=np.fft.irfft(spec,n)
+        noise*=.15*1.1/6/np.std(noise)
+        y=1.57+.55*waveform('triangle',phase,.5,0.,0.)+noise
+        vpp,fit=harmonic_amplitude(y,fs,2,f)
+        separation=spectral_separation(y,fs,f)
+        self.assertTrue(separation['accepted'])
+        self.assertLess(fit['relative_rms'],.02)
+        self.assertLess(abs(vpp/1.1-1),.001)
+
+    def test_harmonic_profile_rescues_sine_mislabeled_as_triangle(self):
+        from tools.vpp_spectral import sine_model_rescue
+        n,fs=8192,20000.
+        f=fs*83/8192
+        phase=np.arange(n)*f/fs+.137
+        rng=np.random.default_rng(1520267495)
+        freq=np.fft.rfftfreq(n,1/fs)
+        spec=np.fft.rfft(rng.normal(size=n))
+        distance=np.abs(freq-np.rint(freq/f)*f)
+        spec[(distance<.18*f)|(freq>2.08*f)]=0
+        noise=np.fft.irfft(spec,n)
+        noise*=.46986*1.184/6/np.std(noise)
+        y=1.8+.592* np.sin(2*np.pi*phase)+noise
+        _,triangle_fit=harmonic_amplitude(y,fs,2,f)
+        separation=spectral_separation(y,fs,f)
+        rescue=sine_model_rescue(y,fs,f,triangle_fit,separation)
+        self.assertIsNotNone(rescue)
+        self.assertLess(abs(rescue['vpp_v']/1.184-1),.001)
+        self.assertGreater(rescue['evidence']['triangle_harmonic_error'],.02)
+        self.assertLess(rescue['evidence']['sine_harmonic_tail_ratio'],.02)
+
+    def test_unseparated_gaussian_noise_cannot_override_the_amplitude_estimate(self):
+        n,fs,f=8192,20000.,237.193
+        rng=np.random.default_rng(781604)
+        spectrum=np.fft.rfft(rng.normal(size=n))
+        spectrum[np.fft.rfftfreq(n,1/fs)>3*f]=0
+        noise=np.fft.irfft(spectrum,n)
+        noise*=.06/np.std(noise)
+        y=1.65+.4*np.sin(2*np.pi*f*np.arange(n)/fs+.71)+noise
+        raw=np.rint(y*4095/3.3).astype('<u2').tobytes()
+        meta=host.Metadata(1,20000000,3300000,1000000,4095,7,host.fnv1a(raw),
+                           payload_bytes=len(raw),protocol_version=3)
+        _,baseline=host.analyze(None,raw,meta)
+        codes=np.linspace(10,4085,25)
+        transfer=dict(codes=codes.tolist(),volts=(codes*3.3/4095).tolist())
+        _,calibrated=host.analyze(None,raw,replace(meta,vpp_transfer=transfer))
+        self.assertTrue(baseline['ok'])
+        self.assertTrue(calibrated['ok'])
+        spectral=calibrated['spectral_vpp']
+        self.assertFalse(spectral['background_separation']['accepted'])
+        self.assertFalse(spectral['accepted'])
+        self.assertEqual(spectral['rejection'],'unseparated_background')
+        self.assertEqual(calibrated['vpp_v'],baseline['vpp_v'])
+        self.assertEqual(calibrated['vpp_quality']['meaning'],'carrier_including_coherent_interference')
 
 
 if __name__=='__main__': unittest.main()

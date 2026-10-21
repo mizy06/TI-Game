@@ -1,0 +1,63 @@
+{
+  "complete": false,
+  "references_independent_of_matrix": true,
+  "observations": [
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35528480405466,
+      "capture": "uart/000010"
+    },
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35565321431939,
+      "capture": "uart/000011"
+    },
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35623295996803,
+      "capture": "uart/000012"
+    },
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35567822823084,
+      "capture": "uart/000013"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35587451955872,
+      "capture": "uart/000014"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35620692883461,
+      "capture": "uart/000015"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35591016413493,
+      "capture": "uart/000016"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35560282162919,
+      "capture": "uart/000017"
+    }
+  ],
+  "error": "ValueError: calibration sine is absent, too small or clipped; check CH1/CH2, PA25 and GND"
+}

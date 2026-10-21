@@ -296,18 +296,32 @@ def analyze(dll, payload: bytes, meta: Metadata, *, config=None,
         accuracy_0p1_percent_certified=False)
     if meta.vpp_transfer is not None and len(raw)*f/fs>=32:
         from tools.amplitude_calibration import voltage_values
-        from tools.vpp_spectral import harmonic_amplitude, spectral_separation
+        from tools.vpp_spectral import harmonic_amplitude, spectral_separation, sine_model_rescue
         voltage=voltage_values(raw,meta.vpp_transfer)
         diagnostic=result['diagnostics']
+        separation=spectral_separation(voltage,fs,f)
         try:
             proposed,amp_info=harmonic_amplitude(voltage,fs,kind,f,duty,
                 diagnostic['square_rise_fraction'],diagnostic['square_fall_fraction'])
         except (ValueError,np.linalg.LinAlgError) as error:
             proposed=vpp
             amp_info=dict(relative_rms=1.,rejection=str(error))
-        amp_info['background_separation']=spectral_separation(voltage,fs,f)
+        if kind==2:
+            rescue=sine_model_rescue(voltage,fs,f,amp_info,separation)
+            if rescue is not None:
+                kind=0
+                proposed=rescue['vpp_v']
+                amp_info=rescue['info']
+                vpp=proposed
+                details.update(type=kind,duty_fraction=0.,duty_ppm=0,duty_permille=0)
+                diagnostic['harmonic_model_rescue']=rescue['evidence']
+                details['vpp_quality']['meaning']='clean_source_under_separated_harmonic_support_assumption'
+        amp_info['background_separation']=separation
         amp_info['accepted']=bool(np.isfinite(proposed) and .85*vpp<proposed<1.15*vpp
-                                  and amp_info.get('relative_rms',0)<.02)
+                                  and amp_info.get('relative_rms',0)<.02
+                                  and amp_info['background_separation']['accepted'])
+        if not amp_info['background_separation']['accepted']:
+            amp_info.setdefault('rejection','unseparated_background')
         details['spectral_vpp']=amp_info
         if amp_info['accepted']:
             vpp=proposed

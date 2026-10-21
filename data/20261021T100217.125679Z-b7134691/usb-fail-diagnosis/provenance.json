@@ -1,0 +1,14 @@
+{
+  "source_ro_report": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T080936.037908Z-075cbd38\\ro-1792570192217131900",
+  "calibration_report": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T090957.699648Z-6a0caedd\\rs-1792573806900545900",
+  "cases": [
+    "final_strong-0038",
+    "final_strong-0049",
+    "final_weak-0063",
+    "final_weak-0075",
+    "final_weak-0079",
+    "final_weak-0103",
+    "final_weak-0123"
+  ],
+  "mode": "USB waveform upload; one independent ADC frame and one algorithm invocation per case; no RO batch/verdict loop"
+}

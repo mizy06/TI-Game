@@ -1,0 +1,23 @@
+{
+  "identity": "Siglent Technologies,SDG6022X-E,SDG6XFCQ900843,6.01.01.37R6",
+  "host": "10.11.13.220",
+  "port": 111,
+  "channel": 1,
+  "transport": "VISA USBTMC",
+  "resource": "USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR",
+  "vref_v": 3.3,
+  "gain": 1.0,
+  "level_mode": "adc",
+  "board": true,
+  "mode": "full",
+  "acquisition_calibration": null,
+  "algorithm_parameters_file": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\algorithm_parameters.json",
+  "acquisition_calibration_source": null,
+  "generator_calibration": {
+    "amplitude_gain": 1.0240118006619552,
+    "offset_gain": 1.0107850006140022,
+    "offset_bias_v": 0.005562145476574409,
+    "offset_origin_v": 1.65,
+    "offset_span_v": 0.06600000000000006
+  }
+}

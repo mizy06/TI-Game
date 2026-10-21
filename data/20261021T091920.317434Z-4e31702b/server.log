@@ -1,0 +1,61 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T091920.317434Z-4e31702b
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RS at 2026-10-21T09:12:08.437898+00:00
+RO: resuming 74/296 completed cases from C:\Users\L\workspace_ccstheia\TI-game\data\20261021T080936.037908Z-075cbd38\ro-1792570192217131900
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO 75/296 final_weak-0038: uploading and verifying waveform
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+RO 75/296 final_weak-0038: R frames disagreed; reacquiring batch (1/2)
+RO 75/296 final_weak-0038: PASS
+RO 76/296 final_strong-0038: uploading and verifying waveform
+RO 76/296 final_strong-0038: FAIL (vpp_error_pct)
+RO 77/296 final_weak-0039: uploading and verifying waveform
+RO 77/296 final_weak-0039: PASS
+RO 78/296 final_strong-0039: uploading and verifying waveform
+RO 78/296 final_strong-0039: PASS
+RO 79/296 final_weak-0040: uploading and verifying waveform
+RO 79/296 final_weak-0040: PASS
+RO 80/296 final_strong-0040: uploading and verifying waveform
+RO 80/296 final_strong-0040: PASS
+RO 81/296 final_weak-0041: uploading and verifying waveform
+RO 81/296 final_weak-0041: PASS
+RO 82/296 final_strong-0041: uploading and verifying waveform
+RO 82/296 final_strong-0041: PASS
+RO 83/296 final_weak-0042: uploading and verifying waveform
+RO 83/296 final_weak-0042: PASS
+RO 84/296 final_strong-0042: uploading and verifying waveform
+RO 84/296 final_strong-0042: PASS
+RO 85/296 final_weak-0043: uploading and verifying waveform
+RO 85/296 final_weak-0043: PASS
+RO 86/296 final_strong-0043: uploading and verifying waveform
+RO 86/296 final_strong-0043: PASS
+RO 87/296 final_weak-0044: uploading and verifying waveform
+RO 87/296 final_weak-0044: PASS
+RO 88/296 final_strong-0044: uploading and verifying waveform
+RO 88/296 final_strong-0044: PASS
+RO 89/296 final_weak-0045: uploading and verifying waveform
+RO 89/296 final_weak-0045: PASS
+RO 90/296 final_strong-0045: uploading and verifying waveform
+RO 90/296 final_strong-0045: PASS
+RO 91/296 final_weak-0046: uploading and verifying waveform
+RO 91/296 final_weak-0046: PASS
+RO 92/296 final_strong-0046: uploading and verifying waveform
+RO 92/296 final_strong-0046: PASS
+RO 93/296 final_weak-0047: uploading and verifying waveform
+RO 93/296 final_weak-0047: PASS
+RO 94/296 final_strong-0047: uploading and verifying waveform
+RO 94/296 final_strong-0047: PASS
+RO 95/296 final_weak-0048: uploading and verifying waveform
+RO 95/296 final_weak-0048: PASS
+RO 96/296 final_strong-0048: uploading and verifying waveform
+RO 96/296 final_strong-0048: PASS
+RO 97/296 final_weak-0049: uploading and verifying waveform
+RO 97/296 final_weak-0049: PASS
+RO 98/296 final_strong-0049: uploading and verifying waveform
+RO 98/296 final_strong-0049: R frames disagreed; reacquiring batch (1/2)
+RO 98/296 final_strong-0049: R frames disagreed; reacquiring batch (2/2)
+RO: {'completed': 97, 'passed': 96, 'failed': 1}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T080936.037908Z-075cbd38\ro-1792570192217131900\summary.json
+server: waveform classification changed between R blocks; no RESULT emitted

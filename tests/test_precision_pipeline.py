@@ -7,7 +7,7 @@ from unittest.mock import patch
 import numpy as np
 from tools import host_waveform as host
 from tools.acquisition_calibration import AcquisitionCalibration,signature
-from tools.precision_batch import measure_batch
+from tools.precision_batch import _reconcile_joint_vpp, measure_batch
 from tools.capture_store import CaptureStore
 from tools.self_test import Case,generate
 from tools.waveform_server import Engine,SerialService
@@ -19,6 +19,18 @@ class PrecisionPipelineTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.api=host.load_api(str(host.ROOT/host.LIBRARY_NAME))
+
+    def test_joint_vpp_requires_consensus_with_independent_frames(self):
+        frames = [1.0, 1.0001, 1.0002]
+        selected, info = _reconcile_joint_vpp(frames, 1.001)
+        self.assertFalse(info['accepted'])
+        self.assertEqual(info['selected_method'], 'independent_frame_median')
+        self.assertAlmostEqual(selected, 1.0001)
+
+        selected, info = _reconcile_joint_vpp(frames, 1.0003)
+        self.assertTrue(info['accepted'])
+        self.assertEqual(info['selected_method'], 'joint_frame_fit')
+        self.assertEqual(selected, 1.0003)
 
     def test_unknown_fractional_frequency_and_unequal_square_edges(self):
         for wave in ['sine','triangle','sawtooth','square']:

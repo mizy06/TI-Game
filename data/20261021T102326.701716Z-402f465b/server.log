@@ -1,0 +1,7 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T102326.701716Z-402f465b
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RS at 2026-10-21T10:07:06.286478+00:00
+R = external measurement; RT = host self-test; RO = 296-case finals matrix; RS = calibration only; Q = quit
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RS: {}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T102326.701716Z-402f465b\rs-1792578219303334100\summary.json
+server: RO connect; command=VISA resource USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR; VI_ERROR_RSRC_NFOUND (-1073807343): Insufficient location information or the requested device or resource is not present in the system.

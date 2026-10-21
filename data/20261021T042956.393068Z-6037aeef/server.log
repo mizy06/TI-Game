@@ -1,0 +1,48 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T042956.393068Z-6037aeef
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-17T09:55:27.253641+00:00
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO: checking board metadata and calibrating the ADC with independent references
+RO calibration 1/8: dc 0 Hz, offset 0.495 V
+RO calibration 2/8: dc 0 Hz, offset 1.65 V
+RO calibration 3/8: dc 0 Hz, offset 2.805 V
+RO calibration 4/8: sine 100 Hz, offset 1.65 V
+RO calibration 5/8: sine 400 Hz, offset 1.65 V
+RO calibration 6/8: dc 0 Hz, offset 0.99 V
+RO calibration 7/8: dc 0 Hz, offset 2.31 V
+RO calibration 8/8: sine 250 Hz, offset 1.65 V
+RO calibration OK: sample rate 19999.373 Hz, ADC scale 1.0021864, offset -12.0783 counts
+RO calibration saved for R: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+RO dynamic ADC reference 1/9: DC=0.4, Vpp=0.72
+RO dynamic ADC reference 2/9: DC=0.72, Vpp=0.72
+RO dynamic ADC reference 3/9: DC=1.04, Vpp=0.72
+RO dynamic ADC reference 4/9: DC=1.36, Vpp=0.72
+RO dynamic ADC reference 5/9: DC=1.68, Vpp=0.72
+RO dynamic ADC reference 6/9: DC=2, Vpp=0.72
+RO dynamic ADC reference 7/9: DC=2.32, Vpp=0.72
+RO dynamic ADC reference 8/9: DC=2.64, Vpp=0.72
+RO dynamic ADC reference 9/9: DC=2.9, Vpp=0.72
+RO: checking independent ARB voltage references
+RO ARB calibration 1/8: fit dc, expected DC 0.494995 V, AMP 3.3 V, OFST 1.65 V
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+RO ARB calibration 2/8: fit dc, expected DC 1.65 V, AMP 3.3 V, OFST 1.65 V
+RO ARB calibration 3/8: fit dc, expected DC 2.80501 V, AMP 3.3 V, OFST 1.65 V
+RO ARB calibration 4/8: fit dc, expected DC 1.584 V, AMP 3.3 V, OFST 1.584 V
+RO ARB calibration 5/8: fit dc, expected DC 1.716 V, AMP 3.3 V, OFST 1.716 V
+RO ARB calibration 6/8: check dc, expected DC 0.98999 V, AMP 3.22262 V, OFST 1.62689 V
+RO ARB calibration 7/8: check dc, expected DC 2.31001 V, AMP 3.22262 V, OFST 1.62689 V
+RO ARB calibration 8/8: check sine, expected DC 1.65 V, AMP 3.22262 V, OFST 1.62689 V
+RO ARB calibration OK: amplitude gain 1.0240118, offset gain 1.010785, offset bias 0.00556215 V
+RO dynamic ARB reference 1/9: DC=0.4, Vpp=0.72
+RO dynamic ARB reference 2/9: DC=0.72, Vpp=0.72
+RO dynamic ARB reference 3/9: DC=1.04, Vpp=0.72
+RO dynamic ARB reference 4/9: DC=1.36, Vpp=0.72
+RO dynamic ARB reference 5/9: DC=1.68, Vpp=0.72
+RO dynamic ARB reference 6/9: DC=2, Vpp=0.72
+RO dynamic ARB reference 7/9: DC=2.32, Vpp=0.72
+RO dynamic ARB reference 8/9: DC=2.64, Vpp=0.72
+RO dynamic ARB reference 9/9: DC=2.9, Vpp=0.72
+RS: {}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T042956.393068Z-6037aeef\rs-1792557005506825600\summary.json

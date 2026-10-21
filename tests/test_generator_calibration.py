@@ -3,6 +3,7 @@ import io
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -25,6 +26,7 @@ class PlaybackTests(unittest.TestCase):
 
     def options(self, instrument):
         return parser().parse_args(["RO", "--ro-host", "127.0.0.1", "--ro-port", str(instrument.port),
+            "--ro-transport", "vxi11",
             "--ro-settle", "0", "--case-id", "competition-000001", "--case-id", "competition-000002",
             "--case-id", "competition-000008", "--case-id", "competition-000051", "--case-id", "competition-000101",
             "--case-id", "competition-000151"])
@@ -130,6 +132,43 @@ class PlaybackTests(unittest.TestCase):
                 fit_playback([{**item, "payload": payload} for item in observations], 3.3)
         with self.assertRaisesRegex(ValueError, "DC check failed"):
             verify_playback(np.full(4096, 2048, dtype="<u2").tobytes(), META, {"wave": "dc", "dc_v": .99})
+
+    def test_playback_checks_use_exact_affine_adc_calibration(self):
+        meta = replace(META, adc_scale=1.016, adc_offset_counts=-33.)
+        expected = {"wave": "dc", "dc_v": 2.31}
+        code = round(expected["dc_v"] / 3.3 * 4095 * meta.adc_scale + meta.adc_offset_counts)
+        payload = np.full(4096, code, dtype="<u2").tobytes()
+        result = verify_playback(payload, meta, expected)
+        self.assertLess(result["dc_error_v"], .0005)
+        with self.assertRaisesRegex(ValueError, "DC check failed"):
+            verify_playback(payload, META, expected)
+
+    def test_playback_checks_use_nonlinear_adc_transfer_without_relaxing_limits(self):
+        codes = np.linspace(0, 4095, 65)
+        volts = 3.3 * codes / 4095 - .012 * np.sin(np.pi * codes / 4095) ** 2
+        transfer = {"codes": codes.tolist(), "volts": volts.tolist()}
+        meta = replace(META, vpp_transfer=transfer)
+        for wave in ("dc", "sine"):
+            with self.subTest(wave=wave):
+                voltage = np.full(4096, 2.31)
+                if wave == "sine":
+                    voltage += .36 * np.sin(2 * np.pi * 250 * np.arange(4096) / 20000)
+                payload = np.rint(np.interp(voltage, volts, codes)).astype("<u2").tobytes()
+                expected = {"wave": wave, "dc_v": 2.31, "vpp_v": .72, "frequency_hz": 250.}
+                result = verify_playback(payload, meta, expected)
+                self.assertLess(result["dc_error_v"], .001)
+                if wave == "sine":
+                    self.assertLess(result["ac_amplitude_error_v"], .001)
+                    with self.assertRaisesRegex(ValueError, "frequency/amplitude check failed"):
+                        verify_playback(payload, meta, {**expected, "vpp_v": .80})
+                with self.assertRaisesRegex(ValueError, "DC check failed"):
+                    verify_playback(payload, META, expected)
+                with self.assertRaisesRegex(ValueError, "DC check failed"):
+                    verify_playback(payload, meta, {**expected, "dc_v": 2.32})
+        clipped = np.full(4096, round(2.31 / 3.3 * 4095), dtype="<u2")
+        clipped[0] = 4095
+        with self.assertRaisesRegex(ValueError, "clipped"):
+            verify_playback(clipped.tobytes(), meta, {"wave": "dc", "dc_v": 2.31})
 
     def test_range_dependent_offset_is_fitted_locally_and_compensation_is_independently_verified(self):
         # Measured hardware pattern: the distant OFST midpoint is about 28.8 mV

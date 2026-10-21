@@ -1711,6 +1711,136 @@ def _bandlimited_refine(y, t, fit, step, fs, amin, amax, check_time, source, max
 
 
 
+def _square_duty_spectral_refine(y: np.ndarray, t: np.ndarray, fit: dict, step: float, fs: float, check_time) -> tuple[dict, dict]:
+    """Refine sharp square edges using harmonics above detected interference."""
+    info = dict(attempted=False, accepted=False, reason="not_applicable")
+    if fit["kind"] != 1 or fit["order"] != 0 or fit.get("observation_valid") is not None:
+        return fit, info
+
+    q = fit["q"].copy()
+    f, phase, duty, rise, fall = map(float, q)
+    n = len(y)
+    if f <= 0.0 or f * (t[-1] - t[0]) < 12.0:
+        return fit, dict(info, reason="insufficient_cycles")
+    if float(np.std(fit["residual"])) <= max(2.0 * step, 1e-6):
+        return fit, dict(info, reason="noise_below_quantization")
+    if max(rise, fall) / (f * (t[1] - t[0])) >= 1.5:
+        return fit, dict(info, reason="edges_already_resolved")
+
+    binwidth = fs / n
+    window = blackmanharris(n, sym=False)
+    source = shape(1, f * t + phase, duty, rise, fall)
+    residual = y - float(fit["a"]) * source
+    residual -= float(np.mean(residual))
+    power = abs(np.fft.rfft(residual * window)) ** 2
+    frequencies = np.fft.rfftfreq(n, 1.0 / fs)
+    harmonics = np.arange(1, 65, dtype=float)[:, None]
+    aliases = np.abs((harmonics * f + fs / 2.0) % fs - fs / 2.0)
+    distance = np.min(np.abs(frequencies[None, :] - aliases), axis=0)
+    usable = (distance > 4.5 * binwidth) & (frequencies > 4.0 * binwidth)
+    floor = max(step ** 2 / 12.0 * float(window @ window),
+                float(np.median(power[frequencies > 0.85 * fs / 2.0])) / math.log(2.0),
+                1e-24)
+    max_usable = float(np.max(power[usable])) if np.any(usable) else 0.0
+    active = usable & (power > max(20.0 * floor, float(np.max(power)) * 1e-7, max_usable * 1.5e-4))
+    if np.count_nonzero(active) < 6:
+        return fit, dict(info, reason="no_separated_noise_band")
+
+    cutoff = float(math.ceil(float(frequencies[active].max()) / f) * f + 5.0 * binwidth)
+    if cutoff > 0.88 * fs / 2.0:
+        return fit, dict(info, reason="no_clean_high_band")
+    high_band = frequencies >= cutoff
+    if np.count_nonzero(usable & high_band) < 20:
+        return fit, dict(info, reason="insufficient_high_band_validation")
+    observed_spectrum = np.fft.rfft(y)[high_band] / math.sqrt(n)
+    duty_low, duty_high = float(fit["low"][2]), float(fit["high"][2])
+    phase_span, fall_span = 0.005, 0.01
+    resolution = max(2e-6, 0.25 / n)
+    initial_duty = duty
+
+    def loss(candidate_phase, candidate_duty):
+        if (candidate_duty < duty_low or candidate_duty > duty_high or
+                0.5 * (rise + fall) > min(candidate_duty, 1.0 - candidate_duty) + 1e-12):
+            return math.inf
+        candidate_source = shape(1, f * t + candidate_phase, candidate_duty, rise, fall)
+        template = np.fft.rfft(candidate_source)[high_band] / math.sqrt(n)
+        energy = float(np.vdot(template, template).real)
+        if energy <= 1e-18:
+            return math.inf
+        amplitude = float(np.vdot(template, observed_spectrum).real / energy)
+        if amplitude * float(fit["a"]) <= 0.0:
+            return math.inf
+        error = amplitude * template - observed_spectrum
+        return float(np.vdot(error, error).real)
+
+    initial_loss = loss(phase, duty)
+    best_loss = initial_loss
+    phase_span_hit = False
+    fall_span_hit = False
+    for _ in range(2):
+        falling_edge = phase + duty
+        phase_values = np.arange(phase - phase_span, phase + phase_span + 0.5 * resolution, resolution)
+        phase_values = np.append(phase_values, phase)
+        phase_best = (best_loss, phase, duty)
+        for index, candidate_phase in enumerate(phase_values):
+            if index % 64 == 0:
+                check_time()
+            candidate_duty = falling_edge - float(candidate_phase)
+            candidate_loss = loss(float(candidate_phase), candidate_duty)
+            if candidate_loss < phase_best[0]:
+                phase_best = (candidate_loss, float(candidate_phase), candidate_duty)
+        best_loss, phase, duty = phase_best
+
+        rising_edge = phase
+        falling_edge = phase + duty
+        falling_values = np.arange(falling_edge - fall_span,
+                                   falling_edge + fall_span + 0.5 * resolution, resolution)
+        falling_values = np.append(falling_values, falling_edge)
+        falling_best = (best_loss, phase, duty)
+        for index, candidate_fall in enumerate(falling_values):
+            if index % 64 == 0:
+                check_time()
+            candidate_duty = float(candidate_fall) - rising_edge
+            candidate_loss = loss(phase, candidate_duty)
+            if candidate_loss < falling_best[0]:
+                falling_best = (candidate_loss, phase, candidate_duty)
+        best_loss, phase, duty = falling_best
+        phase_span_hit = abs(phase - (q[1] - phase_span)) < resolution or abs(phase - (q[1] + phase_span)) < resolution
+        fall_span_hit = abs((phase + duty) - (q[1] + q[2] - fall_span)) < resolution or abs((phase + duty) - (q[1] + q[2] + fall_span)) < resolution
+
+    improvement = initial_loss - best_loss
+    if not math.isfinite(best_loss) or improvement <= max(1e-12, 1e-8 * initial_loss):
+        return fit, dict(info, attempted=True, reason="no_high_band_improvement", initial_duty_fraction=initial_duty)
+    if phase_span_hit or fall_span_hit:
+        return fit, dict(info, attempted=True, reason="search_boundary", initial_duty_fraction=initial_duty)
+
+    refined_source = shape(1, f * t + phase, duty, rise, fall)
+    refined_spectrum = np.fft.rfft(refined_source)[high_band] / math.sqrt(n)
+    refined_energy = float(np.vdot(refined_spectrum, refined_spectrum).real)
+    if refined_energy <= 1e-18:
+        return fit, dict(info, attempted=True, reason="unobservable_high_band")
+    refined_amplitude = float(np.vdot(refined_spectrum, observed_spectrum).real / refined_energy)
+    high_residual = y - refined_amplitude * refined_source
+    high_residual -= float(np.mean(high_residual))
+    validation = np.abs(np.fft.rfft(high_residual))[usable & high_band] / math.sqrt(n)
+    validation_rms = float(np.sqrt(np.mean(validation ** 2)))
+    validation_limit = max(2.0 * step, 0.006 * abs(refined_amplitude), 1e-6)
+    if validation_rms > validation_limit:
+        return fit, dict(info, attempted=True, reason="high_band_noise_validation",
+                         high_band_noise_rms=validation_rms, high_band_noise_limit=validation_limit)
+
+    q[1], q[2] = phase, duty
+    B, _ = _nuisance(f, t, fit["order"], 1)
+    updated = dict(fit, q=q, residual=float(fit["a"]) * refined_source + B @ fit["cb"] - y)
+    return updated, dict(
+        attempted=True, accepted=True, reason="quiet_high_band_edge_grid",
+        cutoff_hz=cutoff, high_band_noise_rms=validation_rms,
+        high_band_noise_limit=validation_limit,
+        initial_duty_fraction=initial_duty, duty_fraction=duty,
+        phase_adjustment_cycles=float(phase - float(fit["q"][1])),
+        objective_improvement=float(improvement), resolution_cycles=resolution)
+
+
 def _square_plateau_integral_refine(y: np.ndarray, t: np.ndarray, fit: dict, fs: float, amin: float, amax: float) -> dict:
     """Recover hardware square-wave amplitude and duty from interior plateaus and cycle integral."""
     if fit["kind"] != 1 or fit["order"] != 0:
@@ -2449,6 +2579,11 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
                     best = cand_sq
         check_time()
 
+    duty_refinement = dict(attempted=False, accepted=False, reason="not_square")
+    if best["kind"] == 1:
+        best, duty_refinement = _square_duty_spectral_refine(y, t, best, step, fs, check_time)
+        check_time()
+
     kind, q, a, cb = best["kind"], best["q"], best["a"], best["cb"]
     dc = float(cb[0])
     if kind == 1 and a < 0:
@@ -2509,6 +2644,7 @@ def estimate(samples, sample_rate_hz, config=None, *, quantization_step=0.):
         sine_carrier_includes_unknown_coherent_fundamental=kind == 0,
         edge_identifiable=bool(kind != 1 or (min(q[3:]) * fs / q[0] >= 2 and not best.get("edge_timing_uncertainty_samples"))),
         edge_timing_uncertainty_samples=best.get("edge_timing_uncertainty_samples", 0.),
+        square_duty_refinement=duty_refinement,
         square_rise_fraction=float(q[3]) if kind == 1 else 0.,
         square_fall_fraction=float(q[4]) if kind == 1 else 0.,
         phase_interval_cycles=phase_interval,

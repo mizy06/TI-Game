@@ -1,0 +1,2 @@
+{"utc": "2026-10-21T11:29:34.903001+00:00", "event": "rx_buffer_configured", "request": 0, "received_bytes": 0, "bytes": 65536}
+{"utc": "2026-10-21T11:29:34.912688+00:00", "event": "opened", "request": 0, "received_bytes": 0, "port": "COM15"}

@@ -107,12 +107,23 @@ def fit_playback(observations, full_scale_v):
                      "design_condition_number": cond}
 
 
+def playback_voltages(raw, meta):
+    """Use the same unrounded ADC voltage conversion for fitting and checks."""
+    if getattr(meta, "vpp_transfer", None) is not None:
+        from tools.amplitude_calibration import voltage_values
+        return voltage_values(raw, meta.vpp_transfer)
+    scale = meta.reference_microvolts / (meta.gain_ppm * 4095)
+    return ((raw - getattr(meta, "adc_offset_counts", 0.)) /
+            getattr(meta, "adc_scale", 1.)) * scale
+
+
 def verify_playback(payload, meta, expected):
     raw = counts(payload)
     if np.any((raw <= 0) | (raw >= 4095)):
         raise ValueError("independent ARB check is clipped")
     scale = meta.reference_microvolts / (meta.gain_ppm * 4095)
-    dc_error = abs(float(raw.mean()) * scale - expected["dc_v"])
+    volts = playback_voltages(raw, meta)
+    dc_error = abs(float(volts.mean()) - expected["dc_v"])
     if dc_error > max(.005, .002 * scale * 4095):
         raise ValueError("independent ARB DC check failed")
     result = {"reference": expected, "dc_error_v": dc_error}
@@ -125,8 +136,8 @@ def verify_playback(payload, meta, expected):
                  else meta.sample_rate_millihz / 1000)
         frequency = fs_hz / period
         error = abs(frequency / expected["frequency_hz"] - 1)
-        span = float(np.percentile(raw, 99) - np.percentile(raw, 1)) * scale
-        exact_vpp = sine_harmonic_vpp_counts(raw, period) * scale
+        span = float(np.percentile(volts, 99) - np.percentile(volts, 1))
+        exact_vpp = sine_harmonic_vpp_counts(volts, period)
         if error > .0015 or not math.isclose(span, expected["vpp_v"], rel_tol=.04):
             raise ValueError("independent ARB frequency/amplitude check failed")
         result.update(frequency_error_fraction=error, amplitude_v=span,

@@ -1,0 +1,24 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T065335.196639Z-84793fc2
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-21T06:52:34.146228+00:00
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO 1/220 final_weak-0039: uploading and verifying waveform
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+开始测试
+RO 1/220 final_weak-0039: PASS
+RO 2/220 final_strong-0039: uploading and verifying waveform
+RO 2/220 final_strong-0039: PASS
+RO 3/220 final_weak-0040: uploading and verifying waveform
+RO 3/220 final_weak-0040: PASS
+RO 4/220 final_strong-0040: uploading and verifying waveform
+RO 4/220 final_strong-0040: PASS
+RO 5/220 final_weak-0041: uploading and verifying waveform
+RO 5/220 final_weak-0041: PASS
+RO 6/220 final_strong-0041: uploading and verifying waveform
+RO 6/220 final_strong-0041: PASS
+RO 7/220 final_weak-0042: uploading and verifying waveform
+RO 7/220 final_weak-0042: FAIL (vpp_error_pct)
+RO 8/220 final_strong-0042: uploading and verifying waveform

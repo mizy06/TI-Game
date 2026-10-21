@@ -1,0 +1,12 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T065228.294495Z-eb879b44
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-21T06:34:46.698847+00:00
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO 1/1 final_strong-0038: uploading and verifying waveform
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+开始测试
+RO 1/1 final_strong-0038: PASS
+RO: {'completed': 1, 'passed': 1}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T065228.294495Z-eb879b44\ro-1792565553791073400\summary.json

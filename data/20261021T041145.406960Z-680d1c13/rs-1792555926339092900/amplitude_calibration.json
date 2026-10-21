@@ -1,0 +1,259 @@
+{
+  "complete": false,
+  "references_independent_of_matrix": true,
+  "observations": [
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35610676226479,
+      "capture": "uart/000010"
+    },
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3557222744537,
+      "capture": "uart/000011"
+    },
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35592564557541,
+      "capture": "uart/000012"
+    },
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35589190076077,
+      "capture": "uart/000013"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35602060073526,
+      "capture": "uart/000014"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3559306656792,
+      "capture": "uart/000015"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35583927112818,
+      "capture": "uart/000016"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35596106782161,
+      "capture": "uart/000017"
+    },
+    {
+      "offset_v": 1.04,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35581410865647,
+      "capture": "uart/000018"
+    },
+    {
+      "offset_v": 1.04,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35591888452082,
+      "capture": "uart/000019"
+    },
+    {
+      "offset_v": 1.04,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3556817304476,
+      "capture": "uart/000020"
+    },
+    {
+      "offset_v": 1.04,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35589028699603,
+      "capture": "uart/000021"
+    },
+    {
+      "offset_v": 1.36,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35583690884471,
+      "capture": "uart/000022"
+    },
+    {
+      "offset_v": 1.36,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35578817260847,
+      "capture": "uart/000023"
+    },
+    {
+      "offset_v": 1.36,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35603930238878,
+      "capture": "uart/000024"
+    },
+    {
+      "offset_v": 1.36,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35625711934945,
+      "capture": "uart/000025"
+    },
+    {
+      "offset_v": 1.68,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35639043801511,
+      "capture": "uart/000026"
+    },
+    {
+      "offset_v": 1.68,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3558724311865,
+      "capture": "uart/000027"
+    },
+    {
+      "offset_v": 1.68,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35635944293087,
+      "capture": "uart/000028"
+    },
+    {
+      "offset_v": 1.68,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35614926753944,
+      "capture": "uart/000029"
+    },
+    {
+      "offset_v": 2.0,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35588409649145,
+      "capture": "uart/000030"
+    },
+    {
+      "offset_v": 2.0,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35636018392393,
+      "capture": "uart/000031"
+    },
+    {
+      "offset_v": 2.0,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35600407873626,
+      "capture": "uart/000032"
+    },
+    {
+      "offset_v": 2.0,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3560648199371,
+      "capture": "uart/000033"
+    },
+    {
+      "offset_v": 2.32,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35588625893654,
+      "capture": "uart/000034"
+    },
+    {
+      "offset_v": 2.32,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3559595989628,
+      "capture": "uart/000035"
+    },
+    {
+      "offset_v": 2.32,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35579518531058,
+      "capture": "uart/000036"
+    },
+    {
+      "offset_v": 2.32,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35599084751938,
+      "capture": "uart/000037"
+    },
+    {
+      "offset_v": 2.64,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35590348213955,
+      "capture": "uart/000038"
+    },
+    {
+      "offset_v": 2.64,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35607034447422,
+      "capture": "uart/000039"
+    },
+    {
+      "offset_v": 2.64,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35600778450011,
+      "capture": "uart/000040"
+    },
+    {
+      "offset_v": 2.64,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3556623619282,
+      "capture": "uart/000041"
+    },
+    {
+      "offset_v": 2.9,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35580722492467,
+      "capture": "uart/000042"
+    },
+    {
+      "offset_v": 2.9,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35587585810981,
+      "capture": "uart/000043"
+    },
+    {
+      "offset_v": 2.9,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35594425676648,
+      "capture": "uart/000044"
+    },
+    {
+      "offset_v": 2.9,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35592324487612,
+      "capture": "uart/000045"
+    }
+  ],
+  "error": "RuntimeError: RO configure calibration reference; command=C1:OUTP OFF; VI_ERROR_SYSTEM_ERROR (-1073807360): Unknown system error (miscellaneous error)."
+}

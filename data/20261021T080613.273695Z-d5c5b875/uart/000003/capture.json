@@ -1,0 +1,328 @@
+{
+  "schema": 1,
+  "source": "uart",
+  "context": {
+    "raw_header": "DUMP,proto=3,bytes=16384,fnv1a=3730312360,seq=590,fs_millihz=20000000,vref_uv=3300000,gain_ppm=1000000,adc_max=4095,flags=1"
+  },
+  "created_utc": "2026-10-21T08:06:35.873612+00:00",
+  "validation": "valid",
+  "payload_bytes": 16384,
+  "payload_file": "samples.adc.bin",
+  "encoding": "<u2",
+  "metadata": {
+    "sequence": 590,
+    "sample_rate_millihz": 20000000,
+    "reference_microvolts": 3300000,
+    "gain_ppm": 1000000,
+    "adc_full_scale": 4095,
+    "flags": 1,
+    "checksum": 3730312360,
+    "sample_rate_hz_exact": null,
+    "adc_scale": 1.0,
+    "adc_offset_counts": 0.0,
+    "payload_bytes": 16384,
+    "protocol_version": 3,
+    "vpp_transfer": null
+  },
+  "calculated_fnv1a": 3730312360,
+  "sample_count": 8192,
+  "request_to_received_s": 1.8905747000007977,
+  "batch_member": 3,
+  "display_output": "RESULT,square,400.047076685,1.451325461,75.4086159",
+  "output": "square,400.044564469,1.451374877,75.3280198,1.432955133",
+  "algorithm": {
+    "type": 1,
+    "status": 0,
+    "frequency_millihz": 400045,
+    "vpp_millivolts": 1451,
+    "duty_permille": 753,
+    "confidence_permille": 0,
+    "best_score_permille": 0,
+    "second_score_permille": 0,
+    "accepted_cycles": 163,
+    "high_clip_samples": 0,
+    "dc_offset_counts": 1778,
+    "low_clip_samples": 0,
+    "invalid_samples": 0,
+    "algorithm_version": 524288,
+    "sequence": 590,
+    "vpp_microvolts": 1451375,
+    "duty_ppm": 753280,
+    "period_q16_samples": 3276435,
+    "vpp_counts_q16": 118031927,
+    "quality_flags": 3,
+    "model_margin_permille": 0,
+    "ok": true,
+    "host_pipeline_version": "8.0.0",
+    "classification_sample_count": 8192,
+    "measurement_sample_count": 8192,
+    "frequency_hz": 400.0445644692203,
+    "vpp_v": 1.4513748767794283,
+    "duty_fraction": 0.7532801981214059,
+    "dc_offset_v": 1.4329551329118166,
+    "raw_high_rail_samples": 0,
+    "raw_low_rail_samples": 0,
+    "unified_solver": {
+      "method": "joint_morphology_nuisance_band_quantization",
+      "solver_version": "8.3.3",
+      "background_sigma": 3.1754354751321485,
+      "fitted_background_sigma": 2.4426472139776187,
+      "background_sigma_is_measurement_bound": false,
+      "measured_background_model": true,
+      "gain_regularization": {
+        "accepted": false
+      },
+      "selection_method": "bic",
+      "model_nuisance_evidence": {},
+      "triangle_aperture_samples": 0.0,
+      "reset_timing_uncertainty_samples": 0.0,
+      "observation_valid_fraction": 1.0,
+      "deadline_policy": "cooperative_wall_clock_no_cpu_extension",
+      "seeds_hz": [
+        400.08544921875,
+        200.042724609375
+      ],
+      "refined_starts_hz": [
+        400.03224120659064,
+        200.01611122320844
+      ],
+      "candidates": 2,
+      "nuisance_order": 0,
+      "nuisance_orders": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        10
+      ],
+      "configured_base_orders": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        10
+      ],
+      "coherent_extra_orders": [
+        15,
+        18,
+        20,
+        25
+      ],
+      "nuisance_assumption": "Interference on signal harmonics; other noise remains in residual.",
+      "noise_envelope_limit": 0.55,
+      "observed_noise_ratio": 1.3535624109692534,
+      "residual_rms": 60.225481877713776,
+      "normalized_residual_rms": 0.07742286068177553,
+      "converged": true,
+      "evaluations": 60,
+      "source_innovation_fraction": 0.4094262335280031,
+      "source_amplitude_identifiable_under_nuisance_prior": true,
+      "sine_carrier_includes_unknown_coherent_fundamental": false,
+      "edge_identifiable": false,
+      "edge_timing_uncertainty_samples": 0.0,
+      "square_rise_fraction": 0.0020457014807810222,
+      "square_fall_fraction": 0.0017517856777062484,
+      "phase_interval_cycles": null,
+      "quantization": {
+        "attempted": false,
+        "accepted": false,
+        "all_samples_in_bins": false
+      },
+      "band_exclusion": {
+        "attempted": false,
+        "accepted": false,
+        "reason": "unverified_observation_model_or_budget"
+      },
+      "residual_rms_interpretation": "Residual after joint finite-harmonic nuisance fit.",
+      "before_quantization": {
+        "frequency_hz": 400.0445644692203,
+        "vpp": 1800.846105226942
+      },
+      "model_bic": {
+        "square": -50465.52489644104
+      },
+      "model_margin_bic": 0.0,
+      "accuracy_1ppm_certified": false,
+      "uncertainty_note": "Neither MDL score nor local bin consistency bounds coherent noise, clock, gain, INL or model error.",
+      "elapsed_s": 2.65267330000097
+    },
+    "vpp_quality": {
+      "input_mode": "single_channel",
+      "meaning": "source_amplitude_under_unverified_nuisance_model",
+      "independent_reference_used": false,
+      "absolute_accuracy_verified": false,
+      "accuracy_0p1_percent_certified": false
+    }
+  },
+  "algorithm_elapsed_s": 2.6553614999993442,
+  "r_batch": {
+    "frames": 3,
+    "output": "square,400.047076685,1.451325461,75.4086159,1.433679419",
+    "display_output": "RESULT,square,400.047076685,1.451325461,75.4086159",
+    "method": "mean of independently fitted stationary blocks; gaps not concatenated",
+    "measured": {
+      "frequency_hz": 400.04707668549173,
+      "vpp_v": 1.451325461466009,
+      "duty_fraction": 0.7540861594700541,
+      "dc_offset_v": 1.433679419314528
+    },
+    "vpp_joint_fit": null,
+    "block_standard_deviation": {
+      "frequency_hz": 0.002675574399199481,
+      "vpp_v": 0.00016806250047015725,
+      "duty_fraction": 0.0033267352807948777,
+      "dc_offset_v": 0.0006352633401641248
+    },
+    "absolute_accuracy_verified": false,
+    "note": "Block scatter excludes calibration, model bias and coherent replay noise.",
+    "captures": [
+      "uart\\000001",
+      "uart\\000002",
+      "uart\\000003"
+    ],
+    "algorithm_elapsed_s": 2.6564991000013833,
+    "algorithm_work_s": 7.381353000000672,
+    "analysis_execution": "parallel_processes",
+    "analysis_workers": 3,
+    "elapsed_s": 8.354618600000322
+  },
+  "batch_output": "square,400.047076685,1.451325461,75.4086159,1.433679419",
+  "batch_algorithm": {
+    "type": 1,
+    "status": 0,
+    "frequency_millihz": 400047,
+    "vpp_millivolts": 1451,
+    "duty_permille": 753,
+    "confidence_permille": 0,
+    "best_score_permille": 0,
+    "second_score_permille": 0,
+    "accepted_cycles": 163,
+    "high_clip_samples": 0,
+    "dc_offset_counts": 1778,
+    "low_clip_samples": 0,
+    "invalid_samples": 0,
+    "algorithm_version": 524288,
+    "sequence": 590,
+    "vpp_microvolts": 1451325,
+    "duty_ppm": 754086,
+    "period_q16_samples": 3276435,
+    "vpp_counts_q16": 118031927,
+    "quality_flags": 3,
+    "model_margin_permille": 0,
+    "ok": true,
+    "host_pipeline_version": "8.0.0",
+    "classification_sample_count": 24576,
+    "measurement_sample_count": 24576,
+    "frequency_hz": 400.04707668549173,
+    "vpp_v": 1.451325461466009,
+    "duty_fraction": 0.7540861594700541,
+    "dc_offset_v": 1.433679419314528,
+    "raw_high_rail_samples": 0,
+    "raw_low_rail_samples": 0,
+    "unified_solver": {
+      "method": "joint_morphology_nuisance_band_quantization",
+      "solver_version": "8.3.3",
+      "background_sigma": 3.1754354751321485,
+      "fitted_background_sigma": 2.4426472139776187,
+      "background_sigma_is_measurement_bound": false,
+      "measured_background_model": true,
+      "gain_regularization": {
+        "accepted": false
+      },
+      "selection_method": "bic",
+      "model_nuisance_evidence": {},
+      "triangle_aperture_samples": 0.0,
+      "reset_timing_uncertainty_samples": 0.0,
+      "observation_valid_fraction": 1.0,
+      "deadline_policy": "cooperative_wall_clock_no_cpu_extension",
+      "seeds_hz": [
+        400.08544921875,
+        200.042724609375
+      ],
+      "refined_starts_hz": [
+        400.03224120659064,
+        200.01611122320844
+      ],
+      "candidates": 2,
+      "nuisance_order": 0,
+      "nuisance_orders": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        10
+      ],
+      "configured_base_orders": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        10
+      ],
+      "coherent_extra_orders": [
+        15,
+        18,
+        20,
+        25
+      ],
+      "nuisance_assumption": "Interference on signal harmonics; other noise remains in residual.",
+      "noise_envelope_limit": 0.55,
+      "observed_noise_ratio": 1.3535624109692534,
+      "residual_rms": 60.225481877713776,
+      "normalized_residual_rms": 0.07742286068177553,
+      "converged": true,
+      "evaluations": 60,
+      "source_innovation_fraction": 0.4094262335280031,
+      "source_amplitude_identifiable_under_nuisance_prior": true,
+      "sine_carrier_includes_unknown_coherent_fundamental": false,
+      "edge_identifiable": false,
+      "edge_timing_uncertainty_samples": 0.0,
+      "square_rise_fraction": 0.0020457014807810222,
+      "square_fall_fraction": 0.0017517856777062484,
+      "phase_interval_cycles": null,
+      "quantization": {
+        "attempted": false,
+        "accepted": false,
+        "all_samples_in_bins": false
+      },
+      "band_exclusion": {
+        "attempted": false,
+        "accepted": false,
+        "reason": "unverified_observation_model_or_budget"
+      },
+      "residual_rms_interpretation": "Residual after joint finite-harmonic nuisance fit.",
+      "before_quantization": {
+        "frequency_hz": 400.0445644692203,
+        "vpp": 1800.846105226942
+      },
+      "model_bic": {
+        "square": -50465.52489644104
+      },
+      "model_margin_bic": 0.0,
+      "accuracy_1ppm_certified": false,
+      "uncertainty_note": "Neither MDL score nor local bin consistency bounds coherent noise, clock, gain, INL or model error.",
+      "elapsed_s": 2.65267330000097
+    },
+    "vpp_quality": {
+      "input_mode": "single_channel",
+      "meaning": "source_amplitude_under_unverified_nuisance_model",
+      "independent_reference_used": false,
+      "absolute_accuracy_verified": false,
+      "accuracy_0p1_percent_certified": false
+    },
+    "batch_frames": 3,
+    "batch_captures": [
+      "uart\\000001",
+      "uart\\000002",
+      "uart\\000003"
+    ]
+  }
+}

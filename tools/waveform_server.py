@@ -211,6 +211,7 @@ class SerialService:
         self.parameters_path = Path(parameters_path if parameters_path is not None else
                                     store.path.parent / "algorithm_parameters.json").resolve()
         self.calibration_profile = None
+        self.calibration_profile_override = None
         self.use_saved_calibration = True
         try:
             self.refresh_calibration()
@@ -297,6 +298,9 @@ class SerialService:
         return profile.calibration if self.use_saved_calibration and profile is not None else None
 
     def refresh_calibration(self):
+        if self.calibration_profile_override is not None:
+            self.calibration_profile = self.calibration_profile_override
+            return self.calibration_profile_override
         profile = load_latest_calibration(self.parameters_path)
         if profile != self.calibration_profile:
             self.calibration_profile = profile
@@ -561,6 +565,10 @@ def parser():
     p.add_argument("--ro-oversample",type=int,choices=(1,8,16,32),default=32,
                    help="RO: replay identifiable finals source at a finer time/voltage resolution")
     p.add_argument('--ro-reuse-reference-report',help='RO: reuse archived independent ADC/ARB references')
+    p.add_argument('--ro-resume-from', type=Path,
+                   help='RO: continue an incomplete report directory from its last completed case')
+    p.add_argument('--ro-resume-from-case',
+                   help='RO: explicitly retry from this case ID, archiving later results')
     p.add_argument("--ro-level-mode", choices=("adc", "source"), default="adc",
                    help="RO: map original ADC codes to this board; source keeps original volts if safe")
     p.add_argument("--ro-calibrate", choices=("saved", "auto", "off"), default="saved",
@@ -573,7 +581,7 @@ def parser():
                    help="R total capture/analysis/archive deadline, 0 < value <= 15 s")
     p.add_argument("--solver-fmin", type=float, default=0., help="search lower Hz; 0 uses 4 cycles/frame")
     p.add_argument("--solver-fmax", type=float, default=0., help="search upper Hz; 0 uses fs/12")
-    p.add_argument("--solver-starts", type=int, default=2, help="independent frequency starting points")
+    p.add_argument("--solver-starts", type=int, default=1, help="independent frequency starting points")
     p.add_argument("--solver-seconds", type=float, default=10., help="per-frame solver budget, at most 12 s")
     return p
 
@@ -620,11 +628,13 @@ def run_server(args, store, error_output=None):
         if args.list_matrix:
             from dataclasses import asdict
             from tools.capture_store import atomic_json
+            matrix_revision = None
             if args.command == "RO":
                 from tools.ro_test import select_ro_cases
-                from tools.identifiable_finals import DESIGN_SEED
+                from tools.identifiable_finals import DESIGN_SEED, REVISION
                 cases = select_ro_cases(args)
                 matrix_seed = DESIGN_SEED
+                matrix_revision = REVISION
             else:
                 from tools.self_test import matrix
                 matrix_seed = args.seed
@@ -633,7 +643,9 @@ def run_server(args, store, error_output=None):
                          (not args.case_id or c.id in args.case_id)]
                 if args.max_cases is not None:
                     cases = cases[:args.max_cases]
-            atomic_json(store.path / "matrix.json", {"seed": matrix_seed, "cases": [asdict(c) for c in cases]})
+            atomic_json(store.path / "matrix.json", {"seed": matrix_seed,
+                **({"revision": matrix_revision} if matrix_revision else {}),
+                "cases": [asdict(c) for c in cases]})
             print(f"Matrix: {len(cases)} cases; {store.path/'matrix.json'}", file=sys.stderr)
             return 0
         from tools.unified_solver import SolverConfig

@@ -1,0 +1,31 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T041145.406960Z-680d1c13
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-17T09:55:27.253641+00:00
+R = external measurement; RT = host self-test; RO = 296-case finals matrix; RS = calibration only; Q = quit
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO: checking board metadata and calibrating the ADC with independent references
+RO calibration 1/8: dc 0 Hz, offset 0.495 V
+RO calibration 2/8: dc 0 Hz, offset 1.65 V
+RO calibration 3/8: dc 0 Hz, offset 2.805 V
+RO calibration 4/8: sine 100 Hz, offset 1.65 V
+RO calibration 5/8: sine 400 Hz, offset 1.65 V
+RO calibration 6/8: dc 0 Hz, offset 0.99 V
+RO calibration 7/8: dc 0 Hz, offset 2.31 V
+RO calibration 8/8: sine 250 Hz, offset 1.65 V
+RO calibration OK: sample rate 19999.372 Hz, ADC scale 1.0020566, offset -13.5484 counts
+RO calibration saved for R: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+RO dynamic ADC reference 1/9: DC=0.4, Vpp=0.72
+RO dynamic ADC reference 2/9: DC=0.72, Vpp=0.72
+RO dynamic ADC reference 3/9: DC=1.04, Vpp=0.72
+RO dynamic ADC reference 4/9: DC=1.36, Vpp=0.72
+RO dynamic ADC reference 5/9: DC=1.68, Vpp=0.72
+RO dynamic ADC reference 6/9: DC=2, Vpp=0.72
+RO dynamic ADC reference 7/9: DC=2.32, Vpp=0.72
+RO dynamic ADC reference 8/9: DC=2.64, Vpp=0.72
+RO dynamic ADC reference 9/9: DC=2.9, Vpp=0.72
+RS: {}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T041145.406960Z-680d1c13\rs-1792555926339092900\summary.json
+server: RO configure calibration reference; command=C1:OUTP OFF; VI_ERROR_SYSTEM_ERROR (-1073807360): Unknown system error (miscellaneous error).
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO: {}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T041145.406960Z-680d1c13\ro-1792556083013350100\summary.json
+server: RO identify instrument; command=*IDN?; VI_ERROR_IO (-1073807298): Could not perform operation because of I/O error.
+UART: ClearCommError failed (PermissionError(13, '设备不识别此命令。', None, 22))

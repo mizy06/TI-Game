@@ -1,0 +1,234 @@
+{
+  "rt_metadata": {
+    "sequence": 2920708004,
+    "sample_rate_millihz": 20009778,
+    "reference_microvolts": 3300000,
+    "gain_ppm": 1000000,
+    "adc_full_scale": 4095,
+    "flags": 7,
+    "checksum": 3938598400,
+    "sample_rate_hz_exact": 20009.777524724683,
+    "adc_scale": 1.0,
+    "adc_offset_counts": 0.0,
+    "payload_bytes": 16384,
+    "protocol_version": 3,
+    "vpp_transfer": null
+  },
+  "rt_generated": {
+    "noise_vpp_v": 0.22492446960030563,
+    "noise_mean_v": -1.3552527156068805e-20,
+    "requested_noise_vpp_v": 0.17636008466932543,
+    "noise_upper_hz": 2406.0566334667496,
+    "adc_min": 1294,
+    "adc_max": 3047,
+    "prequantization_clipped_samples": 0,
+    "truth": {
+      "frequency_hz": 305.3249744373273,
+      "vpp_v": 1.2078469752235625,
+      "dc_v": 1.7442045056882904,
+      "duty_pct": 70.09782282246991,
+      "scope": "finals-official-identifiable-v2-296",
+      "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+      "dc_definition": "configured source offset (clean envelope midpoint)"
+    },
+    "noise_identifiability": {
+      "model": "gaussian",
+      "carrier_cycles": 125,
+      "bandwidth_hz": 2406.0566334667496,
+      "active_fourier_bins": 640,
+      "harmonic_guard_ratio": 0.18,
+      "harmonic_guard_hz": 54.95849539871891,
+      "protected_harmonic_bins": 1463,
+      "maximum_protected_coefficient": 2.8268695110104734e-15,
+      "maximum_out_of_band_coefficient": 3.554447978966673e-15,
+      "period_samples": 8192,
+      "noise_std_v": 0.02939334744488757,
+      "expected_noise_pp_v": 0.17636008466932543,
+      "same_frequency_noise_absent": true
+    }
+  },
+  "truth": {
+    "frequency_hz": 305.3249744373273,
+    "vpp_v": 1.2078469752235625,
+    "dc_v": 1.7442045056882904,
+    "duty_pct": 70.09782282246991,
+    "scope": "finals-official-identifiable-v2-296",
+    "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+    "dc_definition": "configured source offset (clean envelope midpoint)"
+  },
+  "level_mode": "adc",
+  "voltage_scale": 1.0,
+  "amplitude_v": 3.218784187830807,
+  "offset_v": 1.6272733105831263,
+  "sample_rate_hz": 640312.8807911898,
+  "loop_frequency_hz": 2.4425997954986185,
+  "waveform_samples": 262144,
+  "seam_bridge_samples": 0,
+  "source_oversample": 32,
+  "original_samples": 8192,
+  "input_min_v": 1.0414945153664057,
+  "input_max_v": 2.4558877928300973,
+  "dac_roundtrip_error_v": 2.517776823296458e-05,
+  "dac_encoding": "signed int16 little-endian",
+  "note": "Continuous clean source and periodic bandlimited noise evaluated at a finer DAC rate; the original RT payload and clean truth are retained; R acquisition is asynchronous.",
+  "uncompensated_dac_sha256": "0b0599843e899034976fa4ae7dfe3d6d69e17dd11468db31ede3a256cafec10d",
+  "voltage_transfer_report": "arb_voltage_transfer.json",
+  "requested_amplitude_v": 3.3,
+  "requested_offset_v": 1.65,
+  "generator_calibration": {
+    "amplitude_gain": 1.0252318289856908,
+    "offset_gain": 1.0013508805525917,
+    "offset_bias_v": 0.020528437547855383,
+    "offset_origin_v": 1.65,
+    "offset_span_v": 0.06600000000000006
+  },
+  "readback": {
+    "arb": [
+      "NAME",
+      "RO_C1.BIN"
+    ],
+    "rate": [
+      "MODE",
+      "TARB",
+      "VALUE",
+      "640312.8808SA/S",
+      "INTER",
+      "HOLD"
+    ],
+    "wave": [
+      "WVTP",
+      "ARB",
+      "FRQ",
+      "2.442599795HZ",
+      "PERI",
+      "0.4094S",
+      "AMP",
+      "3.21878V",
+      "MAX_OUTPUT_AMP",
+      "20V",
+      "OFST",
+      "1.62727V",
+      "HLEV",
+      "3.23667V",
+      "LLEV",
+      "0.0178812V",
+      "PHSE",
+      "0",
+      "DLY",
+      "0S"
+    ],
+    "output": [
+      "OFF",
+      "LOAD",
+      "HZ",
+      "POWERON_STATE",
+      "OFF",
+      "PLRT",
+      "NOR"
+    ],
+    "waveform": {
+      "query": "STL? USER",
+      "waveform_name": "RO_C1",
+      "user_files": [
+        "RO_C1"
+      ],
+      "uploaded_bytes": 524288,
+      "uploaded_sha256": "fca4b4f0f0bcf7f02234bf1c473c5073486efcfa1c911a8398ed56e19d3e9e06",
+      "verified": false,
+      "byte_readback_supported": false,
+      "configuration_verified": true,
+      "verification": "VISA USBTMC write acknowledgement, OPC, user file and playback settings",
+      "query_attempts": [
+        {
+          "query": "WVDT? user,RO_C1",
+          "error": "RO WVDT did not resolve uploaded waveform 'RO_C1': POS='USER', WVNM='', LENGTH=73728; query syntax/name must be resolved before comparing waveform bytes",
+          "readback": {
+            "header": "WVDT POS, USER,RO_C1, WVNM, , LENGTH, 73728B, TYPE, 6, ",
+            "header_bytes": 64,
+            "declared_bytes": 73728,
+            "position": "USER",
+            "waveform_name": "",
+            "waveform_type": "6",
+            "response_bytes": 73793,
+            "received_body_bytes": 73729,
+            "framing": "raw",
+            "payload_bytes": 73728,
+            "sha256": "c937baf59bf1161764140c9b6d56fda0f871544e413ddd47440dd0fc72a158e3",
+            "uploaded_bytes": 524288,
+            "uploaded_sha256": "8f0e0e68f1e0ca0868ac0ef9f22acc93619d12255caddf6ae517223c44e226c2",
+            "payload_prefix_hex": "06000c00120019001f0025002b00320038003e0045004b00510057005e006400",
+            "uploaded_prefix_hex": "3a024f02630276028a029e02b202c602da02ee02020316032a033e0352036603",
+            "verified": false
+          }
+        },
+        {
+          "query": "WVDT? user,\"Local\",RO_C1",
+          "error": "RO WVDT did not resolve uploaded waveform 'RO_C1': POS='USER', WVNM='', LENGTH=73728; query syntax/name must be resolved before comparing waveform bytes",
+          "readback": {
+            "header": "WVDT POS, USER,\"LOCAL\",RO_C1, WVNM, , LENGTH, 73728B, TYPE, 6, ",
+            "header_bytes": 72,
+            "declared_bytes": 73728,
+            "position": "USER",
+            "waveform_name": "",
+            "waveform_type": "6",
+            "response_bytes": 73801,
+            "received_body_bytes": 73729,
+            "framing": "raw",
+            "payload_bytes": 73728,
+            "sha256": "c937baf59bf1161764140c9b6d56fda0f871544e413ddd47440dd0fc72a158e3",
+            "uploaded_bytes": 524288,
+            "uploaded_sha256": "8f0e0e68f1e0ca0868ac0ef9f22acc93619d12255caddf6ae517223c44e226c2",
+            "payload_prefix_hex": "06000c00120019001f0025002b00320038003e0045004b00510057005e006400",
+            "uploaded_prefix_hex": "3a024f02630276028a029e02b202c602da02ee02020316032a033e0352036603",
+            "verified": false
+          }
+        },
+        {
+          "query": "WVDT? USER,\"Local\",RO_C1",
+          "error": "RO WVDT did not resolve uploaded waveform 'RO_C1': POS='USER', WVNM='', LENGTH=73728; query syntax/name must be resolved before comparing waveform bytes",
+          "readback": {
+            "header": "WVDT POS, USER,\"LOCAL\",RO_C1, WVNM, , LENGTH, 73728B, TYPE, 6, ",
+            "header_bytes": 72,
+            "declared_bytes": 73728,
+            "position": "USER",
+            "waveform_name": "",
+            "waveform_type": "6",
+            "response_bytes": 73801,
+            "received_body_bytes": 73729,
+            "framing": "raw",
+            "payload_bytes": 73728,
+            "sha256": "c937baf59bf1161764140c9b6d56fda0f871544e413ddd47440dd0fc72a158e3",
+            "uploaded_bytes": 524288,
+            "uploaded_sha256": "8f0e0e68f1e0ca0868ac0ef9f22acc93619d12255caddf6ae517223c44e226c2",
+            "payload_prefix_hex": "06000c00120019001f0025002b00320038003e0045004b00510057005e006400",
+            "uploaded_prefix_hex": "3a024f02630276028a029e02b202c602da02ee02020316032a033e0352036603",
+            "verified": false
+          }
+        },
+        {
+          "query": "WVDT? USER,RO_C1",
+          "error": "RO WVDT did not resolve uploaded waveform 'RO_C1': POS='USER', WVNM='', LENGTH=73728; query syntax/name must be resolved before comparing waveform bytes",
+          "readback": {
+            "header": "WVDT POS, USER,RO_C1, WVNM, , LENGTH, 73728B, TYPE, 6, ",
+            "header_bytes": 64,
+            "declared_bytes": 73728,
+            "position": "USER",
+            "waveform_name": "",
+            "waveform_type": "6",
+            "response_bytes": 73793,
+            "received_body_bytes": 73729,
+            "framing": "raw",
+            "payload_bytes": 73728,
+            "sha256": "c937baf59bf1161764140c9b6d56fda0f871544e413ddd47440dd0fc72a158e3",
+            "uploaded_bytes": 524288,
+            "uploaded_sha256": "8f0e0e68f1e0ca0868ac0ef9f22acc93619d12255caddf6ae517223c44e226c2",
+            "payload_prefix_hex": "06000c00120019001f0025002b00320038003e0045004b00510057005e006400",
+            "uploaded_prefix_hex": "3a024f02630276028a029e02b202c602da02ee02020316032a033e0352036603",
+            "verified": false
+          }
+        }
+      ]
+    },
+    "transport": "VISA USBTMC"
+  }
+}

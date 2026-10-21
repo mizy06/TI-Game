@@ -8,6 +8,31 @@ import numpy as np
 from tools import host_waveform as host
 
 
+def _reconcile_joint_vpp(frame_vpps, joint_vpp):
+    """Keep a joint estimate only when independent frames support its correction."""
+    values = np.asarray(frame_vpps, dtype=float)
+    values = values[np.isfinite(values) & (values > 0)]
+    if not len(values):
+        return joint_vpp, dict(accepted=joint_vpp is not None,
+            selected_method="joint_frame_fit", relative_disagreement=None,
+            relative_frame_mad=None, agreement_limit=None)
+
+    center = float(np.median(values))
+    mad = float(np.median(np.abs(values - center))) / center
+    disagreement = (abs(float(joint_vpp) - center) / center
+                    if joint_vpp is not None and np.isfinite(joint_vpp) and joint_vpp > 0
+                    else float("inf"))
+    limit = max(.0005, 5 * mad)
+    accepted = disagreement <= limit
+    return (float(joint_vpp) if accepted else center), dict(
+        accepted=accepted,
+        selected_method="joint_frame_fit" if accepted else "independent_frame_median",
+        independent_frame_median_vpp=center,
+        relative_disagreement=disagreement,
+        relative_frame_mad=mad,
+        agreement_limit=limit)
+
+
 def prepare_analysis(payload, meta, record, profile, parameters_path):
     if profile is None:
         return payload, meta
@@ -60,19 +85,17 @@ def _measure_batch(service, frames, timeout, *, return_result):
     # its own time origin; UART transmission gaps are never concatenated.
     algorithm_elapsed = 0.
     parallel = engine.parallel_pool is not None and frames > 1
+    prepared = []
+    for index, (payload, meta, record) in enumerate(captures):
+        payload, meta = prepare_analysis(payload, meta, record, profile, service.parameters_path)
+        record.info['batch_member'] = index+1
+        prepared.append((payload, meta, record))
     if parallel:
-        prepared = []
-        for index, (payload, meta, record) in enumerate(captures):
-            payload, meta = prepare_analysis(payload, meta, record, profile, service.parameters_path)
-            record.info['batch_member'] = index+1
-            prepared.append((payload, meta, record))
         fitted, algorithm_elapsed = engine.process_frames(prepared, deadline=deadline)
         results = [details for _, details, _ in fitted]
         algorithm_work = sum(elapsed for _, _, elapsed in fitted)
     else:
-        for index, (payload, meta, record) in enumerate(captures):
-            payload, meta = prepare_analysis(payload, meta, record, profile, service.parameters_path)
-            record.info['batch_member'] = index+1
+        for payload, meta, record in prepared:
             line, details, elapsed = engine.process(payload, meta, record, deadline=deadline, emit=False)
             algorithm_elapsed += elapsed
             if not details['ok']:
@@ -87,6 +110,37 @@ def _measure_batch(service, frames, timeout, *, return_result):
     fields = ('frequency_hz', 'vpp_v', 'duty_fraction', 'dc_offset_v')
     values = np.array([[r[k] for k in fields] for r in results])
     mean = values.mean(axis=0)
+    batch_vpp = None
+    spectral = [r.get('spectral_vpp', {}) for r in results]
+    highly_consistent = (bool(spectral) and all(s.get('accepted') and
+        float(s.get('relative_rms',float('inf'))) <= 2e-4 for s in spectral))
+    use_joint_vpp = (kind == 3 or not highly_consistent)
+    if (frames > 1 and kind in (0, 1, 3) and use_joint_vpp and
+            all(meta.vpp_transfer is not None for _, meta, _ in prepared)):
+        from tools.vpp_spectral import joint_frame_amplitude
+        joint_frames = []
+        for (payload, meta, _), details in zip(prepared, results):
+            joint_frames.append(dict(samples=np.frombuffer(payload, dtype='<u2'),
+                transfer=meta.vpp_transfer, fs=(meta.sample_rate_hz_exact or
+                meta.sample_rate_millihz/1000), frequency=details['frequency_hz'],
+                duty=details['duty_fraction'], rise=details.get('unified_solver',{}).get(
+                    'square_rise_fraction',1e-5), fall=details.get('unified_solver',{}).get(
+                    'square_fall_fraction',1e-5), vpp=details['vpp_v']))
+        try:
+            batch_vpp = joint_frame_amplitude(joint_frames, kind)
+        except (ValueError, np.linalg.LinAlgError) as error:
+            batch_vpp = dict(accepted=False, rejection=str(error))
+        if batch_vpp is not None:
+            batch_elapsed = float(batch_vpp.get('elapsed_s',0.))
+            algorithm_elapsed += batch_elapsed
+            algorithm_work += batch_elapsed
+            selected_vpp, consensus = _reconcile_joint_vpp(
+                values[:, 1], batch_vpp.get('vpp_v'))
+            batch_vpp.update(consensus, selected_vpp_v=selected_vpp)
+            if selected_vpp is not None:
+                mean[1] = selected_vpp
+    if time.perf_counter() >= deadline:
+        raise TimeoutError('R joint Vpp analysis exceeded deadline; no RESULT emitted')
     if (np.ptp(values[:, 0])/mean[0] > .002 or
             np.ptp(values[:, 1])/mean[1] > .10 or
             (kind == 1 and np.ptp(values[:, 2]) > .01)):
@@ -96,8 +150,11 @@ def _measure_batch(service, frames, timeout, *, return_result):
     output = measurement_output(line)
     scatter = np.std(values, axis=0, ddof=1) if frames > 1 else np.zeros(4)
     batch = {'frames': frames, 'output': line, 'display_output': output,
-        'method': 'mean of independently fitted stationary blocks; gaps not concatenated',
+        'method': ('joint harmonic fit across independently timed frames' if batch_vpp and
+                   batch_vpp.get('accepted') else
+                   'mean of independently fitted stationary blocks; gaps not concatenated'),
         'measured': dict(zip(fields, map(float, mean))),
+        'vpp_joint_fit': batch_vpp,
         'block_standard_deviation': dict(zip(fields, map(float, scatter))),
         'absolute_accuracy_verified': False,
         'note': 'Block scatter excludes calibration, model bias and coherent replay noise.',
@@ -114,6 +171,15 @@ def _measure_batch(service, frames, timeout, *, return_result):
         **batch['measured'])
     aggregate.update(frequency_millihz=round(f*1000), vpp_microvolts=round(vpp*1e6),
         duty_ppm=round(duty*1e6))
+    if batch_vpp and batch_vpp.get('accepted'):
+        aggregate['vpp_joint_fit'] = batch_vpp
+        aggregate['vpp_millivolts'] = round(vpp*1000)
+        aggregate['vpp_counts_q16'] = round(vpp/(meta.reference_microvolts/
+            (meta.adc_full_scale*meta.gain_ppm))*65536)
+        aggregate.setdefault('vpp_quality',{}).update(
+            meaning='clean_source_under_cross_frame_harmonic_support_assumption',
+            independent_reference_used=False,absolute_accuracy_verified=False,
+            accuracy_0p1_percent_certified=False)
     for record in records:
         record.info['r_batch'] = batch
         record.save()

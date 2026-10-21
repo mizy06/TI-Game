@@ -2,7 +2,8 @@
 import unittest
 from dataclasses import replace
 import numpy as np
-from tools.unified_solver import estimate, SolverConfig, _basis, _project
+from tools.unified_solver import (estimate, SolverConfig, _basis, _project,
+                                  shape, _square_duty_spectral_refine)
 from tools.finals_matrix import waveform, counterexamples
 from tools import host_waveform as host
 
@@ -81,6 +82,33 @@ class UnifiedTests(unittest.TestCase):
             r=estimate(y,21317.173)
             self.assertEqual(r['name'],'square')
             self.assertAlmostEqual(r['duty_fraction'],duty,delta=1e-6)
+
+    def test_sharp_square_duty_spectral_refinement_recovers_subsample_edges(self):
+        n, fs, f = 8192, 20009.77238653639, 224.71912348160987
+        duty, phase = .784592547248832, .9323467888311839
+        t = (np.arange(n) - (n - 1) / 2) / fs
+        frequencies = np.fft.rfftfreq(n, 1 / fs)
+        rng = np.random.default_rng(412588955)
+        spectrum = np.fft.rfft(rng.normal(size=n))
+        distance = np.abs(frequencies - np.rint(frequencies / f) * f)
+        spectrum[(frequencies > 3 * f) | (distance < .18 * f)] = 0
+        noise = np.fft.irfft(spectrum, n=n)
+        noise *= .099 / np.std(noise)
+        y = .2 + .62 * shape(1, f * t + phase, duty, .0001, .0001) + noise
+
+        q = np.array([f, phase + .001, duty - .002, .0001, .0001])
+        fit = dict(kind=1, order=0, q=q, a=.62, cb=np.array([.2]),
+                   residual=.62 * shape(1, f * t + q[1], q[2], q[3], q[4]) + .2 - y,
+                   low=np.array([f - 1, q[1] - .24, .05, 1e-5, 1e-5]),
+                   high=np.array([f + 1, q[1] + .24, .95, .2, .2]))
+        refined, info = _square_duty_spectral_refine(y, t, fit, 0., fs, lambda: None)
+
+        self.assertTrue(info['accepted'])
+        self.assertLess(abs(refined['q'][2] - duty), abs(q[2] - duty))
+        self.assertLess(abs(refined['q'][2] - duty), .001)
+        np.testing.assert_array_equal(refined['q'][[0, 3, 4]], q[[0, 3, 4]])
+        self.assertEqual(refined['a'], fit['a'])
+        np.testing.assert_array_equal(refined['cb'], fit['cb'])
 
 
 if __name__=='__main__': unittest.main()

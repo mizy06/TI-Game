@@ -1,0 +1,2 @@
+case_id,wave,verdict,output,frequency_error_pct,vpp_error_pct,duty_error_pp,dc_error_v,capture
+final_strong-0038,square,PASS,"square,399.986853138,1.445318094,75.9999765,1.442068073",0.0032867154798221776,0.04027833098960709,0.21882978152636667,0.0021932927075254405,uart/000003

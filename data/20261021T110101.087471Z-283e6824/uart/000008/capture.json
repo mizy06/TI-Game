@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "source": "uart",
+  "context": {
+    "raw_header": "DUMP,proto=3,bytes=16384,fnv1a=1822506360,seq=8,fs_millihz=20000000,vref_uv=3300000,gain_ppm=1000000,adc_max=4095,flags=1",
+    "ro_calibration": {
+      "reference": {
+        "wave": "dc",
+        "offset_v": 2.31,
+        "amplitude_v": 0.0,
+        "frequency_hz": 0.0
+      },
+      "validation": true,
+      "capture": "uart/000008",
+      "metadata": {
+        "sequence": 8,
+        "sample_rate_millihz": 20000000,
+        "reference_microvolts": 3300000,
+        "gain_ppm": 1000000,
+        "adc_full_scale": 4095,
+        "flags": 1,
+        "checksum": 1822506360,
+        "sample_rate_hz_exact": null,
+        "adc_scale": 1.0,
+        "adc_offset_counts": 0.0,
+        "payload_bytes": 16384,
+        "protocol_version": 3,
+        "vpp_transfer": null
+      }
+    }
+  },
+  "created_utc": "2026-10-21T11:01:30.040303+00:00",
+  "validation": "valid",
+  "payload_bytes": 16384,
+  "payload_file": "samples.adc.bin",
+  "encoding": "<u2",
+  "metadata": {
+    "sequence": 8,
+    "sample_rate_millihz": 20000000,
+    "reference_microvolts": 3300000,
+    "gain_ppm": 1000000,
+    "adc_full_scale": 4095,
+    "flags": 1,
+    "checksum": 1822506360,
+    "sample_rate_hz_exact": null,
+    "adc_scale": 1.0,
+    "adc_offset_counts": 0.0,
+    "payload_bytes": 16384,
+    "protocol_version": 3,
+    "vpp_transfer": null
+  },
+  "calculated_fnv1a": 1822506360,
+  "sample_count": 8192,
+  "request_to_received_s": 1.8971820000006119
+}

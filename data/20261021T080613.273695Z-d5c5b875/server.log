@@ -1,0 +1,12 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T080613.273695Z-d5c5b875
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-21T08:03:45.344944+00:00
+RO: resuming 74/296 completed cases from C:\Users\L\workspace_ccstheia\TI-game\data\20261021T071800.471448Z-af7aa440\ro-1792567095922851800
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO 75/296 final_weak-0038: uploading and verifying waveform
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+RO: {'completed': 74, 'passed': 74}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T071800.471448Z-af7aa440\ro-1792567095922851800\summary.json
+server: 'C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T071800.471448Z-af7aa440\\ro-1792567095922851800' is not in the subpath of 'C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T080613.273695Z-d5c5b875' OR one path is relative and the other is absolute.

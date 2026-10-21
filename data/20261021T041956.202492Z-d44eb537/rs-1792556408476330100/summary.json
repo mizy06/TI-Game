@@ -1,0 +1,27 @@
+{
+  "selected": 0,
+  "complete": false,
+  "counts": {},
+  "board": true,
+  "mode": "calibration-only",
+  "frames_per_case": 3,
+  "all_passed": false,
+  "error": "ValueError: calibration sine is absent, too small or clipped; check CH1/CH2, PA25 and GND",
+  "shutdown_error": "",
+  "connection_recoveries": 0,
+  "failure": {
+    "stage": "configure calibration reference",
+    "command": "C1:OUTP?",
+    "error": "ValueError: calibration sine is absent, too small or clipped; check CH1/CH2, PA25 and GND"
+  },
+  "failed_case": null,
+  "waveform_readback": null,
+  "calibration": "calibration.json",
+  "generator_calibration": null,
+  "transport": "VISA USBTMC",
+  "resource": "USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR",
+  "diagnostics": "scpi.jsonl",
+  "not_run": [],
+  "wall_time_s": 42.25317039999982,
+  "note": "Independent ADC/ARB calibration only; no matrix cases generated or measured."
+}

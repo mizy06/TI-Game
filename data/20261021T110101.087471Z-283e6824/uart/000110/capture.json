@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "source": "uart",
+  "context": {
+    "raw_header": "DUMP,proto=3,bytes=16384,fnv1a=1363557410,seq=110,fs_millihz=20000000,vref_uv=3300000,gain_ppm=1000000,adc_max=4095,flags=1",
+    "dynamic_amplitude_reference": {
+      "offset_v": 2.67,
+      "amplitude_v": 0.43,
+      "validation": true,
+      "period_samples": 79.99738516896122,
+      "capture": "uart/000110"
+    }
+  },
+  "created_utc": "2026-10-21T11:05:27.374944+00:00",
+  "validation": "valid",
+  "payload_bytes": 16384,
+  "payload_file": "samples.adc.bin",
+  "encoding": "<u2",
+  "metadata": {
+    "sequence": 110,
+    "sample_rate_millihz": 20000000,
+    "reference_microvolts": 3300000,
+    "gain_ppm": 1000000,
+    "adc_full_scale": 4095,
+    "flags": 1,
+    "checksum": 1363557410,
+    "sample_rate_hz_exact": null,
+    "adc_scale": 1.0,
+    "adc_offset_counts": 0.0,
+    "payload_bytes": 16384,
+    "protocol_version": 3,
+    "vpp_transfer": null
+  },
+  "calculated_fnv1a": 1363557410,
+  "sample_count": 8192,
+  "request_to_received_s": 1.9029692000003706
+}

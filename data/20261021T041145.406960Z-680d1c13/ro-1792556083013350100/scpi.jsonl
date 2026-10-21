@@ -1,0 +1,5 @@
+{"time_ns": 1792556083102866600, "stage": "connect", "command": "VISA resource USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR", "event": "start"}
+{"time_ns": 1792556083186353000, "stage": "connect", "command": "VISA resource USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR", "event": "ok", "duration_s": 0.08346740000001773}
+{"time_ns": 1792556083186353000, "stage": "identify instrument", "command": "*IDN?", "event": "start"}
+{"time_ns": 1792556085203889400, "stage": "identify instrument", "command": "*IDN?", "event": "error", "error": "RO identify instrument; command=*IDN?; VI_ERROR_IO (-1073807298): Could not perform operation because of I/O error.", "duration_s": 2.016709100000071}
+{"time_ns": 1792556085203889400, "stage": "identify instrument", "command": "*IDN?", "event": "failure", "failure": {"stage": "identify instrument", "command": "*IDN?", "error": "RO identify instrument; command=*IDN?; VI_ERROR_IO (-1073807298): Could not perform operation because of I/O error."}}

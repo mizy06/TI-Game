@@ -145,6 +145,81 @@ class VisaTests(unittest.TestCase):
         self.assertNotIn("ON", self.fixture.events)
         self.assertTrue(all(d.closed for d in self.devices))
 
+    def test_calibration_continues_after_usb_system_error(self):
+        with Generator("unused", transport="visa", resource="USB0::fixture::INSTR") as generator:
+            failed_device = self.devices[-1]
+            failed_device.write_raw = lambda data: (_ for _ in ()).throw(
+                VisaIOError(StatusCode.error_system_error))
+            reference = generator.reference("sine", .57, .72, 173.371)
+            self.assertEqual(reference["offset_v"], .57)
+            self.assertEqual(self.fixture.output, "ON")
+            self.assertEqual(generator.connection_recoveries, 1)
+            self.assertIsNone(generator.failure)
+            self.assertTrue(failed_device.closed)
+            self.assertTrue(self.devices[-1].cleared)
+        self.assertEqual(self.fixture.output, "OFF")
+
+    def test_query_io_error_discards_reply_before_repeating_query(self):
+        with Generator("unused", transport="visa", resource="USB0::fixture::INSTR") as generator:
+            failed_device = self.devices[-1]
+            failed_device.visalib.read = lambda *args: (_ for _ in ()).throw(
+                VisaIOError(StatusCode.error_io))
+            self.assertEqual(generator.query("*OPC?"), "1")
+            self.assertEqual(generator.query("C1:OUTP?"), "C1:OUTP OFF,LOAD,HZ,PLRT,NOR")
+            self.assertTrue(failed_device.closed)
+            self.assertTrue(self.devices[-1].cleared)
+            self.assertEqual(generator.connection_recoveries, 1)
+            self.assertIsNone(generator.failure)
+
+    def test_identification_recovers_from_previous_broken_usb_session(self):
+        original_write = VisaDevice.write_raw
+        failed = False
+        def write(device, data):
+            nonlocal failed
+            if data == b"*IDN?\n" and not failed:
+                failed = True
+                raise VisaIOError(StatusCode.error_io)
+            return original_write(device, data)
+        with patch.object(VisaDevice, "write_raw", write):
+            with Generator("unused", transport="visa", resource="USB0::fixture::INSTR") as generator:
+                self.assertIn("SDG6022X-E", generator.identity)
+                self.assertEqual(generator.connection_recoveries, 1)
+        self.assertEqual(self.fixture.output, "OFF")
+
+    def test_persistent_io_error_stops_after_two_reconnects(self):
+        generator = Generator("unused", transport="visa", resource="USB0::fixture::INSTR")
+        with self.assertRaisesRegex(RuntimeError, "VI_ERROR_IO"):
+            with generator:
+                original_write = VisaDevice.write_raw
+                def write(device, data):
+                    if data == b"C1:BSWV?\n":
+                        raise VisaIOError(StatusCode.error_io)
+                    return original_write(device, data)
+                with patch.object(VisaDevice, "write_raw", write):
+                    generator.query("C1:BSWV?")
+        self.assertEqual(generator.connection_recoveries, 2)
+        self.assertEqual(generator.failure["command"], "C1:BSWV?")
+        self.assertEqual(self.fixture.output, "OFF")
+        self.assertTrue(all(d.closed for d in self.devices))
+
+    def test_binary_upload_io_error_is_not_replayed(self):
+        _, data, config = encode(Case(), 3.3, 1.)
+        generator = Generator("unused", transport="visa", resource="USB0::fixture::INSTR")
+        original_write = VisaDevice.write_raw
+        attempts = []
+        def write(device, payload):
+            if payload.startswith(b"C1:WVDT "):
+                attempts.append(payload)
+                raise VisaIOError(StatusCode.error_io)
+            return original_write(device, payload)
+        with patch.object(VisaDevice, "write_raw", write):
+            with self.assertRaisesRegex(RuntimeError, "VI_ERROR_IO"):
+                with generator:
+                    generator.configure(data, config)
+        self.assertEqual(len(attempts), 1)
+        self.assertEqual(generator.connection_recoveries, 0)
+        self.assertEqual(self.fixture.output, "OFF")
+
     def test_short_write_is_rejected(self):
         transport = VisaTransport("USB0::fixture::INSTR", 2.)
         try:

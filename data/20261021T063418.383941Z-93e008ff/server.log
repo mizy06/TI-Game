@@ -1,0 +1,162 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T063418.383941Z-93e008ff
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-21T06:31:33.979631+00:00
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO 1/296 final_weak-0001: uploading and verifying waveform
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+开始测试
+RO 1/296 final_weak-0001: PASS
+RO 2/296 final_strong-0001: uploading and verifying waveform
+RO 2/296 final_strong-0001: PASS
+RO 3/296 final_weak-0002: uploading and verifying waveform
+RO 3/296 final_weak-0002: FAIL (vpp_error_pct)
+RO 4/296 final_strong-0002: uploading and verifying waveform
+RO 4/296 final_strong-0002: PASS
+RO 5/296 final_weak-0003: uploading and verifying waveform
+RO 5/296 final_weak-0003: PASS
+RO 6/296 final_strong-0003: uploading and verifying waveform
+RO 6/296 final_strong-0003: PASS
+RO 7/296 final_weak-0004: uploading and verifying waveform
+RO 7/296 final_weak-0004: PASS
+RO 8/296 final_strong-0004: uploading and verifying waveform
+RO 8/296 final_strong-0004: PASS
+RO 9/296 final_weak-0005: uploading and verifying waveform
+RO 9/296 final_weak-0005: PASS
+RO 10/296 final_strong-0005: uploading and verifying waveform
+RO 10/296 final_strong-0005: PASS
+RO 11/296 final_weak-0006: uploading and verifying waveform
+RO 11/296 final_weak-0006: FAIL (vpp_error_pct)
+RO 12/296 final_strong-0006: uploading and verifying waveform
+RO 12/296 final_strong-0006: PASS
+RO 13/296 final_weak-0007: uploading and verifying waveform
+RO 13/296 final_weak-0007: PASS
+RO 14/296 final_strong-0007: uploading and verifying waveform
+RO 14/296 final_strong-0007: PASS
+RO 15/296 final_weak-0008: uploading and verifying waveform
+RO 15/296 final_weak-0008: PASS
+RO 16/296 final_strong-0008: uploading and verifying waveform
+RO 16/296 final_strong-0008: PASS
+RO 17/296 final_weak-0009: uploading and verifying waveform
+RO 17/296 final_weak-0009: PASS
+RO 18/296 final_strong-0009: uploading and verifying waveform
+RO 18/296 final_strong-0009: PASS
+RO 19/296 final_weak-0010: uploading and verifying waveform
+RO 19/296 final_weak-0010: FAIL (vpp_error_pct)
+RO 20/296 final_strong-0010: uploading and verifying waveform
+RO 20/296 final_strong-0010: PASS
+RO 21/296 final_weak-0011: uploading and verifying waveform
+RO 21/296 final_weak-0011: PASS
+RO 22/296 final_strong-0011: uploading and verifying waveform
+RO 22/296 final_strong-0011: PASS
+RO 23/296 final_weak-0012: uploading and verifying waveform
+RO 23/296 final_weak-0012: PASS
+RO 24/296 final_strong-0012: uploading and verifying waveform
+RO 24/296 final_strong-0012: PASS
+RO 25/296 final_weak-0013: uploading and verifying waveform
+RO 25/296 final_weak-0013: PASS
+RO 26/296 final_strong-0013: uploading and verifying waveform
+RO 26/296 final_strong-0013: PASS
+RO 27/296 final_weak-0014: uploading and verifying waveform
+RO 27/296 final_weak-0014: PASS
+RO 28/296 final_strong-0014: uploading and verifying waveform
+RO 28/296 final_strong-0014: PASS
+RO 29/296 final_weak-0015: uploading and verifying waveform
+RO 29/296 final_weak-0015: PASS
+RO 30/296 final_strong-0015: uploading and verifying waveform
+RO 30/296 final_strong-0015: PASS
+RO 31/296 final_weak-0016: uploading and verifying waveform
+RO 31/296 final_weak-0016: FAIL (vpp_error_pct)
+RO 32/296 final_strong-0016: uploading and verifying waveform
+RO 32/296 final_strong-0016: PASS
+RO 33/296 final_weak-0017: uploading and verifying waveform
+RO 33/296 final_weak-0017: PASS
+RO 34/296 final_strong-0017: uploading and verifying waveform
+RO 34/296 final_strong-0017: PASS
+RO 35/296 final_weak-0018: uploading and verifying waveform
+RO 35/296 final_weak-0018: FAIL (vpp_error_pct)
+RO 36/296 final_strong-0018: uploading and verifying waveform
+RO 36/296 final_strong-0018: PASS
+RO 37/296 final_weak-0019: uploading and verifying waveform
+RO 37/296 final_weak-0019: PASS
+RO 38/296 final_strong-0019: uploading and verifying waveform
+RO 38/296 final_strong-0019: PASS
+RO 39/296 final_weak-0020: uploading and verifying waveform
+RO 39/296 final_weak-0020: FAIL (vpp_error_pct)
+RO 40/296 final_strong-0020: uploading and verifying waveform
+RO 40/296 final_strong-0020: PASS
+RO 41/296 final_weak-0021: uploading and verifying waveform
+RO 41/296 final_weak-0021: PASS
+RO 42/296 final_strong-0021: uploading and verifying waveform
+RO 42/296 final_strong-0021: PASS
+RO 43/296 final_weak-0022: uploading and verifying waveform
+RO 43/296 final_weak-0022: FAIL (vpp_error_pct)
+RO 44/296 final_strong-0022: uploading and verifying waveform
+RO 44/296 final_strong-0022: PASS
+RO 45/296 final_weak-0023: uploading and verifying waveform
+RO 45/296 final_weak-0023: PASS
+RO 46/296 final_strong-0023: uploading and verifying waveform
+RO 46/296 final_strong-0023: PASS
+RO 47/296 final_weak-0024: uploading and verifying waveform
+RO 47/296 final_weak-0024: FAIL (vpp_error_pct)
+RO 48/296 final_strong-0024: uploading and verifying waveform
+RO 48/296 final_strong-0024: PASS
+RO 49/296 final_weak-0025: uploading and verifying waveform
+RO 49/296 final_weak-0025: FAIL (vpp_error_pct)
+RO 50/296 final_strong-0025: uploading and verifying waveform
+RO 50/296 final_strong-0025: FAIL (vpp_error_pct)
+RO 51/296 final_weak-0026: uploading and verifying waveform
+RO 51/296 final_weak-0026: FAIL (vpp_error_pct)
+RO 52/296 final_strong-0026: uploading and verifying waveform
+RO 52/296 final_strong-0026: FAIL (vpp_error_pct)
+RO 53/296 final_weak-0027: uploading and verifying waveform
+RO 53/296 final_weak-0027: PASS
+RO 54/296 final_strong-0027: uploading and verifying waveform
+RO 54/296 final_strong-0027: PASS
+RO 55/296 final_weak-0028: uploading and verifying waveform
+RO 55/296 final_weak-0028: PASS
+RO 56/296 final_strong-0028: uploading and verifying waveform
+RO 56/296 final_strong-0028: PASS
+RO 57/296 final_weak-0029: uploading and verifying waveform
+RO 57/296 final_weak-0029: PASS
+RO 58/296 final_strong-0029: uploading and verifying waveform
+RO 58/296 final_strong-0029: PASS
+RO 59/296 final_weak-0030: uploading and verifying waveform
+RO 59/296 final_weak-0030: FAIL (vpp_error_pct)
+RO 60/296 final_strong-0030: uploading and verifying waveform
+RO 60/296 final_strong-0030: PASS
+RO 61/296 final_weak-0031: uploading and verifying waveform
+RO 61/296 final_weak-0031: PASS
+RO 62/296 final_strong-0031: uploading and verifying waveform
+RO 62/296 final_strong-0031: PASS
+RO 63/296 final_weak-0032: uploading and verifying waveform
+RO 63/296 final_weak-0032: PASS
+RO 64/296 final_strong-0032: uploading and verifying waveform
+RO 64/296 final_strong-0032: PASS
+RO 65/296 final_weak-0033: uploading and verifying waveform
+RO 65/296 final_weak-0033: PASS
+RO 66/296 final_strong-0033: uploading and verifying waveform
+RO 66/296 final_strong-0033: PASS
+RO 67/296 final_weak-0034: uploading and verifying waveform
+RO 67/296 final_weak-0034: PASS
+RO 68/296 final_strong-0034: uploading and verifying waveform
+RO 68/296 final_strong-0034: PASS
+RO 69/296 final_weak-0035: uploading and verifying waveform
+RO 69/296 final_weak-0035: PASS
+RO 70/296 final_strong-0035: uploading and verifying waveform
+RO 70/296 final_strong-0035: PASS
+RO 71/296 final_weak-0036: uploading and verifying waveform
+RO 71/296 final_weak-0036: FAIL (vpp_error_pct)
+RO 72/296 final_strong-0036: uploading and verifying waveform
+RO 72/296 final_strong-0036: PASS
+RO 73/296 final_weak-0037: uploading and verifying waveform
+RO 73/296 final_weak-0037: PASS
+RO 74/296 final_strong-0037: uploading and verifying waveform
+RO 74/296 final_strong-0037: PASS
+RO 75/296 final_weak-0038: uploading and verifying waveform
+RO 75/296 final_weak-0038: PASS
+RO 76/296 final_strong-0038: uploading and verifying waveform
+RO: {'completed': 75, 'passed': 61, 'failed': 14}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T063418.383941Z-93e008ff\ro-1792564485974150500\summary.json
+server: R blocks are not stationary; no RESULT emitted

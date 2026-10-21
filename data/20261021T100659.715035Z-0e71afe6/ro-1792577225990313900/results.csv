@@ -1,0 +1,2 @@
+case_id,wave,verdict,output,frequency_error_pct,vpp_error_pct,duty_error_pp,dc_error_v,capture
+final_weak-0123,triangle,FAIL,"triangle,117.120923031,1.406490699,0.0000000,1.503553492",0.0009092932642618123,0.1859629674501928,0.0,0.0028367837326981338,uart/000003

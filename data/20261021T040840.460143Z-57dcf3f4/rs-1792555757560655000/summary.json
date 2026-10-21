@@ -1,0 +1,26 @@
+{
+  "selected": 0,
+  "complete": false,
+  "counts": {},
+  "board": true,
+  "mode": "calibration-only",
+  "frames_per_case": 3,
+  "all_passed": false,
+  "error": "RuntimeError: RO connect; command=VISA resource USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR; VI_ERROR_RSRC_NFOUND (-1073807343): Insufficient location information or the requested device or resource is not present in the system.",
+  "shutdown_error": "",
+  "failure": {
+    "stage": "connect",
+    "command": "VISA resource USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR",
+    "error": "RO connect; command=VISA resource USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR; VI_ERROR_RSRC_NFOUND (-1073807343): Insufficient location information or the requested device or resource is not present in the system."
+  },
+  "failed_case": null,
+  "waveform_readback": null,
+  "calibration": null,
+  "generator_calibration": null,
+  "transport": "VISA USBTMC",
+  "resource": "USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR",
+  "diagnostics": "scpi.jsonl",
+  "not_run": [],
+  "wall_time_s": 0.17794930000002296,
+  "note": "Independent ADC/ARB calibration only; no matrix cases generated or measured."
+}

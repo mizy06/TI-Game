@@ -1,0 +1,1592 @@
+{
+  "note": "Offline reanalysis only; no fresh hardware measurements. Reject the spectral override when its background-separation check fails. Clean-source truth and the strict 0.1% limit are unchanged.",
+  "cases": 16,
+  "frames": 48,
+  "vpp_within_limit": 5,
+  "results": [
+    {
+      "case_id": "final_weak-0001",
+      "original_vpp_bias_pct": 0.04408602991001764,
+      "reanalysed_vpp_v": 1.491878476101127,
+      "reanalysed_vpp_bias_pct": 0.3175357664723988,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000001",
+          "ok": true,
+          "vpp_v": 1.4922076036007021,
+          "frequency_hz": 274.93414857757404,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.005479250525582035,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.5155127100161945,
+              "background_coefficient_fraction": 0.0038119111583165073,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000002",
+          "ok": true,
+          "vpp_v": 1.4920555566569265,
+          "frequency_hz": 274.9327194931721,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.0036642043418614436,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.6091547482062796,
+              "background_coefficient_fraction": 0.0038872169621176726,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000003",
+          "ok": true,
+          "vpp_v": 1.4913722680457515,
+          "frequency_hz": 274.93738519695484,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.003954555025099123,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.8612247476091717,
+              "background_coefficient_fraction": 0.0033207940578701594,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0001",
+      "original_vpp_bias_pct": 0.5065735983892594,
+      "reanalysed_vpp_v": 1.4895444323661995,
+      "reanalysed_vpp_bias_pct": 0.16058899124240522,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000004",
+          "ok": true,
+          "vpp_v": 1.488988653910163,
+          "frequency_hz": 274.9188775202714,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.01687131577144278,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.0158325504699544,
+              "background_coefficient_fraction": 0.01093190195351205,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000005",
+          "ok": true,
+          "vpp_v": 1.4900272942928598,
+          "frequency_hz": 274.9447671369059,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.015210969565352816,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.6014850184072166,
+              "background_coefficient_fraction": 0.010677953736668116,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000006",
+          "ok": true,
+          "vpp_v": 1.489617348895576,
+          "frequency_hz": 274.93786868147487,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.02167465139824395,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.7334815906957272,
+              "background_coefficient_fraction": 0.01048363381709084,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0002",
+      "original_vpp_bias_pct": 0.11135900681940036,
+      "reanalysed_vpp_v": 1.2564200161587442,
+      "reanalysed_vpp_bias_pct": 0.08150289719339732,
+      "vpp_within_limit": true,
+      "frames": [
+        {
+          "capture": "uart\\000007",
+          "ok": true,
+          "vpp_v": 1.256179418298603,
+          "frequency_hz": 224.7402132270341,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.4264411602617324,
+              0.7758552964666018,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6270756840659886
+            ],
+            "relative_rms": 0.0021267298177226235,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.6007832486460827,
+              "background_coefficient_fraction": 0.0048484526100905,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000008",
+          "ok": true,
+          "vpp_v": 1.2566315480389676,
+          "frequency_hz": 224.73562250217904,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.33339932279569917,
+              0.7851519577695693,
+              0.00728966632099703,
+              1.0000100000000001e-05,
+              0.6288687917205542
+            ],
+            "relative_rms": 0.0015673458922226121,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.4196202589815731,
+              "background_coefficient_fraction": 0.004078638351511434,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000009",
+          "ok": true,
+          "vpp_v": 1.256449082138662,
+          "frequency_hz": 224.73977915629573,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.23571808719940243,
+              0.7863536081782994,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6292477674328966
+            ],
+            "relative_rms": 0.0007688425634663238,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.8898137329710698,
+              "background_coefficient_fraction": 0.005393809124528613,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0002",
+      "original_vpp_bias_pct": -0.8675837034579859,
+      "reanalysed_vpp_v": 1.255456175384684,
+      "reanalysed_vpp_bias_pct": 0.004727112041180703,
+      "vpp_within_limit": true,
+      "frames": [
+        {
+          "capture": "uart\\000010",
+          "ok": true,
+          "vpp_v": 1.25578023005687,
+          "frequency_hz": 224.7116420798231,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.10124360842953596,
+              0.7868278554290683,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6228100599295842
+            ],
+            "relative_rms": 0.0013488622459090778,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.6357446458605449,
+              "background_coefficient_fraction": 0.017886324907164585,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000011",
+          "ok": true,
+          "vpp_v": 1.255207011744949,
+          "frequency_hz": 224.7318973930619,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.41459890405358163,
+              0.777932018565152,
+              0.010038581909974266,
+              0.009618140043901227,
+              0.6282715494619018
+            ],
+            "relative_rms": 0.0018924454848188853,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.5569710221552782,
+              "background_coefficient_fraction": 0.014526811113000271,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000012",
+          "ok": true,
+          "vpp_v": 1.2553812843522332,
+          "frequency_hz": 224.72815744538428,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.33557671608180595,
+              0.7763899772172123,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6156762101793302
+            ],
+            "relative_rms": 0.004746873190149068,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.4486796668968764,
+              "background_coefficient_fraction": 0.021109343492077617,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0003",
+      "original_vpp_bias_pct": 0.39182123185383944,
+      "reanalysed_vpp_v": 1.0347464121757237,
+      "reanalysed_vpp_bias_pct": 0.582732755833204,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000013",
+          "ok": true,
+          "vpp_v": 1.0343587853741543,
+          "frequency_hz": 381.7349016967677,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 0.7426226612505872,
+            "relative_rms": 0.0003852206377740313,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.7706346637847723,
+              "background_coefficient_fraction": 0.004088319152758758,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000014",
+          "ok": true,
+          "vpp_v": 1.0347565417276547,
+          "frequency_hz": 381.7287209634685,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 1.5583795007351693e-08,
+            "relative_rms": 0.0006276796339248106,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.055292830830635,
+              "background_coefficient_fraction": 0.003497288445970356,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000015",
+          "ok": true,
+          "vpp_v": 1.0351239094253626,
+          "frequency_hz": 381.734660316678,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 0.825432559040823,
+            "relative_rms": 0.0005793298024881625,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.6109148164163829,
+              "background_coefficient_fraction": 0.0030436504892195496,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0003",
+      "original_vpp_bias_pct": 0.2609509063531412,
+      "reanalysed_vpp_v": 1.033440219856298,
+      "reanalysed_vpp_bias_pct": 0.45576406916119083,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000016",
+          "ok": true,
+          "vpp_v": 1.0335490660222808,
+          "frequency_hz": 381.7353507046623,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 2.0034348274234356e-13,
+            "relative_rms": 0.00021315327034857328,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.1431871205232869,
+              "background_coefficient_fraction": 0.010519760823241919,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000017",
+          "ok": true,
+          "vpp_v": 1.0332828552859352,
+          "frequency_hz": 381.72842185359764,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 9.181375367124319e-09,
+            "relative_rms": 0.00012186021786600582,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.0897536883486196,
+              "background_coefficient_fraction": 0.010365266369236289,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000018",
+          "ok": true,
+          "vpp_v": 1.0334887382606777,
+          "frequency_hz": 381.7317349339143,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 3.673643249434916e-10,
+            "relative_rms": 0.0016857868506486478,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.3991045130342055,
+              "background_coefficient_fraction": 0.011939933706530724,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0004",
+      "original_vpp_bias_pct": 0.09608960822424795,
+      "reanalysed_vpp_v": 1.0719918626607352,
+      "reanalysed_vpp_bias_pct": -0.032338441619961245,
+      "vpp_within_limit": true,
+      "frames": [
+        {
+          "capture": "uart\\000019",
+          "ok": true,
+          "vpp_v": 1.0716321196530338,
+          "frequency_hz": 125.00758256573275,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.020894440050462988,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.2627375261513238,
+              "background_coefficient_fraction": 0.009459922979726788,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000020",
+          "ok": true,
+          "vpp_v": 1.071861537741691,
+          "frequency_hz": 125.01170644429678,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.019177742455069657,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.76934644194577,
+              "background_coefficient_fraction": 0.007443753591373025,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000021",
+          "ok": true,
+          "vpp_v": 1.0724819305874804,
+          "frequency_hz": 124.99939307135932,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.01657243236246943,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.7673959233616647,
+              "background_coefficient_fraction": 0.008474873186467858,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0004",
+      "original_vpp_bias_pct": 0.023144193184099215,
+      "reanalysed_vpp_v": 1.0725868243923768,
+      "reanalysed_vpp_bias_pct": 0.023144193184099215,
+      "vpp_within_limit": true,
+      "frames": [
+        {
+          "capture": "uart\\000022",
+          "ok": true,
+          "vpp_v": 1.0754349000174235,
+          "frequency_hz": 125.01170644429706,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.045966519092123743,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.8928264119137017,
+              "background_coefficient_fraction": 0.04610897410209038,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000023",
+          "ok": true,
+          "vpp_v": 1.070926147186947,
+          "frequency_hz": 125.0141754493084,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.023919940939816788,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.516816968747145,
+              "background_coefficient_fraction": 0.04161337515156684,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000024",
+          "ok": true,
+          "vpp_v": 1.07139942597276,
+          "frequency_hz": 124.980763710929,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.04877990247946343,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.7862387259075889,
+              "background_coefficient_fraction": 0.03049538269268337,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0005",
+      "original_vpp_bias_pct": 0.15400383339181367,
+      "reanalysed_vpp_v": 1.1825125936726169,
+      "reanalysed_vpp_bias_pct": 0.25763111490266777,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000025",
+          "ok": true,
+          "vpp_v": 1.182184906793379,
+          "frequency_hz": 399.99791131148834,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.003215762437825846,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.0605539640221167,
+              "background_coefficient_fraction": 0.0022511696195123,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000026",
+          "ok": true,
+          "vpp_v": 1.1828247966067456,
+          "frequency_hz": 399.998411264848,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.004747237185424967,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.7491433613401481,
+              "background_coefficient_fraction": 0.001961648767948743,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000027",
+          "ok": true,
+          "vpp_v": 1.182528077617726,
+          "frequency_hz": 399.9978494550292,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.003855187771670696,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.7186987551451044,
+              "background_coefficient_fraction": 0.0021111845474924553,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0005",
+      "original_vpp_bias_pct": 0.42655936462638877,
+      "reanalysed_vpp_v": 1.1845451925409851,
+      "reanalysed_vpp_bias_pct": 0.42996208933780977,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000028",
+          "ok": true,
+          "vpp_v": 1.1843297154988166,
+          "frequency_hz": 399.9977262461102,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.015572292041497847,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.8483345200640433,
+              "background_coefficient_fraction": 0.008617659640802782,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000029",
+          "ok": true,
+          "vpp_v": 1.1843699324956265,
+          "frequency_hz": 400.00766303998626,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.007316361475985205,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.8367455766606531,
+              "background_coefficient_fraction": 0.00901656372665774,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000030",
+          "ok": true,
+          "vpp_v": 1.184935929628512,
+          "frequency_hz": 400.0064185407052,
+          "type": 0,
+          "spectral_vpp": {
+            "method": "isolated_fundamental",
+            "harmonics": 1,
+            "relative_window_scatter": 0.007663170701393192,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.9163567225638202,
+              "background_coefficient_fraction": 0.008612658590917461,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "carrier_including_coherent_interference",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0006",
+      "original_vpp_bias_pct": 0.13046972939934065,
+      "reanalysed_vpp_v": 1.4201219066736914,
+      "reanalysed_vpp_bias_pct": 0.39813601658114095,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000031",
+          "ok": true,
+          "vpp_v": 1.4199856206518278,
+          "frequency_hz": 133.95755561524527,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.10104244065353919,
+              0.2394758172175306,
+              0.003122629076001341,
+              1.0000100000000001e-05,
+              0.7084468198120585
+            ],
+            "relative_rms": 0.0009022963283577339,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.802135131690164,
+              "background_coefficient_fraction": 0.005131563651314155,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000032",
+          "ok": true,
+          "vpp_v": 1.4205510272434407,
+          "frequency_hz": 133.95669257505116,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.06445202720979988,
+              0.23921668795569362,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.7083480724085385
+            ],
+            "relative_rms": 0.0009380934870683586,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.7510463881609741,
+              "background_coefficient_fraction": 0.004558665414277707,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000033",
+          "ok": true,
+          "vpp_v": 1.4198290721258058,
+          "frequency_hz": 133.95759154266008,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.24087080289379328,
+              0.23906055087448094,
+              0.004822228323962367,
+              0.0019060892808150246,
+              0.7077087972417623
+            ],
+            "relative_rms": 0.001046080439435262,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.9313995164977158,
+              "background_coefficient_fraction": 0.0050382183541443915,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0006",
+      "original_vpp_bias_pct": -0.3943130999070954,
+      "reanalysed_vpp_v": 1.4107231210297853,
+      "reanalysed_vpp_bias_pct": -0.26632846004804867,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000034",
+          "ok": true,
+          "vpp_v": 1.410601622321956,
+          "frequency_hz": 133.95770435555846,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.09217781901008539,
+              0.23989694766822092,
+              0.01472879815230969,
+              0.011564290269949496,
+              0.7203381827610958
+            ],
+            "relative_rms": 0.002225114250867048,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 2.3974047778196317,
+              "background_coefficient_fraction": 0.033325807456677854,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000035",
+          "ok": true,
+          "vpp_v": 1.4111169636255398,
+          "frequency_hz": 133.95745198528243,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              0.01381512895057486,
+              0.2394568496062637,
+              1.0000100000000001e-05,
+              1.0000100000000001e-05,
+              0.6921926789235545
+            ],
+            "relative_rms": 0.0033691332146754496,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.8843608237568484,
+              "background_coefficient_fraction": 0.023352508654531253,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000036",
+          "ok": true,
+          "vpp_v": 1.4104507771418604,
+          "frequency_hz": 133.95824418903803,
+          "type": 1,
+          "spectral_vpp": {
+            "method": "sampled_trapezoid_harmonics",
+            "harmonics": 12,
+            "parameters": [
+              -0.4994972916984956,
+              0.23988361276349973,
+              0.0016666671603899675,
+              7.264776606470909e-05,
+              0.7008383243639029
+            ],
+            "relative_rms": 0.0033783814508550275,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.902833936267593,
+              "background_coefficient_fraction": 0.03270172331272263,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0007",
+      "original_vpp_bias_pct": 0.11614917042854778,
+      "reanalysed_vpp_v": 1.3009436894016453,
+      "reanalysed_vpp_bias_pct": 0.2248790503132092,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000037",
+          "ok": true,
+          "vpp_v": 1.3010392606521246,
+          "frequency_hz": 203.79953031669666,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 1.9999999999999998,
+            "relative_rms": 0.0013039398998043463,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.821169676238261,
+              "background_coefficient_fraction": 0.005938516619467282,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000038",
+          "ok": true,
+          "vpp_v": 1.3009686982689073,
+          "frequency_hz": 203.78741679123658,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 1.916343744926982e-09,
+            "relative_rms": 0.000359511684821627,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.8833429804383272,
+              "background_coefficient_fraction": 0.00642828177711405,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000039",
+          "ok": true,
+          "vpp_v": 1.3008231092839038,
+          "frequency_hz": 203.7950587605954,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 3.06944036472205e-13,
+            "relative_rms": 0.0008945770392056284,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.7891983969849125,
+              "background_coefficient_fraction": 0.005725672146172963,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0007",
+      "original_vpp_bias_pct": -0.11242939940320218,
+      "reanalysed_vpp_v": 1.3049397324101004,
+      "reanalysed_vpp_bias_pct": 0.5327347480386546,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000040",
+          "ok": true,
+          "vpp_v": 1.3054348816444763,
+          "frequency_hz": 203.80944389152762,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 0.9659540285895388,
+            "relative_rms": 0.00012846643937022194,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.4561451131664684,
+              "background_coefficient_fraction": 0.021257670767155772,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000041",
+          "ok": true,
+          "vpp_v": 1.3046075649019258,
+          "frequency_hz": 203.79135328887494,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 0.8384258969997227,
+            "relative_rms": 6.601893223529856e-05,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.6544150696374765,
+              "background_coefficient_fraction": 0.0166060005329076,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000042",
+          "ok": true,
+          "vpp_v": 1.3047767506838988,
+          "frequency_hz": 203.79628416186557,
+          "type": 2,
+          "spectral_vpp": {
+            "method": "harmonic_aperture_extrapolation",
+            "harmonics": 6,
+            "aperture_samples": 1.7166812184059435e-13,
+            "relative_rms": 0.0005605712514301592,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.7302432341379348,
+              "background_coefficient_fraction": 0.027974009897703423,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_weak-0008",
+      "original_vpp_bias_pct": -0.29658954617726163,
+      "reanalysed_vpp_v": 1.0177978735440598,
+      "reanalysed_vpp_bias_pct": 0.07828304151600296,
+      "vpp_within_limit": true,
+      "frames": [
+        {
+          "capture": "uart\\000043",
+          "ok": true,
+          "vpp_v": 1.0176803293204413,
+          "frequency_hz": 245.47033794716674,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.010372338632312319,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.980164454850014,
+              "background_coefficient_fraction": 0.00840826712753132,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000044",
+          "ok": true,
+          "vpp_v": 1.0176841013803684,
+          "frequency_hz": 245.46992641224574,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.012834375051441919,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.932414610598068,
+              "background_coefficient_fraction": 0.008775380512066146,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000045",
+          "ok": true,
+          "vpp_v": 1.01802918993137,
+          "frequency_hz": 245.47033794716435,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.01051868378086939,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.9327761622848464,
+              "background_coefficient_fraction": 0.007972504464527245,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "final_strong-0008",
+      "original_vpp_bias_pct": -1.348402217358391,
+      "reanalysed_vpp_v": 1.0056662396243963,
+      "reanalysed_vpp_bias_pct": -1.114599282889428,
+      "vpp_within_limit": false,
+      "frames": [
+        {
+          "capture": "uart\\000046",
+          "ok": true,
+          "vpp_v": 1.0048123270557268,
+          "frequency_hz": 245.46830498234073,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.014980695532046368,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.8873361610574154,
+              "background_coefficient_fraction": 0.02736772801884511,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000047",
+          "ok": true,
+          "vpp_v": 1.0063467757775422,
+          "frequency_hz": 245.47033794716674,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.00967703025930907,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 0.6217829215720024,
+              "background_coefficient_fraction": 0.020684739794118653,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        },
+        {
+          "capture": "uart\\000048",
+          "ok": true,
+          "vpp_v": 1.0058396160399194,
+          "frequency_hz": 245.47033794716683,
+          "type": 3,
+          "spectral_vpp": {
+            "method": "sampled_reset_harmonics",
+            "harmonics": 12,
+            "relative_rms": 0.008887904228459904,
+            "background_separation": {
+              "accepted": false,
+              "background_gap_ratio": 1.0653868060925236,
+              "background_coefficient_fraction": 0.026579344422512478,
+              "background_negligible": false,
+              "assumption": "source harmonics separated from noncoherent background; coherent overlap remains unidentifiable"
+            },
+            "accepted": false,
+            "rejection": "unseparated_background"
+          },
+          "vpp_quality": {
+            "input_mode": "single_channel",
+            "meaning": "source_amplitude_under_unverified_nuisance_model",
+            "independent_reference_used": false,
+            "absolute_accuracy_verified": false,
+            "accuracy_0p1_percent_certified": false
+          }
+        }
+      ]
+    }
+  ]
+}

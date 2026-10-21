@@ -1,0 +1,307 @@
+{"time_ns": 1792555767419929400, "stage": "connect", "command": "VISA resource USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR", "event": "start"}
+{"time_ns": 1792555767512769500, "stage": "connect", "command": "VISA resource USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR", "event": "ok", "duration_s": 0.09207330000003822}
+{"time_ns": 1792555767512769500, "stage": "identify instrument", "command": "*IDN?", "event": "start"}
+{"time_ns": 1792555767514792800, "stage": "identify instrument", "command": "*IDN?", "event": "ok", "duration_s": 0.0015834999999242427, "response": "Siglent Technologies,SDG6022X-E,SDG6XFCQ900843,6.01.01.37R6"}
+{"time_ns": 1792555767514792800, "stage": "initialize output", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555767515782300, "stage": "initialize output", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.00047920000008616626}
+{"time_ns": 1792555767515782300, "stage": "initialize output", "command": "C1:OUTP LOAD,HZ,PLRT,NOR", "event": "start"}
+{"time_ns": 1792555767515782300, "stage": "initialize output", "command": "C1:OUTP LOAD,HZ,PLRT,NOR", "event": "ok", "duration_s": 0.0005346000000372442}
+{"time_ns": 1792555767515782300, "stage": "initialize output", "command": "C1:MDWV STATE,OFF", "event": "start"}
+{"time_ns": 1792555767516867400, "stage": "initialize output", "command": "C1:MDWV STATE,OFF", "event": "ok", "duration_s": 0.0006723999999849184}
+{"time_ns": 1792555767516867400, "stage": "initialize output", "command": "C1:SWWV STATE,OFF", "event": "start"}
+{"time_ns": 1792555767517788600, "stage": "initialize output", "command": "C1:SWWV STATE,OFF", "event": "ok", "duration_s": 0.0006329999999934444}
+{"time_ns": 1792555767517788600, "stage": "initialize output", "command": "C1:BTWV STATE,OFF", "event": "start"}
+{"time_ns": 1792555767518780900, "stage": "initialize output", "command": "C1:BTWV STATE,OFF", "event": "ok", "duration_s": 0.0006825000000389991}
+{"time_ns": 1792555767518780900, "stage": "initialize output", "command": "C1:NOISE_ADD STATE,OFF", "event": "start"}
+{"time_ns": 1792555767519775800, "stage": "initialize output", "command": "C1:NOISE_ADD STATE,OFF", "event": "ok", "duration_s": 0.0007309999999733918}
+{"time_ns": 1792555767519775800, "stage": "initialize output", "command": "C1:CMBN OFF", "event": "start"}
+{"time_ns": 1792555767520773300, "stage": "initialize output", "command": "C1:CMBN OFF", "event": "ok", "duration_s": 0.0007742999999891254}
+{"time_ns": 1792555767520773300, "stage": "initialize output", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555767539723600, "stage": "initialize output", "command": "*OPC?", "event": "ok", "duration_s": 0.019083000000023276, "response": "1"}
+{"time_ns": 1792555767539723600, "stage": "initialize output", "command": "C1:CMBN?", "event": "start"}
+{"time_ns": 1792555767542730400, "stage": "initialize output", "command": "C1:CMBN?", "event": "ok", "duration_s": 0.0023471000000654385, "response": "C1:CMBN OFF"}
+{"time_ns": 1792555769493286400, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555769494288000, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0003437999999960084}
+{"time_ns": 1792555769494288000, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555769494288000, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.00024689999997917766}
+{"time_ns": 1792555769495287900, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,DC,OFST,0.495", "event": "start"}
+{"time_ns": 1792555769495287900, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,DC,OFST,0.495", "event": "ok", "duration_s": 0.0002817999999251697}
+{"time_ns": 1792555769495287900, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555769610256200, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.11501539999994748, "response": "1"}
+{"time_ns": 1792555769610256200, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555769613526200, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.0026162999999996828, "response": "C1:BSWV WVTP,DC,MAX_OUTPUT_AMP,20V,OFST,0.495V"}
+{"time_ns": 1792555769613526200, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555769613526200, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.00019970000005287147}
+{"time_ns": 1792555769613526200, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555769657110700, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.04310259999999744, "response": "1"}
+{"time_ns": 1792555769657110700, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555769662187100, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.005832100000020546, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555771721983900, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555771722984600, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.00039389999994909886}
+{"time_ns": 1792555771722984600, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555771722984600, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0004175000000259388}
+{"time_ns": 1792555771722984600, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,DC,OFST,1.65", "event": "start"}
+{"time_ns": 1792555771722984600, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,DC,OFST,1.65", "event": "ok", "duration_s": 0.00017679999996289553}
+{"time_ns": 1792555771724048500, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555771835148600, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.11164700000006178, "response": "1"}
+{"time_ns": 1792555771835148600, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555771838055700, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.002730499999984204, "response": "C1:BSWV WVTP,DC,MAX_OUTPUT_AMP,20V,OFST,1.65V"}
+{"time_ns": 1792555771838055700, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555771839059200, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.00021189999995385733}
+{"time_ns": 1792555771839059200, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555771885717000, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.046996100000001206, "response": "1"}
+{"time_ns": 1792555771885717000, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555771887191100, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.00178860000005443, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555773946244500, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555773946244500, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0002799000000095475}
+{"time_ns": 1792555773946244500, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555773946244500, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0001168999999663356}
+{"time_ns": 1792555773946244500, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,DC,OFST,2.805", "event": "start"}
+{"time_ns": 1792555773946244500, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,DC,OFST,2.805", "event": "ok", "duration_s": 9.409999995568796e-05}
+{"time_ns": 1792555773946244500, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555774068931900, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.12234499999999571, "response": "1"}
+{"time_ns": 1792555774068931900, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555774071726000, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.002991899999983616, "response": "C1:BSWV WVTP,DC,MAX_OUTPUT_AMP,20V,OFST,2.805V"}
+{"time_ns": 1792555774071726000, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555774072739700, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.00021779999997306732}
+{"time_ns": 1792555774072739700, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555774116826300, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.04431839999995191, "response": "1"}
+{"time_ns": 1792555774116826300, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555774124824300, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.008253400000057809, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555776190182200, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555776191184000, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.00039860000003955065}
+{"time_ns": 1792555776191184000, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555776191184000, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0002511000000140484}
+{"time_ns": 1792555776191184000, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.65,FRQ,100,AMP,0.99", "event": "start"}
+{"time_ns": 1792555776191184000, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.65,FRQ,100,AMP,0.99", "event": "ok", "duration_s": 0.00021709999998620333}
+{"time_ns": 1792555776191184000, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555776311081000, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.11865849999992406, "response": "1"}
+{"time_ns": 1792555776311081000, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555776315272700, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.004346899999973175, "response": "C1:BSWV WVTP,SINE,FRQ,100HZ,PERI,0.01S,AMP,0.99V,AMPVRMS,0.349965Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,1.65V,HLEV,2.145V,LLEV,1.155V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555776315272700, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555776315272700, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.00020749999998770363}
+{"time_ns": 1792555776315272700, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555776388547500, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.07249730000000909, "response": "1"}
+{"time_ns": 1792555776388547500, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555776390550200, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.0023059999999759384, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555778500092600, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555778501088800, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.000327900000002046}
+{"time_ns": 1792555778501088800, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555778501088800, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0002034000000321612}
+{"time_ns": 1792555778501088800, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.65,FRQ,400,AMP,0.99", "event": "start"}
+{"time_ns": 1792555778501088800, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.65,FRQ,400,AMP,0.99", "event": "ok", "duration_s": 0.00026820000005045586}
+{"time_ns": 1792555778501088800, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555778618037000, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.11627910000004249, "response": "1"}
+{"time_ns": 1792555778618037000, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555778624036700, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.006183100000043851, "response": "C1:BSWV WVTP,SINE,FRQ,400HZ,PERI,0.0025S,AMP,0.99V,AMPVRMS,0.349965Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,1.65V,HLEV,2.145V,LLEV,1.155V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555778625039000, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555778625039000, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.0004083000000036918}
+{"time_ns": 1792555778625039000, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555778690168800, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.06463930000006712, "response": "1"}
+{"time_ns": 1792555778690168800, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555778691680500, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.0020999999999276042, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555780776440800, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555780777443800, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0003505000000814107}
+{"time_ns": 1792555780777443800, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555780777443800, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0002330999999458072}
+{"time_ns": 1792555780777443800, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,DC,OFST,0.99", "event": "start"}
+{"time_ns": 1792555780777443800, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,DC,OFST,0.99", "event": "ok", "duration_s": 0.00018340000008265633}
+{"time_ns": 1792555780777443800, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555780892522700, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.11380410000003849, "response": "1"}
+{"time_ns": 1792555780892522700, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555780895521000, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.002841399999965688, "response": "C1:BSWV WVTP,DC,MAX_OUTPUT_AMP,20V,OFST,0.99V"}
+{"time_ns": 1792555780895521000, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555780895521000, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.0002110000000357104}
+{"time_ns": 1792555780895521000, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555780937416800, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.0419385999999804, "response": "1"}
+{"time_ns": 1792555780938415800, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555780940413400, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.002259900000012749, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555783031404400, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555783031404400, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0004681000000346103}
+{"time_ns": 1792555783031404400, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555783032403500, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0003588000000718239}
+{"time_ns": 1792555783032403500, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,DC,OFST,2.31", "event": "start"}
+{"time_ns": 1792555783032403500, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,DC,OFST,2.31", "event": "ok", "duration_s": 0.00035980000006929913}
+{"time_ns": 1792555783033403300, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555783143943800, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.11150820000000294, "response": "1"}
+{"time_ns": 1792555783145163600, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555783148552300, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.003396899999984271, "response": "C1:BSWV WVTP,DC,MAX_OUTPUT_AMP,20V,OFST,2.31V"}
+{"time_ns": 1792555783148552300, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555783148552300, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.0002583000000413449}
+{"time_ns": 1792555783148552300, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555783190490400, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.041526199999907476, "response": "1"}
+{"time_ns": 1792555783190490400, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555783192490600, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.001835499999970125, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555785258823200, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555785259828500, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0004512000000431726}
+{"time_ns": 1792555785259828500, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555785259828500, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0002498999999716034}
+{"time_ns": 1792555785259828500, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.65,FRQ,250,AMP,0.99", "event": "start"}
+{"time_ns": 1792555785260824600, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.65,FRQ,250,AMP,0.99", "event": "ok", "duration_s": 0.00021400000002813613}
+{"time_ns": 1792555785260824600, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555785373407700, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.11230349999993905, "response": "1"}
+{"time_ns": 1792555785373407700, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555785378416200, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.004850799999985611, "response": "C1:BSWV WVTP,SINE,FRQ,250HZ,PERI,0.004S,AMP,0.99V,AMPVRMS,0.349965Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,1.65V,HLEV,2.145V,LLEV,1.155V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555785378416200, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555785378416200, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.0002618999999413063}
+{"time_ns": 1792555785378416200, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555785444473300, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.06595699999991211, "response": "1"}
+{"time_ns": 1792555785445481600, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555785447482000, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.001993299999980991, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555787916092400, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555787917091900, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0003564999999525753}
+{"time_ns": 1792555787917091900, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555787917091900, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0002744000000802771}
+{"time_ns": 1792555787917091900, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,0.4,FRQ,173.371,AMP,0.72", "event": "start"}
+{"time_ns": 1792555787917091900, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,0.4,FRQ,173.371,AMP,0.72", "event": "ok", "duration_s": 0.0002199000000473461}
+{"time_ns": 1792555787917091900, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555788045765600, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.1278113000000758, "response": "1"}
+{"time_ns": 1792555788045765600, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555788055802000, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.010427800000002208, "response": "C1:BSWV WVTP,SINE,FRQ,173.371HZ,PERI,0.00576798S,AMP,0.72V,AMPVRMS,0.25452Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,0.4V,HLEV,0.76V,LLEV,0.04V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555788055802000, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555788062800800, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.006344400000102723}
+{"time_ns": 1792555788062800800, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555788128940500, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.06621640000003026, "response": "1"}
+{"time_ns": 1792555788129939800, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555788131940300, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.0024967999999034873, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555796480289100, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555796480289100, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0005688999999620137}
+{"time_ns": 1792555796481289300, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555796481289300, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.00040169999999761785}
+{"time_ns": 1792555796481289300, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,0.72,FRQ,173.371,AMP,0.72", "event": "start"}
+{"time_ns": 1792555796481289300, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,0.72,FRQ,173.371,AMP,0.72", "event": "ok", "duration_s": 0.00031040000010307267}
+{"time_ns": 1792555796482286300, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555796601732400, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.11978479999993397, "response": "1"}
+{"time_ns": 1792555796601732400, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555796605741400, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.0041378000000804604, "response": "C1:BSWV WVTP,SINE,FRQ,173.371HZ,PERI,0.00576798S,AMP,0.72V,AMPVRMS,0.25452Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,0.72V,HLEV,1.08V,LLEV,0.36V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555796605741400, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555796606740800, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.00022969999997712875}
+{"time_ns": 1792555796606740800, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555796676832900, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.06996430000003784, "response": "1"}
+{"time_ns": 1792555796676832900, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555796678834300, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.0017044999999598076, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555805098092200, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555805099093100, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0004742999999507447}
+{"time_ns": 1792555805099093100, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555805099093100, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.00033670000004804024}
+{"time_ns": 1792555805099093100, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.04,FRQ,173.371,AMP,0.72", "event": "start"}
+{"time_ns": 1792555805100093300, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.04,FRQ,173.371,AMP,0.72", "event": "ok", "duration_s": 0.0003917000000228654}
+{"time_ns": 1792555805100093300, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555805220352300, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.12074380000001383, "response": "1"}
+{"time_ns": 1792555805221355200, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555805225355200, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.004209800000012365, "response": "C1:BSWV WVTP,SINE,FRQ,173.371HZ,PERI,0.00576798S,AMP,0.72V,AMPVRMS,0.25452Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,1.04V,HLEV,1.4V,LLEV,0.68V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555805225355200, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555805225355200, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.0002199000000473461}
+{"time_ns": 1792555805225355200, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555805295883100, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.0700094999999692, "response": "1"}
+{"time_ns": 1792555805295883100, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555805297883700, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.0023959000000104425, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555813653887700, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555813654883400, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0008232999999790991}
+{"time_ns": 1792555813654883400, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555813654883400, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0002540000000408327}
+{"time_ns": 1792555813654883400, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.36,FRQ,173.371,AMP,0.72", "event": "start"}
+{"time_ns": 1792555813655882800, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.36,FRQ,173.371,AMP,0.72", "event": "ok", "duration_s": 0.00028539999993881793}
+{"time_ns": 1792555813655882800, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555813772015300, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.11648860000002514, "response": "1"}
+{"time_ns": 1792555813772015300, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555813780012000, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.0072632000000112384, "response": "C1:BSWV WVTP,SINE,FRQ,173.371HZ,PERI,0.00576798S,AMP,0.72V,AMPVRMS,0.25452Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,1.36V,HLEV,1.72V,LLEV,1V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555813780012000, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555813780012000, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.00032429999998839776}
+{"time_ns": 1792555813780012000, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555813852223900, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.07198330000005626, "response": "1"}
+{"time_ns": 1792555813852223900, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555813855222300, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.00274509999997008, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555822294492400, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555822295486600, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0005192999999508174}
+{"time_ns": 1792555822295486600, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555822295486600, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.00026370000000497384}
+{"time_ns": 1792555822295486600, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.68,FRQ,173.371,AMP,0.72", "event": "start"}
+{"time_ns": 1792555822296489700, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,1.68,FRQ,173.371,AMP,0.72", "event": "ok", "duration_s": 0.0003292000000101325}
+{"time_ns": 1792555822296489700, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555822418746400, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.1224706000000424, "response": "1"}
+{"time_ns": 1792555822418746400, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555822423748800, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.004466499999921325, "response": "C1:BSWV WVTP,SINE,FRQ,173.371HZ,PERI,0.00576798S,AMP,0.72V,AMPVRMS,0.25452Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,1.68V,HLEV,2.04V,LLEV,1.32V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555822423748800, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555822423748800, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.00023039999996399274}
+{"time_ns": 1792555822423748800, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555822492891700, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.06918640000003506, "response": "1"}
+{"time_ns": 1792555822493887500, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555822497887100, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.0033527000000503904, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555830784361700, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555830784361700, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.000555999999960477}
+{"time_ns": 1792555830785360300, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555830785360300, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0003758999999945445}
+{"time_ns": 1792555830785360300, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,2,FRQ,173.371,AMP,0.72", "event": "start"}
+{"time_ns": 1792555830785360300, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,2,FRQ,173.371,AMP,0.72", "event": "ok", "duration_s": 0.0002892999999630774}
+{"time_ns": 1792555830786360100, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555830901889200, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.11581830000000082, "response": "1"}
+{"time_ns": 1792555830901889200, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555830906893300, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.0042588000000023385, "response": "C1:BSWV WVTP,SINE,FRQ,173.371HZ,PERI,0.00576798S,AMP,0.72V,AMPVRMS,0.25452Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,2V,HLEV,2.36V,LLEV,1.64V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555830906893300, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555830907893900, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.0003701000000546628}
+{"time_ns": 1792555830907893900, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555830976637700, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.06941059999996924, "response": "1"}
+{"time_ns": 1792555830977638800, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555830979638400, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.00196789999995417, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555839474198300, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555839475198600, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0006130000000439395}
+{"time_ns": 1792555839475198600, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555839475198600, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.00037620000000515574}
+{"time_ns": 1792555839475198600, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,2.32,FRQ,173.371,AMP,0.72", "event": "start"}
+{"time_ns": 1792555839476199100, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,2.32,FRQ,173.371,AMP,0.72", "event": "ok", "duration_s": 0.00020429999995030812}
+{"time_ns": 1792555839476199100, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555839596709200, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.12050469999996949, "response": "1"}
+{"time_ns": 1792555839596709200, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555839601709300, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.004889299999945251, "response": "C1:BSWV WVTP,SINE,FRQ,173.371HZ,PERI,0.00576798S,AMP,0.72V,AMPVRMS,0.25452Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,2.32V,HLEV,2.68V,LLEV,1.96V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555839601709300, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555839601709300, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.00023550000003069727}
+{"time_ns": 1792555839601709300, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555839668509700, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.06594749999999294, "response": "1"}
+{"time_ns": 1792555839668509700, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555839674506800, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.005904999999984284, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555848172666200, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555848172666200, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.0006651999999576219}
+{"time_ns": 1792555848172666200, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555848173665500, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.0002475000000004002}
+{"time_ns": 1792555848173665500, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,2.64,FRQ,173.371,AMP,0.72", "event": "start"}
+{"time_ns": 1792555848173665500, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,2.64,FRQ,173.371,AMP,0.72", "event": "ok", "duration_s": 0.00022879999994529499}
+{"time_ns": 1792555848173665500, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555848293926700, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.12027339999997366, "response": "1"}
+{"time_ns": 1792555848294739200, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555848299263300, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.004792400000042107, "response": "C1:BSWV WVTP,SINE,FRQ,173.371HZ,PERI,0.00576798S,AMP,0.72V,AMPVRMS,0.25452Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,2.64V,HLEV,3V,LLEV,2.28V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555848299263300, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555848300263100, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.0005987999999206295}
+{"time_ns": 1792555848300263100, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555848365902700, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.06536340000002383, "response": "1"}
+{"time_ns": 1792555848365902700, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555848368928000, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.002767599999970116, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555856723758500, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555856724757600, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.00041379999993296224}
+{"time_ns": 1792555856724757600, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "start"}
+{"time_ns": 1792555856725758000, "stage": "configure calibration reference", "command": "C1:SRATE MODE,DDS", "event": "ok", "duration_s": 0.00033179999991261866}
+{"time_ns": 1792555856725758000, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,2.9,FRQ,173.371,AMP,0.72", "event": "start"}
+{"time_ns": 1792555856725758000, "stage": "configure calibration reference", "command": "C1:BSWV WVTP,SINE,OFST,2.9,FRQ,173.371,AMP,0.72", "event": "ok", "duration_s": 0.0003538999999364023}
+{"time_ns": 1792555856725758000, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555856878903700, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.15372100000001865, "response": "1"}
+{"time_ns": 1792555856878903700, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "start"}
+{"time_ns": 1792555856884948700, "stage": "configure calibration reference", "command": "C1:BSWV?", "event": "ok", "duration_s": 0.005129900000042653, "response": "C1:BSWV WVTP,SINE,FRQ,173.371HZ,PERI,0.00576798S,AMP,0.72V,AMPVRMS,0.25452Vrms,AMPDBM,0dBm,MAX_OUTPUT_AMP,20V,OFST,2.9V,HLEV,3.26V,LLEV,2.54V,PHSE,0,DLY,0S"}
+{"time_ns": 1792555856884948700, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "start"}
+{"time_ns": 1792555856885956900, "stage": "configure calibration reference", "command": "C1:OUTP ON", "event": "ok", "duration_s": 0.00042220000000270375}
+{"time_ns": 1792555856885956900, "stage": "configure calibration reference", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555856952144700, "stage": "configure calibration reference", "command": "*OPC?", "event": "ok", "duration_s": 0.06603889999996682, "response": "1"}
+{"time_ns": 1792555856952144700, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555856955150400, "stage": "configure calibration reference", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.003524599999991551, "response": "C1:OUTP ON,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}
+{"time_ns": 1792555867422894300, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555867423898500, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "error", "error": "RO configure calibration reference; command=C1:OUTP OFF; VI_ERROR_SYSTEM_ERROR (-1073807360): Unknown system error (miscellaneous error).", "duration_s": 0.00031560000002173183}
+{"time_ns": 1792555867438935900, "stage": "configure calibration reference", "command": "C1:OUTP OFF", "event": "failure", "failure": {"stage": "configure calibration reference", "command": "C1:OUTP OFF", "error": "RO configure calibration reference; command=C1:OUTP OFF; VI_ERROR_SYSTEM_ERROR (-1073807360): Unknown system error (miscellaneous error)."}}
+{"time_ns": 1792555867450472100, "stage": "shutdown output", "command": "reconnect VISA USBTMC for OUTP OFF", "event": "start"}
+{"time_ns": 1792555867613617700, "stage": "shutdown output", "command": "reconnect VISA USBTMC for OUTP OFF", "event": "ok", "duration_s": 0.16269239999996898}
+{"time_ns": 1792555867613617700, "stage": "shutdown output", "command": "clear pending USBTMC responses", "event": "start"}
+{"time_ns": 1792555867619124600, "stage": "shutdown output", "command": "clear pending USBTMC responses", "event": "ok", "duration_s": 0.005029899999954068}
+{"time_ns": 1792555867619124600, "stage": "shutdown output", "command": "C1:OUTP OFF", "event": "start"}
+{"time_ns": 1792555867619124600, "stage": "shutdown output", "command": "C1:OUTP OFF", "event": "ok", "duration_s": 0.00039270000002034067}
+{"time_ns": 1792555867619124600, "stage": "shutdown output", "command": "*OPC?", "event": "start"}
+{"time_ns": 1792555867624678500, "stage": "shutdown output", "command": "*OPC?", "event": "ok", "duration_s": 0.004816600000026483, "response": "1"}
+{"time_ns": 1792555867624678500, "stage": "shutdown output", "command": "C1:OUTP?", "event": "start"}
+{"time_ns": 1792555867629404400, "stage": "shutdown output", "command": "C1:OUTP?", "event": "ok", "duration_s": 0.004525000000057844, "response": "C1:OUTP OFF,LOAD,HZ,POWERON_STATE,OFF,PLRT,NOR"}

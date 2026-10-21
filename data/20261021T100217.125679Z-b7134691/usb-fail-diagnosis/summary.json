@@ -1,0 +1,125 @@
+{
+  "count": 7,
+  "results": [
+    {
+      "case_id": "final_strong-0038",
+      "truth": {
+        "frequency_hz": 400.0,
+        "vpp_v": 1.4447361783165615,
+        "dc_v": 1.4398747800986051,
+        "duty_pct": 75.78114668602845,
+        "scope": "finals-official-identifiable-v2-296",
+        "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+        "dc_definition": "configured source offset (clean envelope midpoint)"
+      },
+      "algorithm_line": "square,400.033800636,1.445099307,75.7041996,1.444669280",
+      "status": 0,
+      "rejection_reason": null,
+      "elapsed_s": 2.158914800002094,
+      "capture_dir": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T100217.125679Z-b7134691\\uart\\000001"
+    },
+    {
+      "case_id": "final_strong-0049",
+      "truth": {
+        "frequency_hz": 201.82856989568012,
+        "vpp_v": 1.18402149076891,
+        "dc_v": 1.8,
+        "duty_pct": 0.0,
+        "scope": "finals-official-identifiable-v2-296",
+        "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+        "dc_definition": "configured source offset (clean envelope midpoint)",
+        "wire_carrier_vpp_v": 1.1840254829209076
+      },
+      "algorithm_line": "triangle,201.832323653,1.441670576,0.0000000,1.805135330",
+      "status": 0,
+      "rejection_reason": null,
+      "elapsed_s": 1.2838044999989506,
+      "capture_dir": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T100217.125679Z-b7134691\\uart\\000002"
+    },
+    {
+      "case_id": "final_weak-0063",
+      "truth": {
+        "frequency_hz": 100.1,
+        "vpp_v": 0.8241009447044133,
+        "dc_v": 1.7103144014233165,
+        "duty_pct": 0.0,
+        "scope": "finals-official-identifiable-v2-296",
+        "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+        "dc_definition": "configured source offset (clean envelope midpoint)"
+      },
+      "algorithm_line": "triangle,100.097739697,0.826081665,0.0000000,1.713567512",
+      "status": 0,
+      "rejection_reason": null,
+      "elapsed_s": 1.1384256000019377,
+      "capture_dir": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T100217.125679Z-b7134691\\uart\\000003"
+    },
+    {
+      "case_id": "final_weak-0075",
+      "truth": {
+        "frequency_hz": 112.27885994856256,
+        "vpp_v": 1.114183826783172,
+        "dc_v": 1.4868145130617954,
+        "duty_pct": 0.0,
+        "scope": "finals-official-identifiable-v2-296",
+        "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+        "dc_definition": "configured source offset (clean envelope midpoint)"
+      },
+      "algorithm_line": "triangle,112.278107289,1.115653454,0.0000000,1.489775516",
+      "status": 0,
+      "rejection_reason": null,
+      "elapsed_s": 1.613953300002322,
+      "capture_dir": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T100217.125679Z-b7134691\\uart\\000004"
+    },
+    {
+      "case_id": "final_weak-0079",
+      "truth": {
+        "frequency_hz": 112.81125598051172,
+        "vpp_v": 1.0889341951732314,
+        "dc_v": 1.7507178482446073,
+        "duty_pct": 0.0,
+        "scope": "finals-official-identifiable-v2-296",
+        "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+        "dc_definition": "configured source offset (clean envelope midpoint)"
+      },
+      "algorithm_line": "triangle,112.811575721,1.091241369,0.0000000,1.753238732",
+      "status": 0,
+      "rejection_reason": null,
+      "elapsed_s": 1.1582882999973663,
+      "capture_dir": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T100217.125679Z-b7134691\\uart\\000005"
+    },
+    {
+      "case_id": "final_weak-0103",
+      "truth": {
+        "frequency_hz": 100.0,
+        "vpp_v": 0.903599290933065,
+        "dc_v": 1.5043660881971965,
+        "duty_pct": 0.0,
+        "scope": "finals-official-identifiable-v2-296",
+        "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+        "dc_definition": "configured source offset (clean envelope midpoint)"
+      },
+      "algorithm_line": "triangle,100.002103673,0.905537632,0.0000000,1.507371353",
+      "status": 0,
+      "rejection_reason": null,
+      "elapsed_s": 0.977175799998804,
+      "capture_dir": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T100217.125679Z-b7134691\\uart\\000006"
+    },
+    {
+      "case_id": "final_weak-0123",
+      "truth": {
+        "frequency_hz": 117.12198801332394,
+        "vpp_v": 1.4038800019871298,
+        "dc_v": 1.5007167084452573,
+        "duty_pct": 0.0,
+        "scope": "finals-official-identifiable-v2-296",
+        "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+        "dc_definition": "configured source offset (clean envelope midpoint)"
+      },
+      "algorithm_line": "triangle,117.119855554,1.405973029,0.0000000,1.505576069",
+      "status": 0,
+      "rejection_reason": null,
+      "elapsed_s": 1.2135868000004848,
+      "capture_dir": "C:\\Users\\L\\workspace_ccstheia\\TI-game\\data\\20261021T100217.125679Z-b7134691\\uart\\000007"
+    }
+  ]
+}

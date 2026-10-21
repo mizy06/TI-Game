@@ -416,8 +416,8 @@ def encode(case, vref, gain, level_mode="adc", oversample=1):
         # Interpolate only the explicitly bandlimited interference. Evaluate
         # the clean continuous source directly, retaining its original truth.
         noise=np.fft.irfft(np.fft.rfft(noise),n=waveform_samples)*oversample
-        if row['noise']:
-            noise*=row['noise']*row['vpp']/np.ptp(noise)
+        # Fourier interpolation preserves the published Gaussian standard
+        # deviation. Renormalizing its observed extrema changes the stimulus.
         source=(facts['truth']['dc_v']+.5*row['vpp']*clean+noise)*full_scale/(case.vref_v/case.gain)
         if np.any((source<0)|(source>vref/gain)):
             raise ValueError('high resolution source exceeds ADC input range')
@@ -861,6 +861,28 @@ class VisaTransport:
         if written != len(data):
             raise ConnectionError(f"RO incomplete VISA write: {written}/{len(data)} bytes")
 
+    @staticmethod
+    def recoverable(error):
+        from pyvisa.constants import StatusCode
+        from pyvisa.errors import VisaIOError
+        return isinstance(error, VisaIOError) and error.error_code in (
+            StatusCode.error_system_error, StatusCode.error_io,
+            StatusCode.error_connection_lost, StatusCode.error_invalid_object)
+
+    def reconnect(self, timeout):
+        """Discard a broken USB session without resetting generator settings."""
+        self.close()
+        original_timeout = self.timeout
+        try:
+            self.timeout = timeout
+            self.open()
+            self.instrument.clear()
+        except Exception:
+            self.close()
+            raise
+        finally:
+            self.timeout = original_timeout
+
     def read(self, limit=4096, text=False, on_chunk=None):
         if self.instrument is None:
             raise ConnectionError("RO VISA resource is not open")
@@ -944,6 +966,7 @@ class Generator:
         self.readback_attempts = []
         self.stderr = None
         self.playback_calibration = None
+        self.connection_recoveries = 0
 
     @property
     def transport_label(self):
@@ -959,12 +982,34 @@ class Generator:
                 "command": self.command, "event": event, **details}, ensure_ascii=False) + "\n")
             self.trace.flush()
 
-    def operation(self, command, action):
+    def operation(self, command, action, *, retry=False):
         self.command = command
         self.record("start")
         start = time.perf_counter()
         try:
-            result = action()
+            # Only idempotent SCPI commands/queries may be replayed. A partial
+            # binary upload or an actual timeout must still abort the run.
+            for attempt in range(3):
+                try:
+                    result = action()
+                    break
+                except Exception as error:
+                    remaining = self.timeout - (time.perf_counter() - start)
+                    if (not retry or self.transport_name != "visa" or
+                            not VisaTransport.recoverable(error) or attempt == 2 or
+                            remaining <= .25):
+                        raise
+                    self.record("transport_recovery", attempt=attempt + 1,
+                                error=f"{type(error).__name__}: {error}")
+                    if self.stderr is not None:
+                        print(f"RO: USBTMC reconnect {attempt + 1}/2; {command}",
+                              file=self.stderr, flush=True)
+                    time.sleep(.1)
+                    # Clear stale query replies before replaying the command.
+                    # If reopening itself fails, abort and retain diagnostics.
+                    self.transport.reconnect(max(.001, remaining - .1))
+                    self.connection_recoveries += 1
+                    self.record("transport_reconnected", attempt=attempt + 1)
             details = {"duration_s": time.perf_counter() - start}
             if isinstance(result, bytes):
                 details.update(bytes=len(result), sha256=hashlib.sha256(result).hexdigest())
@@ -982,13 +1027,13 @@ class Generator:
             raise RuntimeError(detail) from error
 
     def send(self, command):
-        self.operation(command, lambda: self.transport.write(command.encode("ascii") + b"\n"))
+        self.operation(command, lambda: self.transport.write(command.encode("ascii") + b"\n"), retry=True)
 
     def query(self, command):
         def execute():
             self.transport.write(command.encode("ascii") + b"\n")
             return self.transport.read(text=True).decode("ascii").strip()
-        return self.operation(command, execute)
+        return self.operation(command, execute, retry=True)
 
     def query_binary(self, command, limit=WAVEFORM_RESPONSE_LIMIT, record_path=None):
         def execute():
@@ -1104,6 +1149,7 @@ class Generator:
             if self.transport_name == "visa":
                 self.transport = VisaTransport(self.resource, self.timeout, self.visa_backend)
                 self.operation(f"VISA resource {self.resource}", self.transport.open)
+                self.operation("clear pending USBTMC responses", self.transport.instrument.clear)
             else:
                 self.transport = Vxi11(self.address, self.port, self.timeout)
                 self.operation(f"{self.address}:{self.port} portmapper / inst0", self.transport.open)
@@ -1318,7 +1364,7 @@ def calibrate_link(service, store, args, stderr, instrument, report, vref, gain)
 def calibrate_playback(service, store, args, stderr, instrument, report, vref, gain):
     """Validate ARB separately from the ADC calibration used in competition R."""
     from tools.acquisition_calibration import counts
-    from tools.generator_calibration import reference, fit_playback, verify_playback
+    from tools.generator_calibration import reference, fit_playback, verify_playback, playback_voltages
     full_scale = vref / gain
     path = report / "generator_calibration.json"
     info = {"complete": False, "captures": [], "calibration": None, "error": "",
@@ -1348,18 +1394,11 @@ def calibrate_playback(service, store, args, stderr, instrument, report, vref, g
         context = {"reference": expected, "configuration": config, "validation": validation,
                    "capture": record.path.relative_to(store.path).as_posix()}
         acquisition = service.calibration
-        adjusted, effective = acquisition.apply(payload, meta)
-        effective = replace(effective,
-                            sample_rate_hz_exact=(acquisition.sample_rate_hz_exact or
-                                                  acquisition.sample_rate_millihz / 1000))
+        adjusted, effective = acquisition.apply_exact(payload, meta)
         samples = counts(payload)
         # Fit the small OFST control slope from the unrounded calibrated mean.
         # Re-quantizing every sample first can bias a short voltage difference.
-        measured_dc = ((float(samples.mean()) - acquisition.adc_offset_counts) / acquisition.adc_scale *
-                       full_scale / effective.adc_full_scale)
-        if acquisition.vpp_transfer is not None:
-            from tools.amplitude_calibration import voltage_values
-            measured_dc = float(voltage_values(samples,acquisition.vpp_transfer).mean())
+        measured_dc = float(playback_voltages(samples, effective).mean())
         context["measured_dc_v"] = measured_dc
         context["adc_std_counts"] = float(samples.std()) / acquisition.adc_scale
         context["metadata"] = asdict(meta)
@@ -1396,6 +1435,76 @@ def calibrate_playback(service, store, args, stderr, instrument, report, vref, g
         atomic_json(path, info)
 
 
+def _load_resume_report(report: Path, selected, resume_from_case=None):
+    """Validate and return the completed prefix of an incomplete RO report."""
+    matrix_path, result_path = report / 'matrix.json', report / 'results.json'
+    journal_path = report / 'results.jsonl'
+    if not report.is_dir() or not matrix_path.is_file() or not journal_path.is_file():
+        raise ValueError(f'RO resume directory is missing matrix/results journal: {report}')
+    saved_matrix = json.loads(matrix_path.read_text(encoding='utf-8'))
+    selected_ids = [case.id for case in selected]
+    if [case['id'] for case in saved_matrix.get('cases', [])] != selected_ids:
+        raise ValueError('RO resume matrix does not match the selected matrix')
+    prior = json.loads(result_path.read_text(encoding='utf-8')) if result_path.is_file() else {}
+    results = prior.get('results', [])
+    done_ids = [entry.get('case_id') for entry in results]
+    if done_ids != selected_ids[:len(done_ids)]:
+        raise ValueError('RO resume results are not a contiguous prefix of the selected matrix')
+    journal_ids = [json.loads(line)['case_id'] for line in
+                   journal_path.read_text(encoding='utf-8').splitlines() if line.strip()]
+    if journal_ids != done_ids:
+        raise ValueError('RO resume results journal does not match the completed results')
+    if prior.get('complete'):
+        raise ValueError('RO report is already complete')
+    if resume_from_case is not None:
+        try:
+            retry_at = selected_ids.index(resume_from_case)
+        except ValueError as error:
+            raise ValueError(f'RO resume case is not in the selected matrix: {resume_from_case}') from error
+        if retry_at > len(results):
+            raise ValueError(f'RO resume case is beyond the completed prefix: {resume_from_case}')
+    else:
+        # A measured FAIL is still a completed queue item. Retrying from the
+        # first failed verdict silently rewinds the run on every interruption.
+        retry_at = len(results)
+    retry_tail = results[retry_at:]
+    if retry_tail:
+        history_path = report / 'resume-history.jsonl'
+        with history_path.open('a', encoding='utf-8') as history:
+            for entry in retry_tail:
+                history.write(json.dumps({'archived_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                    'entry': entry}, ensure_ascii=False, allow_nan=False) + '\n')
+        results = results[:retry_at]
+        prior.update(complete=False, results=results)
+        atomic_json(result_path, prior)
+        atomic_text(journal_path, ''.join(json.dumps(entry, ensure_ascii=False, allow_nan=False) + '\n'
+                                          for entry in results))
+    return prior, results
+
+
+def _new_case_directory(report: Path, case_id: str) -> Path:
+    """Preserve artifacts from an interrupted attempt before retrying a case."""
+    source = report / case_id
+    if source.exists():
+        if not source.is_dir():
+            raise FileExistsError(f'RO case artifact path is not a directory: {source}')
+        archive = report / 'resume-artifacts' / case_id / f'attempt-{time.time_ns()}'
+        archive.parent.mkdir(parents=True, exist_ok=True)
+        source.replace(archive)
+    source.mkdir()
+    return source
+
+
+def _report_reference(report: Path, store) -> str:
+    """Return a stable data-root-relative report path across resumed sessions."""
+    report = report.resolve()
+    data_root = store.path.parent.resolve()
+    try:
+        return report.relative_to(data_root).as_posix()
+    except ValueError:
+        return str(report)
+
+
 def run(service, store, args, stderr, *, calibration_only=False):
     """Replay the identifiable weak/strong finals matrix and measure through R.
 
@@ -1416,13 +1525,30 @@ def run(service, store, args, stderr, *, calibration_only=False):
     selected = [] if calibration_only else select_ro_cases(args)
     vref, gain = board_levels()
     prepared = [encode(case, vref, gain, args.ro_level_mode,getattr(args,'ro_oversample',1)) for case in selected]
-    report = store.path / (("rs-" if calibration_only else "ro-") + str(time.time_ns()))
-    report.mkdir()
-    if not calibration_only:
+    resume_from = getattr(args, 'ro_resume_from', None)
+    resume_from_case = getattr(args, 'ro_resume_from_case', None)
+    if resume_from_case is not None and resume_from is None:
+        raise ValueError('--ro-resume-from-case requires --ro-resume-from')
+    if resume_from is not None:
+        if calibration_only:
+            raise ValueError('--ro-resume-from is only valid for RO')
+        report = Path(resume_from).resolve()
+        prior, results = _load_resume_report(report, selected, resume_from_case)
+        print(f'RO: resuming {len(results)}/{len(selected)} completed cases from {report}',
+              file=stderr, flush=True)
+    else:
+        report = store.path / (("rs-" if calibration_only else "ro-") + str(time.time_ns()))
+        report.mkdir()
+        results = []
+    if not calibration_only and resume_from is None:
         from tools.identifiable_finals import DESIGN_SEED, REVISION
         atomic_json(report / "matrix.json", {"schema": 1, "seed": DESIGN_SEED, "revision": REVISION,
             "cases": [asdict(c) for c in selected]})
-    results, counts = [], Counter()
+    counts = Counter()
+    for entry in results:
+        check = entry.get('result', {})
+        counts['completed'] += 1
+        counts['passed' if check.get('passed') else 'failed'] += 1
     started, completed = time.perf_counter(), False
     error_text, failed_case = "", None
     calibration_snapshot = playback_snapshot = None
@@ -1434,17 +1560,51 @@ def run(service, store, args, stderr, *, calibration_only=False):
         print("RO: no board attached; encoding and uploading the matrix, R is not sent",
               file=stderr, flush=True)
     try:
-        with (report / "scpi.jsonl").open("w", encoding="utf-8", buffering=1) as trace:
+        with (report / "scpi.jsonl").open("a" if resume_from is not None else "w", encoding="utf-8", buffering=1) as trace:
             generator.trace = trace
             if generator.transport_name == "visa":
                 print(f"RO: VISA USBTMC {args.ro_resource}", file=stderr, flush=True)
             else:
                 print(f"RO: VXI-11 {args.ro_host}:{args.ro_port} / inst0", file=stderr, flush=True)
-            with generator as instrument, (report / "results.jsonl").open("w", encoding="utf-8") as journal:
+            with generator as instrument, (report / "results.jsonl").open("a" if resume_from is not None else "w", encoding="utf-8") as journal:
                 if measured:
                     reuse_report = None if calibration_only else getattr(args, 'ro_reuse_reference_report', None)
                     calibration_mode = 'auto' if calibration_only else getattr(args, 'ro_calibrate', 'saved')
-                    if calibration_mode == 'saved' and not reuse_report:
+                    if resume_from is not None:
+                        from tools.generator_calibration import GeneratorCalibration
+                        if not reuse_report:
+                            required = ('calibration.json', 'generator_calibration.json',
+                                        'amplitude_calibration.json', 'arb_voltage_transfer.json')
+                            if not all((report / name).is_file() for name in required):
+                                raise ValueError('RO resume requires all original calibration snapshots')
+                            calibration_snapshot = json.loads((report / 'calibration.json').read_text(encoding='utf-8'))
+                            playback_snapshot = json.loads((report / 'generator_calibration.json').read_text(encoding='utf-8'))
+                            amp_reference = json.loads((report / 'amplitude_calibration.json').read_text(encoding='utf-8'))
+                            arb_reference = json.loads((report / 'arb_voltage_transfer.json').read_text(encoding='utf-8'))
+                            if not all(item.get('complete') and not item.get('error') for item in
+                                       (calibration_snapshot, playback_snapshot, amp_reference, arb_reference)):
+                                raise ValueError('RO resume cannot use incomplete original calibration')
+                            published_profile = service.publish_calibration(report / 'calibration.json')
+                            transfer = amp_reference.get('transfer')
+                            if not transfer:
+                                raise ValueError('RO resume amplitude calibration has no ADC transfer')
+                            from dataclasses import replace
+                            from tools.acquisition_calibration import CalibrationProfile
+                            service.calibration_profile_override = CalibrationProfile(
+                                replace(published_profile.calibration, vpp_transfer=transfer),
+                                published_profile.source)
+                            service.calibration_profile = service.calibration_profile_override
+                            service.use_saved_calibration = True
+                            instrument.playback_calibration = GeneratorCalibration(**playback_snapshot['calibration'])
+                            instrument.playback_transfer = arb_reference['transfer']
+                        atomic_json(report / 'resume.json', {
+                            'resumed_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                            'completed_before_resume': len(results),
+                            'retry_case': selected[len(results)].id if len(results) < len(selected) else None,
+                            'requested_retry_case': resume_from_case,
+                            'reference_report': str(Path(reuse_report).resolve()) if reuse_report else str(report),
+                            'previous_error': prior.get('error')})
+                    elif calibration_mode == 'saved' and not reuse_report:
                         profile = service.refresh_calibration()
                         if profile is None:
                             raise ValueError('RO requires saved calibration; run RS first')
@@ -1460,10 +1620,30 @@ def run(service, store, args, stderr, *, calibration_only=False):
                         if not all(x.get('complete') and not x.get('error') for x in
                                    (calibration_snapshot,playback_snapshot,amp_reference,arb_reference)):
                             raise ValueError('cannot reuse failed independent references')
-                        for filename in ('calibration.json','generator_calibration.json',
-                                         'amplitude_calibration.json','arb_voltage_transfer.json'):
+                        transfer = amp_reference.get('transfer')
+                        if not transfer or not arb_reference.get('transfer'):
+                            raise ValueError('independent references are missing calibrated transfers')
+                        snapshot_names = ('calibration.json','generator_calibration.json',
+                                          'amplitude_calibration.json','arb_voltage_transfer.json')
+                        existing = [name for name in snapshot_names if (report / name).is_file()]
+                        if existing:
+                            archive = report / 'resume-artifacts' / 'calibration-snapshots' / f'attempt-{time.time_ns()}'
+                            archive.mkdir(parents=True, exist_ok=True)
+                            for filename in existing:
+                                shutil.copy2(report / filename, archive / filename)
+                        # A resumed run may have installed its old profile as
+                        # an override. Explicit references must replace it so
+                        # every subsequent frame uses the newly requested RS.
+                        service.calibration_profile_override = None
+                        published_profile = service.publish_calibration(reference_dir/'calibration.json')
+                        from dataclasses import replace
+                        from tools.acquisition_calibration import CalibrationProfile
+                        service.calibration_profile_override = CalibrationProfile(
+                            replace(published_profile.calibration, vpp_transfer=transfer),
+                            published_profile.source)
+                        service.calibration_profile = service.calibration_profile_override
+                        for filename in snapshot_names:
                             shutil.copy2(reference_dir/filename,report/filename)
-                        service.publish_calibration(report/'calibration.json')
                         service.use_saved_calibration=True
                         instrument.playback_calibration=GeneratorCalibration(**playback_snapshot['calibration'])
                         instrument.playback_transfer=arb_reference['transfer']
@@ -1484,7 +1664,8 @@ def run(service, store, args, stderr, *, calibration_only=False):
                         service.use_saved_calibration = False
                 if not calibration_only:
                     _run_cases(service, store, args, stderr, instrument, journal, report,
-                               selected, prepared, results, counts, vref, gain, measured)
+                               selected, prepared, results, counts, vref, gain, measured,
+                               skip_count=len(results) if resume_from is not None else 0)
             completed = True
     except BaseException as error:
         completed = False
@@ -1495,6 +1676,7 @@ def run(service, store, args, stderr, *, calibration_only=False):
     finally:
         if measured:
             service.use_saved_calibration = previous_calibration_mode
+            service.calibration_profile_override = None
             if calibration_only and not completed:
                 # A partially successful RS must not replace the working profile.
                 if parameters_before is None:
@@ -1523,6 +1705,7 @@ def run(service, store, args, stderr, *, calibration_only=False):
             "frames_per_case": args.r_frames if measured else None,
             "all_passed": completed and not counts["failed"], "error": error_text,
             "shutdown_error": generator.shutdown_error,
+            "connection_recoveries": generator.connection_recoveries,
             "failure": generator.failure, "failed_case": failed_case,
             "waveform_readback": generator.readback_info,
             "calibration": "calibration.json" if (report / "calibration.json").exists() else None,
@@ -1546,7 +1729,7 @@ def run(service, store, args, stderr, *, calibration_only=False):
 
 
 def _run_cases(service, store, args, stderr, instrument, journal, report,
-               selected, prepared, results, counts, vref, gain, measured):
+               selected, prepared, results, counts, vref, gain, measured, *, skip_count=0):
     """Keep the RT/RO evaluation and optional UART behavior separate from transport."""
     atomic_json(report / "instrument.json", {"identity": instrument.identity,
         "host": args.ro_host, "port": args.ro_port, "channel": args.ro_channel,
@@ -1562,6 +1745,8 @@ def _run_cases(service, store, args, stderr, instrument, journal, report,
         "generator_calibration": (asdict(instrument.playback_calibration)
             if instrument.playback_calibration is not None else None)})
     for index, (case, (adc, dac, config)) in enumerate(zip(selected, prepared), 1):
+        if index <= skip_count:
+            continue
         transfer=getattr(instrument,'playback_transfer',None)
         if transfer is not None:
             from tools.amplitude_calibration import predistort_dac
@@ -1571,8 +1756,7 @@ def _run_cases(service, store, args, stderr, instrument, journal, report,
             config['voltage_transfer_report']='arb_voltage_transfer.json'
         if instrument.playback_calibration is not None:
             config = instrument.playback_calibration.apply(config)
-        source = report / case.id
-        source.mkdir()
+        source = _new_case_directory(report, case.id)
         (source / "rt.adc.bin").write_bytes(adc)
         (source / "generator.i16.bin").write_bytes(dac)
         atomic_json(source / "encoding.json", config)
@@ -1600,8 +1784,18 @@ def _run_cases(service, store, args, stderr, instrument, journal, report,
         instrument.record("start", case_id=case.id)
         time.sleep(args.ro_settle)
         from tools.precision_batch import measure_batch
-        line, details, elapsed, meta, record = measure_batch(
-            service, frames=args.r_frames, timeout=args.ro_timeout, return_result=True)
+        for attempt in range(3):
+            try:
+                line, details, elapsed, meta, record = measure_batch(
+                    service, frames=args.r_frames, timeout=args.ro_timeout, return_result=True)
+                break
+            except ValueError as error:
+                retryable = ("R blocks are not stationary" in str(error) or
+                             "waveform classification changed between R blocks" in str(error))
+                if not retryable or attempt == 2:
+                    raise
+                print(f"RO {index}/{len(selected)} {case.id}: R frames disagreed; "
+                      f"reacquiring batch ({attempt + 1}/2)", file=stderr, flush=True)
         instrument.record("ok", case_id=case.id)
         instrument.stage, instrument.command = "evaluate R capture", case.id
         # Real R metadata governs measurement units; source truth stays fixed.
@@ -1615,7 +1809,7 @@ def _run_cases(service, store, args, stderr, instrument, journal, report,
             info = (record.info if capture_path.parent == record.path else
                     json.loads(capture_path.read_text(encoding="utf-8")))
             info["context"].update(ro_case=asdict(case), generator=config,
-                ro_report=report.relative_to(store.path).as_posix())
+                ro_report=_report_reference(report, store))
             info["self_test"] = check
             atomic_json(capture_path, info)
         entry = {"case_id": case.id, "case": asdict(case), "generator": config,

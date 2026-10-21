@@ -233,7 +233,8 @@ class ROTests(unittest.TestCase):
 
     def options(self, instrument, *extra):
         return parser().parse_args(["RO", "--port", "FAKE", "--ro-host", "127.0.0.1",
-            "--ro-port", str(instrument.port), "--ro-settle", "0", "--ro-calibrate", "off", *extra])
+            "--ro-transport", "vxi11", "--ro-port", str(instrument.port),
+            "--ro-settle", "0", "--ro-calibrate", "off", *extra])
 
     def test_entire_original_matrix_has_exact_adc_and_dac_roundtrip(self):
         import numpy as np
@@ -600,6 +601,7 @@ class ROTests(unittest.TestCase):
              patch("sys.stderr", new_callable=io.StringIO) as stderr:
             try:
                 code = main(["RO", "--data-dir", directory, "--ro-host", "127.0.0.1",
+                             "--ro-transport", "vxi11",
                              "--ro-port", str(instrument.port), "--ro-settle", "0",
                              "--max-cases", "2"])
             finally:
@@ -636,6 +638,7 @@ class ROTests(unittest.TestCase):
              patch("sys.stderr", new_callable=io.StringIO) as stderr:
             try:
                 code = main(["RO", "--port", "COM6", "--data-dir", directory,
+                             "--ro-transport", "vxi11",
                              "--ro-host", "127.0.0.1", "--ro-port", str(instrument.port),
                              "--ro-settle", "0", "--max-cases", "1"])
             finally:

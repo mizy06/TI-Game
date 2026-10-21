@@ -1,0 +1,7 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T080155.716311Z-11d2ce8b
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-21T07:18:16.261261+00:00
+RO: resuming 74/296 completed cases from C:\Users\L\workspace_ccstheia\TI-game\data\20261021T071800.471448Z-af7aa440\ro-1792567095922851800
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO: {'completed': 74, 'passed': 74}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T071800.471448Z-af7aa440\ro-1792567095922851800\summary.json
+server: RO identify instrument; command=*IDN?; VISA read timed out for USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR

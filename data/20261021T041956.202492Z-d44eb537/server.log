@@ -1,0 +1,20 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T041956.202492Z-d44eb537
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-17T09:55:27.253641+00:00
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO: checking board metadata and calibrating the ADC with independent references
+RO calibration 1/8: dc 0 Hz, offset 0.495 V
+RO calibration 2/8: dc 0 Hz, offset 1.65 V
+RO calibration 3/8: dc 0 Hz, offset 2.805 V
+RO calibration 4/8: sine 100 Hz, offset 1.65 V
+RO calibration 5/8: sine 400 Hz, offset 1.65 V
+RO calibration 6/8: dc 0 Hz, offset 0.99 V
+RO calibration 7/8: dc 0 Hz, offset 2.31 V
+RO calibration 8/8: sine 250 Hz, offset 1.65 V
+RO calibration OK: sample rate 19999.372 Hz, ADC scale 1.0012198, offset -9.48027 counts
+RO calibration saved for R: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+RO dynamic ADC reference 1/9: DC=0.4, Vpp=0.72
+RO dynamic ADC reference 2/9: DC=0.72, Vpp=0.72
+RO dynamic ADC reference 3/9: DC=1.04, Vpp=0.72
+RS: {}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T041956.202492Z-d44eb537\rs-1792556408476330100\summary.json
+server: calibration sine is absent, too small or clipped; check CH1/CH2, PA25 and GND

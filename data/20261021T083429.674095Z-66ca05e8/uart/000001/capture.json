@@ -1,0 +1,172 @@
+{
+  "schema": 1,
+  "source": "uart",
+  "context": {
+    "raw_header": "DUMP,proto=3,bytes=16384,fnv1a=399763189,seq=952,fs_millihz=20000000,vref_uv=3300000,gain_ppm=1000000,adc_max=4095,flags=1"
+  },
+  "created_utc": "2026-10-21T08:34:51.955473+00:00",
+  "validation": "valid",
+  "payload_bytes": 16384,
+  "payload_file": "samples.adc.bin",
+  "encoding": "<u2",
+  "metadata": {
+    "sequence": 952,
+    "sample_rate_millihz": 20000000,
+    "reference_microvolts": 3300000,
+    "gain_ppm": 1000000,
+    "adc_full_scale": 4095,
+    "flags": 1,
+    "checksum": 399763189,
+    "sample_rate_hz_exact": null,
+    "adc_scale": 1.0,
+    "adc_offset_counts": 0.0,
+    "payload_bytes": 16384,
+    "protocol_version": 3,
+    "vpp_transfer": null
+  },
+  "calculated_fnv1a": 399763189,
+  "sample_count": 8192,
+  "request_to_received_s": 1.8809169000014663,
+  "batch_member": 1,
+  "display_output": "",
+  "output": "square,399.999864161,1.450616562,76.0040030,1.436084572",
+  "algorithm": {
+    "type": 1,
+    "status": 0,
+    "frequency_millihz": 400000,
+    "vpp_millivolts": 1451,
+    "duty_permille": 760,
+    "confidence_permille": 0,
+    "best_score_permille": 0,
+    "second_score_permille": 0,
+    "accepted_cycles": 163,
+    "high_clip_samples": 0,
+    "dc_offset_counts": 1782,
+    "low_clip_samples": 0,
+    "invalid_samples": 0,
+    "algorithm_version": 524288,
+    "sequence": 952,
+    "vpp_microvolts": 1450617,
+    "duty_ppm": 760040,
+    "period_q16_samples": 3276801,
+    "vpp_counts_q16": 117970258,
+    "quality_flags": 3,
+    "model_margin_permille": 0,
+    "ok": true,
+    "host_pipeline_version": "8.0.0",
+    "classification_sample_count": 8192,
+    "measurement_sample_count": 8192,
+    "frequency_hz": 399.999864160879,
+    "vpp_v": 1.4506165617104665,
+    "duty_fraction": 0.7600400295838439,
+    "dc_offset_v": 1.4360845717316493,
+    "raw_high_rail_samples": 0,
+    "raw_low_rail_samples": 0,
+    "unified_solver": {
+      "method": "joint_morphology_nuisance_band_quantization",
+      "solver_version": "8.3.3",
+      "background_sigma": 3.1754354751320855,
+      "fitted_background_sigma": 2.3348790258324716,
+      "background_sigma_is_measurement_bound": false,
+      "measured_background_model": true,
+      "gain_regularization": {
+        "accepted": false
+      },
+      "selection_method": "bic",
+      "model_nuisance_evidence": {},
+      "triangle_aperture_samples": 0.0,
+      "reset_timing_uncertainty_samples": 0.0,
+      "observation_valid_fraction": 1.0,
+      "deadline_policy": "cooperative_wall_clock_no_cpu_extension",
+      "seeds_hz": [
+        400.08544921875,
+        200.042724609375
+      ],
+      "refined_starts_hz": [
+        399.999864160879,
+        199.99991456080653
+      ],
+      "candidates": 2,
+      "nuisance_order": 0,
+      "nuisance_orders": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        10
+      ],
+      "configured_base_orders": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        10
+      ],
+      "coherent_extra_orders": [
+        15,
+        18,
+        20,
+        25
+      ],
+      "nuisance_assumption": "Interference on signal harmonics; other noise remains in residual.",
+      "noise_envelope_limit": 0.55,
+      "observed_noise_ratio": 0.2144345234108509,
+      "residual_rms": 1243.1762596438953,
+      "normalized_residual_rms": 1.615470364239613,
+      "converged": true,
+      "evaluations": 2,
+      "source_innovation_fraction": 0.4121354248699254,
+      "source_amplitude_identifiable_under_nuisance_prior": true,
+      "sine_carrier_includes_unknown_coherent_fundamental": false,
+      "edge_identifiable": false,
+      "edge_timing_uncertainty_samples": 0.0,
+      "square_duty_refinement": {
+        "attempted": true,
+        "accepted": true,
+        "reason": "edge_grid_profile",
+        "initial_duty_fraction": 0.7602487698182189,
+        "duty_fraction": 0.7600400295838439,
+        "phase_adjustment_cycles": -0.0010021972656250044,
+        "objective_improvement": 19.37481202987783,
+        "resolution_cycles": 3.0517578125e-05
+      },
+      "square_rise_fraction": 0.008,
+      "square_fall_fraction": 0.008,
+      "phase_interval_cycles": null,
+      "quantization": {
+        "attempted": false,
+        "accepted": false,
+        "all_samples_in_bins": false
+      },
+      "band_exclusion": {
+        "attempted": false,
+        "accepted": false,
+        "reason": "unverified_observation_model_or_budget"
+      },
+      "residual_rms_interpretation": "Residual after joint finite-harmonic nuisance fit.",
+      "before_quantization": {
+        "frequency_hz": 399.999864160879,
+        "vpp": 1800.0488189891375
+      },
+      "model_bic": {
+        "square": -50540.08854269972
+      },
+      "model_margin_bic": 0.0,
+      "accuracy_1ppm_certified": false,
+      "uncertainty_note": "Neither MDL score nor local bin consistency bounds coherent noise, clock, gain, INL or model error.",
+      "elapsed_s": 1.8658284999983152
+    },
+    "vpp_quality": {
+      "input_mode": "single_channel",
+      "meaning": "source_amplitude_under_unverified_nuisance_model",
+      "independent_reference_used": false,
+      "absolute_accuracy_verified": false,
+      "accuracy_0p1_percent_certified": false
+    }
+  },
+  "algorithm_elapsed_s": 1.8675493000009737
+}

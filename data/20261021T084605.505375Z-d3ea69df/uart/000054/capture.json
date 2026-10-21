@@ -1,0 +1,662 @@
+{
+  "schema": 1,
+  "source": "uart",
+  "context": {
+    "raw_header": "DUMP,proto=3,bytes=16384,fnv1a=1614046963,seq=1030,fs_millihz=20000000,vref_uv=3300000,gain_ppm=1000000,adc_max=4095,flags=1",
+    "ro_case": {
+      "id": "final_weak-0049",
+      "suite": "finals",
+      "group": "final_weak",
+      "wave": "sine",
+      "frequency_hz": 201.82856989568012,
+      "vpp_v": 1.18402149076891,
+      "dc_v": 1.8,
+      "duty": 0.3480750164175682,
+      "rise": 0.0,
+      "fall": 0.0,
+      "phase": 0.10829926130682355,
+      "noise_pp_ratio": 0.15,
+      "bandwidth_ratio": 5.316759922702064,
+      "noise_mode": "gaussian",
+      "fs_hz": 19920.236681751947,
+      "vref_v": 3.3,
+      "gain": 1.0,
+      "flags": 7,
+      "spikes": 0,
+      "spike_ratio": 0.0,
+      "lowpass_hz": 0.0,
+      "harmonic_ratio": 0.0,
+      "inverted": false,
+      "fault": "",
+      "expectation": "measure",
+      "source": "{\"bandwidth\":5.316759922702064,\"cycles\":83,\"dc_v\":1.8,\"duty\":0.3480750164175682,\"fall\":0.0,\"frequency\":201.82856989568012,\"fs\":19920.236681751947,\"group\":\"weak\",\"harmonic_guard_ratio\":0.18,\"inverted\":false,\"kind\":\"sine\",\"noise\":0.15,\"noise_model\":\"gaussian\",\"phase\":0.10829926130682355,\"replay\":83,\"rise\":0.0,\"samples\":8192,\"scope\":\"finals-official-identifiable-v2-296\",\"seed\":2610761465,\"tag\":\"official_ranges_boundary_and_stratified_holdout\",\"vpp\":1.18402149076891}",
+      "impairment": "official_ranges_boundary_and_stratified_holdout",
+      "inl_lsb": 0.0,
+      "harmonic_2": 0.0,
+      "harmonic_3": 0.0,
+      "clip_top": 0.0,
+      "clip_bottom": 0.0,
+      "crossover": 0.0,
+      "am_depth": 0.0,
+      "am_rate_hz": 0.0,
+      "interferer_ratio": 0.0,
+      "interferer_frequency_ratio": 0.0,
+      "seed": 2610761465
+    },
+    "generator": {
+      "rt_metadata": {
+        "sequence": 2610761465,
+        "sample_rate_millihz": 19920237,
+        "reference_microvolts": 3300000,
+        "gain_ppm": 1000000,
+        "adc_full_scale": 4095,
+        "flags": 7,
+        "checksum": 3876470726,
+        "sample_rate_hz_exact": 19920.236681751947,
+        "adc_scale": 1.0,
+        "adc_offset_counts": 0.0,
+        "payload_bytes": 16384,
+        "protocol_version": 3,
+        "vpp_transfer": null
+      },
+      "rt_generated": {
+        "noise_vpp_v": 0.18220922796719038,
+        "noise_mean_v": -8.131516293641283e-20,
+        "requested_noise_vpp_v": 0.17760322361533648,
+        "noise_upper_hz": 1073.0740516776243,
+        "adc_min": 1396,
+        "adc_max": 3053,
+        "prequantization_clipped_samples": 0,
+        "truth": {
+          "frequency_hz": 201.82856989568012,
+          "vpp_v": 1.18402149076891,
+          "dc_v": 1.8,
+          "duty_pct": 0.0,
+          "scope": "finals-official-identifiable-v2-296",
+          "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+          "dc_definition": "configured source offset (clean envelope midpoint)",
+          "wire_carrier_vpp_v": 1.1840239298473176
+        },
+        "noise_identifiability": {
+          "model": "gaussian",
+          "carrier_cycles": 83,
+          "bandwidth_hz": 1073.0740516776243,
+          "active_fourier_bins": 282,
+          "harmonic_guard_ratio": 0.18,
+          "harmonic_guard_hz": 36.32914258122242,
+          "protected_harmonic_bins": 1436,
+          "maximum_protected_coefficient": 3.614624287906422e-15,
+          "maximum_out_of_band_coefficient": 3.614624287906422e-15,
+          "period_samples": 8192,
+          "noise_std_v": 0.029600537269222748,
+          "expected_noise_pp_v": 0.17760322361533648,
+          "same_frequency_noise_absent": true
+        }
+      },
+      "truth": {
+        "frequency_hz": 201.82856989568012,
+        "vpp_v": 1.18402149076891,
+        "dc_v": 1.8,
+        "duty_pct": 0.0,
+        "scope": "finals-official-identifiable-v2-296",
+        "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+        "dc_definition": "configured source offset (clean envelope midpoint)",
+        "wire_carrier_vpp_v": 1.1840239298473176
+      },
+      "level_mode": "adc",
+      "voltage_scale": 1.0,
+      "amplitude_v": 3.2226191122668415,
+      "offset_v": 1.6268918251898379,
+      "sample_rate_hz": 637447.5738160623,
+      "loop_frequency_hz": 2.431669516815423,
+      "waveform_samples": 262144,
+      "seam_bridge_samples": 0,
+      "source_oversample": 32,
+      "original_samples": 8192,
+      "input_min_v": 1.1251405929354017,
+      "input_max_v": 2.459925686359207,
+      "dac_roundtrip_error_v": 2.5177760160310925e-05,
+      "dac_encoding": "signed int16 little-endian",
+      "note": "Continuous clean source and periodic bandlimited noise evaluated at a finer DAC rate; the original RT payload and clean truth are retained; R acquisition is asynchronous.",
+      "uncompensated_dac_sha256": "d1cf6e228424d32770bfe9f619a999d0c2f393732260260ee77bbb28ec306fff",
+      "voltage_transfer_report": "arb_voltage_transfer.json",
+      "requested_amplitude_v": 3.3,
+      "requested_offset_v": 1.65,
+      "generator_calibration": {
+        "amplitude_gain": 1.0240118006619552,
+        "offset_gain": 1.0107850006140022,
+        "offset_bias_v": 0.005562145476574409,
+        "offset_origin_v": 1.65,
+        "offset_span_v": 0.06600000000000006
+      },
+      "readback": {
+        "arb": [
+          "NAME",
+          "RO_C1.BIN"
+        ],
+        "rate": [
+          "MODE",
+          "TARB",
+          "VALUE",
+          "637447.5738SA/S",
+          "INTER",
+          "HOLD"
+        ],
+        "wave": [
+          "WVTP",
+          "ARB",
+          "FRQ",
+          "2.431669517HZ",
+          "PERI",
+          "0.41124S",
+          "AMP",
+          "3.22262V",
+          "MAX_OUTPUT_AMP",
+          "20V",
+          "OFST",
+          "1.62689V",
+          "HLEV",
+          "3.2382V",
+          "LLEV",
+          "0.0155823V",
+          "PHSE",
+          "0",
+          "DLY",
+          "0S"
+        ],
+        "output": [
+          "OFF",
+          "LOAD",
+          "HZ",
+          "POWERON_STATE",
+          "OFF",
+          "PLRT",
+          "NOR"
+        ],
+        "waveform": {
+          "query": "STL? USER",
+          "waveform_name": "RO_C1",
+          "user_files": [
+            "RO_C1"
+          ],
+          "uploaded_bytes": 524288,
+          "uploaded_sha256": "431adb7f9e656cf8039d985bdebd32acdd1860c3d7aebd4ed2d5ba474a23eb9d",
+          "verified": false,
+          "byte_readback_supported": false,
+          "configuration_verified": true,
+          "verification": "VISA USBTMC write acknowledgement, OPC, user file and playback settings",
+          "query_attempts": [
+            {
+              "query": "WVDT? user,RO_C1",
+              "error": "RO WVDT did not resolve uploaded waveform 'RO_C1': POS='USER', WVNM='', LENGTH=73728; query syntax/name must be resolved before comparing waveform bytes",
+              "readback": {
+                "header": "WVDT POS, USER,RO_C1, WVNM, , LENGTH, 73728B, TYPE, 6, ",
+                "header_bytes": 64,
+                "declared_bytes": 73728,
+                "position": "USER",
+                "waveform_name": "",
+                "waveform_type": "6",
+                "response_bytes": 73793,
+                "received_body_bytes": 73729,
+                "framing": "raw",
+                "payload_bytes": 73728,
+                "sha256": "c937baf59bf1161764140c9b6d56fda0f871544e413ddd47440dd0fc72a158e3",
+                "uploaded_bytes": 524288,
+                "uploaded_sha256": "dadd79b503ac29e0453b5fff4307804a0802fd3487793daccd24d1c42355da73",
+                "payload_prefix_hex": "06000c00120019001f0025002b00320038003e0045004b00510057005e006400",
+                "uploaded_prefix_hex": "d023ca23c323bd23b623b023a923a3239c2396238f23892382237c2375236f23",
+                "verified": false
+              }
+            },
+            {
+              "query": "WVDT? user,\"Local\",RO_C1",
+              "error": "RO WVDT did not resolve uploaded waveform 'RO_C1': POS='USER', WVNM='', LENGTH=73728; query syntax/name must be resolved before comparing waveform bytes",
+              "readback": {
+                "header": "WVDT POS, USER,\"LOCAL\",RO_C1, WVNM, , LENGTH, 73728B, TYPE, 6, ",
+                "header_bytes": 72,
+                "declared_bytes": 73728,
+                "position": "USER",
+                "waveform_name": "",
+                "waveform_type": "6",
+                "response_bytes": 73801,
+                "received_body_bytes": 73729,
+                "framing": "raw",
+                "payload_bytes": 73728,
+                "sha256": "c937baf59bf1161764140c9b6d56fda0f871544e413ddd47440dd0fc72a158e3",
+                "uploaded_bytes": 524288,
+                "uploaded_sha256": "dadd79b503ac29e0453b5fff4307804a0802fd3487793daccd24d1c42355da73",
+                "payload_prefix_hex": "06000c00120019001f0025002b00320038003e0045004b00510057005e006400",
+                "uploaded_prefix_hex": "d023ca23c323bd23b623b023a923a3239c2396238f23892382237c2375236f23",
+                "verified": false
+              }
+            },
+            {
+              "query": "WVDT? USER,\"Local\",RO_C1",
+              "error": "RO WVDT did not resolve uploaded waveform 'RO_C1': POS='USER', WVNM='', LENGTH=73728; query syntax/name must be resolved before comparing waveform bytes",
+              "readback": {
+                "header": "WVDT POS, USER,\"LOCAL\",RO_C1, WVNM, , LENGTH, 73728B, TYPE, 6, ",
+                "header_bytes": 72,
+                "declared_bytes": 73728,
+                "position": "USER",
+                "waveform_name": "",
+                "waveform_type": "6",
+                "response_bytes": 73801,
+                "received_body_bytes": 73729,
+                "framing": "raw",
+                "payload_bytes": 73728,
+                "sha256": "c937baf59bf1161764140c9b6d56fda0f871544e413ddd47440dd0fc72a158e3",
+                "uploaded_bytes": 524288,
+                "uploaded_sha256": "dadd79b503ac29e0453b5fff4307804a0802fd3487793daccd24d1c42355da73",
+                "payload_prefix_hex": "06000c00120019001f0025002b00320038003e0045004b00510057005e006400",
+                "uploaded_prefix_hex": "d023ca23c323bd23b623b023a923a3239c2396238f23892382237c2375236f23",
+                "verified": false
+              }
+            },
+            {
+              "query": "WVDT? USER,RO_C1",
+              "error": "RO WVDT did not resolve uploaded waveform 'RO_C1': POS='USER', WVNM='', LENGTH=73728; query syntax/name must be resolved before comparing waveform bytes",
+              "readback": {
+                "header": "WVDT POS, USER,RO_C1, WVNM, , LENGTH, 73728B, TYPE, 6, ",
+                "header_bytes": 64,
+                "declared_bytes": 73728,
+                "position": "USER",
+                "waveform_name": "",
+                "waveform_type": "6",
+                "response_bytes": 73793,
+                "received_body_bytes": 73729,
+                "framing": "raw",
+                "payload_bytes": 73728,
+                "sha256": "c937baf59bf1161764140c9b6d56fda0f871544e413ddd47440dd0fc72a158e3",
+                "uploaded_bytes": 524288,
+                "uploaded_sha256": "dadd79b503ac29e0453b5fff4307804a0802fd3487793daccd24d1c42355da73",
+                "payload_prefix_hex": "06000c00120019001f0025002b00320038003e0045004b00510057005e006400",
+                "uploaded_prefix_hex": "d023ca23c323bd23b623b023a923a3239c2396238f23892382237c2375236f23",
+                "verified": false
+              }
+            }
+          ]
+        },
+        "transport": "VISA USBTMC"
+      }
+    },
+    "ro_report": "20261021T080936.037908Z-075cbd38/ro-1792570192217131900"
+  },
+  "created_utc": "2026-10-21T08:49:11.570182+00:00",
+  "validation": "valid",
+  "payload_bytes": 16384,
+  "payload_file": "samples.adc.bin",
+  "encoding": "<u2",
+  "metadata": {
+    "sequence": 1030,
+    "sample_rate_millihz": 20000000,
+    "reference_microvolts": 3300000,
+    "gain_ppm": 1000000,
+    "adc_full_scale": 4095,
+    "flags": 1,
+    "checksum": 1614046963,
+    "sample_rate_hz_exact": null,
+    "adc_scale": 1.0,
+    "adc_offset_counts": 0.0,
+    "payload_bytes": 16384,
+    "protocol_version": 3,
+    "vpp_transfer": null
+  },
+  "calculated_fnv1a": 1614046963,
+  "sample_count": 8192,
+  "request_to_received_s": 1.8914315000001807,
+  "batch_member": 3,
+  "display_output": "RESULT,sine,201.835389872,1.188750933,0",
+  "output": "sine,201.835978221,1.189203650,0.0000000,1.796373996",
+  "algorithm": {
+    "type": 0,
+    "status": 0,
+    "frequency_millihz": 201836,
+    "vpp_millivolts": 1189,
+    "duty_permille": 0,
+    "confidence_permille": 0,
+    "best_score_permille": 0,
+    "second_score_permille": 0,
+    "accepted_cycles": 82,
+    "high_clip_samples": 0,
+    "dc_offset_counts": 2229,
+    "low_clip_samples": 0,
+    "invalid_samples": 0,
+    "algorithm_version": 524288,
+    "sequence": 1030,
+    "vpp_microvolts": 1189204,
+    "duty_ppm": 0,
+    "period_q16_samples": 6493986,
+    "vpp_counts_q16": 96711057,
+    "quality_flags": 3,
+    "model_margin_permille": 0,
+    "ok": true,
+    "host_pipeline_version": "8.0.0",
+    "classification_sample_count": 8192,
+    "measurement_sample_count": 8192,
+    "frequency_hz": 201.83597822085883,
+    "vpp_v": 1.1892036501774226,
+    "duty_fraction": 0.0,
+    "dc_offset_v": 1.7963739955481732,
+    "raw_high_rail_samples": 0,
+    "raw_low_rail_samples": 0,
+    "unified_solver": {
+      "method": "joint_morphology_nuisance_band_quantization",
+      "solver_version": "8.3.3",
+      "background_sigma": 2.334879025832449,
+      "fitted_background_sigma": 2.334931043410641,
+      "background_sigma_is_measurement_bound": false,
+      "measured_background_model": true,
+      "gain_regularization": {
+        "accepted": false
+      },
+      "selection_method": "bic",
+      "model_nuisance_evidence": {},
+      "triangle_aperture_samples": 0.0,
+      "reset_timing_uncertainty_samples": 0.0,
+      "observation_valid_fraction": 1.0,
+      "deadline_policy": "cooperative_wall_clock_no_cpu_extension",
+      "seeds_hz": [
+        201.72119140625,
+        100.860595703125
+      ],
+      "refined_starts_hz": [
+        201.83566467239766,
+        100.91783839682358
+      ],
+      "candidates": 5,
+      "nuisance_order": 0,
+      "nuisance_orders": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        10
+      ],
+      "configured_base_orders": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        10
+      ],
+      "coherent_extra_orders": [
+        15,
+        18,
+        20,
+        25
+      ],
+      "nuisance_assumption": "Interference on signal harmonics; other noise remains in residual.",
+      "noise_envelope_limit": 0.55,
+      "observed_noise_ratio": 0.15578916983329708,
+      "residual_rms": 36.888446189045936,
+      "normalized_residual_rms": 0.07059111700839074,
+      "converged": true,
+      "evaluations": 7,
+      "source_innovation_fraction": 0.41768474870375283,
+      "source_amplitude_identifiable_under_nuisance_prior": false,
+      "sine_carrier_includes_unknown_coherent_fundamental": true,
+      "edge_identifiable": true,
+      "edge_timing_uncertainty_samples": 0.0,
+      "square_duty_refinement": {
+        "attempted": false,
+        "accepted": false,
+        "reason": "not_square"
+      },
+      "square_rise_fraction": 0.0,
+      "square_fall_fraction": 0.0,
+      "phase_interval_cycles": null,
+      "quantization": {
+        "attempted": false,
+        "accepted": false,
+        "all_samples_in_bins": false
+      },
+      "band_exclusion": {
+        "attempted": false,
+        "accepted": false,
+        "reason": "unverified_observation_model_or_budget"
+      },
+      "residual_rms_interpretation": "Residual after joint finite-harmonic nuisance fit.",
+      "before_quantization": {
+        "frequency_hz": 201.83597822085883,
+        "vpp": 1475.693620447438
+      },
+      "model_bic": {
+        "sine": -49440.41462198393,
+        "triangle": -42628.930728688174,
+        "square": -36825.67163994871
+      },
+      "model_margin_bic": 6811.483893295757,
+      "accuracy_1ppm_certified": false,
+      "uncertainty_note": "Neither MDL score nor local bin consistency bounds coherent noise, clock, gain, INL or model error.",
+      "elapsed_s": 2.4664276000003156
+    },
+    "vpp_quality": {
+      "input_mode": "single_channel",
+      "meaning": "carrier_including_coherent_interference",
+      "independent_reference_used": false,
+      "absolute_accuracy_verified": false,
+      "accuracy_0p1_percent_certified": false
+    }
+  },
+  "algorithm_elapsed_s": 2.4685107999976026,
+  "r_batch": {
+    "frames": 3,
+    "output": "sine,201.835389872,1.188750933,0.0000000,1.796363133",
+    "display_output": "RESULT,sine,201.835389872,1.188750933,0",
+    "method": "mean of independently fitted stationary blocks; gaps not concatenated",
+    "measured": {
+      "frequency_hz": 201.8353898724258,
+      "vpp_v": 1.1887509327354346,
+      "duty_fraction": 0.0,
+      "dc_offset_v": 1.796363132586211
+    },
+    "vpp_joint_fit": null,
+    "block_standard_deviation": {
+      "frequency_hz": 0.0005397253237076315,
+      "vpp_v": 0.00040153813177335514,
+      "duty_fraction": 0.0,
+      "dc_offset_v": 0.0009044988486138785
+    },
+    "absolute_accuracy_verified": false,
+    "note": "Block scatter excludes calibration, model bias and coherent replay noise.",
+    "captures": [
+      "uart\\000052",
+      "uart\\000053",
+      "uart\\000054"
+    ],
+    "algorithm_elapsed_s": 2.5299904999992577,
+    "algorithm_work_s": 7.485423099995387,
+    "analysis_execution": "parallel_processes",
+    "analysis_workers": 3,
+    "elapsed_s": 8.252728699997533
+  },
+  "batch_output": "sine,201.835389872,1.188750933,0.0000000,1.796363133",
+  "batch_algorithm": {
+    "type": 0,
+    "status": 0,
+    "frequency_millihz": 201835,
+    "vpp_millivolts": 1189,
+    "duty_permille": 0,
+    "confidence_permille": 0,
+    "best_score_permille": 0,
+    "second_score_permille": 0,
+    "accepted_cycles": 82,
+    "high_clip_samples": 0,
+    "dc_offset_counts": 2229,
+    "low_clip_samples": 0,
+    "invalid_samples": 0,
+    "algorithm_version": 524288,
+    "sequence": 1030,
+    "vpp_microvolts": 1188751,
+    "duty_ppm": 0,
+    "period_q16_samples": 6493986,
+    "vpp_counts_q16": 96711057,
+    "quality_flags": 3,
+    "model_margin_permille": 0,
+    "ok": true,
+    "host_pipeline_version": "8.0.0",
+    "classification_sample_count": 24576,
+    "measurement_sample_count": 24576,
+    "frequency_hz": 201.8353898724258,
+    "vpp_v": 1.1887509327354346,
+    "duty_fraction": 0.0,
+    "dc_offset_v": 1.796363132586211,
+    "raw_high_rail_samples": 0,
+    "raw_low_rail_samples": 0,
+    "unified_solver": {
+      "method": "joint_morphology_nuisance_band_quantization",
+      "solver_version": "8.3.3",
+      "background_sigma": 2.334879025832449,
+      "fitted_background_sigma": 2.334931043410641,
+      "background_sigma_is_measurement_bound": false,
+      "measured_background_model": true,
+      "gain_regularization": {
+        "accepted": false
+      },
+      "selection_method": "bic",
+      "model_nuisance_evidence": {},
+      "triangle_aperture_samples": 0.0,
+      "reset_timing_uncertainty_samples": 0.0,
+      "observation_valid_fraction": 1.0,
+      "deadline_policy": "cooperative_wall_clock_no_cpu_extension",
+      "seeds_hz": [
+        201.72119140625,
+        100.860595703125
+      ],
+      "refined_starts_hz": [
+        201.83566467239766,
+        100.91783839682358
+      ],
+      "candidates": 5,
+      "nuisance_order": 0,
+      "nuisance_orders": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        10
+      ],
+      "configured_base_orders": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        10
+      ],
+      "coherent_extra_orders": [
+        15,
+        18,
+        20,
+        25
+      ],
+      "nuisance_assumption": "Interference on signal harmonics; other noise remains in residual.",
+      "noise_envelope_limit": 0.55,
+      "observed_noise_ratio": 0.15578916983329708,
+      "residual_rms": 36.888446189045936,
+      "normalized_residual_rms": 0.07059111700839074,
+      "converged": true,
+      "evaluations": 7,
+      "source_innovation_fraction": 0.41768474870375283,
+      "source_amplitude_identifiable_under_nuisance_prior": false,
+      "sine_carrier_includes_unknown_coherent_fundamental": true,
+      "edge_identifiable": true,
+      "edge_timing_uncertainty_samples": 0.0,
+      "square_duty_refinement": {
+        "attempted": false,
+        "accepted": false,
+        "reason": "not_square"
+      },
+      "square_rise_fraction": 0.0,
+      "square_fall_fraction": 0.0,
+      "phase_interval_cycles": null,
+      "quantization": {
+        "attempted": false,
+        "accepted": false,
+        "all_samples_in_bins": false
+      },
+      "band_exclusion": {
+        "attempted": false,
+        "accepted": false,
+        "reason": "unverified_observation_model_or_budget"
+      },
+      "residual_rms_interpretation": "Residual after joint finite-harmonic nuisance fit.",
+      "before_quantization": {
+        "frequency_hz": 201.83597822085883,
+        "vpp": 1475.693620447438
+      },
+      "model_bic": {
+        "sine": -49440.41462198393,
+        "triangle": -42628.930728688174,
+        "square": -36825.67163994871
+      },
+      "model_margin_bic": 6811.483893295757,
+      "accuracy_1ppm_certified": false,
+      "uncertainty_note": "Neither MDL score nor local bin consistency bounds coherent noise, clock, gain, INL or model error.",
+      "elapsed_s": 2.4664276000003156
+    },
+    "vpp_quality": {
+      "input_mode": "single_channel",
+      "meaning": "carrier_including_coherent_interference",
+      "independent_reference_used": false,
+      "absolute_accuracy_verified": false,
+      "accuracy_0p1_percent_certified": false
+    },
+    "batch_frames": 3,
+    "batch_captures": [
+      "uart\\000052",
+      "uart\\000053",
+      "uart\\000054"
+    ]
+  },
+  "self_test": {
+    "frequency_error_pct": 0.003379093826616497,
+    "vpp_error_pct": 0.39943886182787214,
+    "duty_error_pp": 0.0,
+    "dc_error_v": 0.003636867413788991,
+    "frequency_bias_pct": 0.003379093826616497,
+    "vpp_bias_pct": 0.39943886182787214,
+    "duty_bias_pp": 0.0,
+    "dc_bias_v": -0.003636867413788991,
+    "passed": false,
+    "verdict": "FAIL",
+    "failure_reasons": [
+      "vpp_error_pct"
+    ],
+    "limits": {
+      "frequency_pct": 1.0,
+      "vpp_pct": 0.1,
+      "duty_pp": 2.5,
+      "dc_v": 0.0592010745384455,
+      "algorithm_time_s": 15.0
+    },
+    "class_correct": true,
+    "output": "sine,201.835389872,1.188750933,0.0000000,1.796363133",
+    "measured": {
+      "frequency_hz": 201.8353898724258,
+      "vpp_v": 1.1887509327354346,
+      "duty_pct": 0.0,
+      "dc_v": 1.796363132586211
+    },
+    "truth": {
+      "frequency_hz": 201.82856989568012,
+      "vpp_v": 1.18402149076891,
+      "dc_v": 1.8,
+      "duty_pct": 0.0,
+      "scope": "finals-official-identifiable-v2-296",
+      "vpp_definition": "clean signal peak-to-peak before noise/INL/quantization",
+      "dc_definition": "configured source offset (clean envelope midpoint)",
+      "wire_carrier_vpp_v": 1.1840239298473176
+    },
+    "algorithm_elapsed_s": 2.5299904999992577,
+    "dc_sampling_uncertainty_v": 0.0,
+    "wire_carrier_vpp_error_pct": 0.39923203990703815
+  }
+}

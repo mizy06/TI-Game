@@ -1,0 +1,48 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T084605.505375Z-d3ea69df
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-21T08:34:48.302418+00:00
+RO: resuming 79/296 completed cases from C:\Users\L\workspace_ccstheia\TI-game\data\20261021T080936.037908Z-075cbd38\ro-1792570192217131900
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO 80/296 final_strong-0040: uploading and verifying waveform
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+RO 80/296 final_strong-0040: FAIL (vpp_error_pct)
+RO 81/296 final_weak-0041: uploading and verifying waveform
+RO 81/296 final_weak-0041: FAIL (vpp_error_pct)
+RO 82/296 final_strong-0041: uploading and verifying waveform
+RO 82/296 final_strong-0041: FAIL (vpp_error_pct)
+RO 83/296 final_weak-0042: uploading and verifying waveform
+RO 83/296 final_weak-0042: FAIL (vpp_error_pct)
+RO 84/296 final_strong-0042: uploading and verifying waveform
+RO 84/296 final_strong-0042: FAIL (vpp_error_pct)
+RO 85/296 final_weak-0043: uploading and verifying waveform
+RO 85/296 final_weak-0043: FAIL (vpp_error_pct)
+RO 86/296 final_strong-0043: uploading and verifying waveform
+RO 86/296 final_strong-0043: FAIL (vpp_error_pct)
+RO 87/296 final_weak-0044: uploading and verifying waveform
+RO 87/296 final_weak-0044: FAIL (vpp_error_pct)
+RO 88/296 final_strong-0044: uploading and verifying waveform
+RO 88/296 final_strong-0044: FAIL (vpp_error_pct)
+RO 89/296 final_weak-0045: uploading and verifying waveform
+RO 89/296 final_weak-0045: FAIL (vpp_error_pct)
+RO 90/296 final_strong-0045: uploading and verifying waveform
+RO 90/296 final_strong-0045: FAIL (vpp_error_pct)
+RO 91/296 final_weak-0046: uploading and verifying waveform
+RO 91/296 final_weak-0046: FAIL (vpp_error_pct)
+RO 92/296 final_strong-0046: uploading and verifying waveform
+RO 92/296 final_strong-0046: FAIL (vpp_error_pct)
+RO 93/296 final_weak-0047: uploading and verifying waveform
+RO 93/296 final_weak-0047: FAIL (vpp_error_pct)
+RO 94/296 final_strong-0047: uploading and verifying waveform
+RO 94/296 final_strong-0047: FAIL (vpp_error_pct)
+RO 95/296 final_weak-0048: uploading and verifying waveform
+RO 95/296 final_weak-0048: FAIL (vpp_error_pct)
+RO 96/296 final_strong-0048: uploading and verifying waveform
+RO 96/296 final_strong-0048: FAIL (vpp_error_pct)
+RO 97/296 final_weak-0049: uploading and verifying waveform
+RO 97/296 final_weak-0049: FAIL (vpp_error_pct)
+RO 98/296 final_strong-0049: uploading and verifying waveform
+RO: {'completed': 97, 'passed': 74, 'failed': 23}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T080936.037908Z-075cbd38\ro-1792570192217131900\summary.json
+server: waveform classification changed between R blocks; no RESULT emitted

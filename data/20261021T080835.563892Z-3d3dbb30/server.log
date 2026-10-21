@@ -1,0 +1,19 @@
+Data: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T080835.563892Z-3d3dbb30
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RO at 2026-10-21T08:06:28.442556+00:00
+RO: resuming 74/296 completed cases from C:\Users\L\workspace_ccstheia\TI-game\data\20261021T071800.471448Z-af7aa440\ro-1792567095922851800
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR
+RO 75/296 final_weak-0038: uploading and verifying waveform
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+RO 75/296 final_weak-0038: FAIL (vpp_error_pct)
+RO 76/296 final_strong-0038: uploading and verifying waveform
+RO 76/296 final_strong-0038: FAIL (vpp_error_pct)
+RO 77/296 final_weak-0039: uploading and verifying waveform
+RO 77/296 final_weak-0039: FAIL (vpp_error_pct)
+RO 78/296 final_strong-0039: uploading and verifying waveform
+RO 78/296 final_strong-0039: FAIL (vpp_error_pct)
+RO 79/296 final_weak-0040: uploading and verifying waveform
+RO: {'completed': 78, 'passed': 74, 'failed': 4}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T071800.471448Z-af7aa440\ro-1792567095922851800\summary.json

@@ -1,0 +1,26 @@
+{
+  "selected": 0,
+  "complete": false,
+  "counts": {},
+  "board": true,
+  "mode": "calibration-only",
+  "frames_per_case": 3,
+  "all_passed": false,
+  "error": "RuntimeError: RO configure calibration reference; command=C1:OUTP OFF; VI_ERROR_SYSTEM_ERROR (-1073807360): Unknown system error (miscellaneous error).",
+  "shutdown_error": "",
+  "failure": {
+    "stage": "configure calibration reference",
+    "command": "C1:OUTP OFF",
+    "error": "RO configure calibration reference; command=C1:OUTP OFF; VI_ERROR_SYSTEM_ERROR (-1073807360): Unknown system error (miscellaneous error)."
+  },
+  "failed_case": null,
+  "waveform_readback": null,
+  "calibration": "calibration.json",
+  "generator_calibration": null,
+  "transport": "VISA USBTMC",
+  "resource": "USB0::0xF4EC::0x1101::SDG6XFCQ900843::INSTR",
+  "diagnostics": "scpi.jsonl",
+  "not_run": [],
+  "wall_time_s": 10.4416958999999,
+  "note": "Independent ADC/ARB calibration only; no matrix cases generated or measured."
+}

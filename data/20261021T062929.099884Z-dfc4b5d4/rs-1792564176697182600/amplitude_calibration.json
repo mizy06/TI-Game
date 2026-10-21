@@ -1,0 +1,259 @@
+{
+  "complete": false,
+  "references_independent_of_matrix": true,
+  "observations": [
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35601875626568,
+      "capture": "uart/000010"
+    },
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35586157613025,
+      "capture": "uart/000011"
+    },
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35609216523332,
+      "capture": "uart/000012"
+    },
+    {
+      "offset_v": 0.4,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35598532577144,
+      "capture": "uart/000013"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35577569297034,
+      "capture": "uart/000014"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3560419795488,
+      "capture": "uart/000015"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35604885874487,
+      "capture": "uart/000016"
+    },
+    {
+      "offset_v": 0.72,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35607188661648,
+      "capture": "uart/000017"
+    },
+    {
+      "offset_v": 1.04,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35603016525384,
+      "capture": "uart/000018"
+    },
+    {
+      "offset_v": 1.04,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35611237722539,
+      "capture": "uart/000019"
+    },
+    {
+      "offset_v": 1.04,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35592510737588,
+      "capture": "uart/000020"
+    },
+    {
+      "offset_v": 1.04,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35617636498534,
+      "capture": "uart/000021"
+    },
+    {
+      "offset_v": 1.36,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35605882690271,
+      "capture": "uart/000022"
+    },
+    {
+      "offset_v": 1.36,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35602100043151,
+      "capture": "uart/000023"
+    },
+    {
+      "offset_v": 1.36,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35608343915779,
+      "capture": "uart/000024"
+    },
+    {
+      "offset_v": 1.36,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35675639617659,
+      "capture": "uart/000025"
+    },
+    {
+      "offset_v": 1.68,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35604864581572,
+      "capture": "uart/000026"
+    },
+    {
+      "offset_v": 1.68,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35595798468422,
+      "capture": "uart/000027"
+    },
+    {
+      "offset_v": 1.68,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35599707274254,
+      "capture": "uart/000028"
+    },
+    {
+      "offset_v": 1.68,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35600800180922,
+      "capture": "uart/000029"
+    },
+    {
+      "offset_v": 2.0,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35617989043483,
+      "capture": "uart/000030"
+    },
+    {
+      "offset_v": 2.0,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35607139449773,
+      "capture": "uart/000031"
+    },
+    {
+      "offset_v": 2.0,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35614203779409,
+      "capture": "uart/000032"
+    },
+    {
+      "offset_v": 2.0,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35601628918043,
+      "capture": "uart/000033"
+    },
+    {
+      "offset_v": 2.32,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35603704571918,
+      "capture": "uart/000034"
+    },
+    {
+      "offset_v": 2.32,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3560066575566,
+      "capture": "uart/000035"
+    },
+    {
+      "offset_v": 2.32,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35721278964994,
+      "capture": "uart/000036"
+    },
+    {
+      "offset_v": 2.32,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3559963779568,
+      "capture": "uart/000037"
+    },
+    {
+      "offset_v": 2.64,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35577451257352,
+      "capture": "uart/000038"
+    },
+    {
+      "offset_v": 2.64,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3560764669265,
+      "capture": "uart/000039"
+    },
+    {
+      "offset_v": 2.64,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35598792752737,
+      "capture": "uart/000040"
+    },
+    {
+      "offset_v": 2.64,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35604090339638,
+      "capture": "uart/000041"
+    },
+    {
+      "offset_v": 2.9,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35565118887341,
+      "capture": "uart/000042"
+    },
+    {
+      "offset_v": 2.9,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.3560076759929,
+      "capture": "uart/000043"
+    },
+    {
+      "offset_v": 2.9,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35605490820721,
+      "capture": "uart/000044"
+    },
+    {
+      "offset_v": 2.9,
+      "amplitude_v": 0.72,
+      "validation": false,
+      "period_samples": 115.35592071203011,
+      "capture": "uart/000045"
+    }
+  ],
+  "error": "ValueError: ADC transfer has an implausible local gain"
+}

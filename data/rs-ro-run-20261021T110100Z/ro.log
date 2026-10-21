@@ -1,0 +1,41 @@
+Calibration: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json
+R calibration loaded: C:\Users\L\workspace_ccstheia\TI-game\algorithm_parameters.json; RS at 2026-10-21T11:03:12.610178+00:00
+RO: VISA USBTMC USB0::0xF4EC::0x1101::SDG6XFCC900304::INSTR
+RO 1/296 final_weak-0001: uploading and verifying waveform
+RO: WVDT? user,RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? user,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: WVDT? USER,"Local",RO_C1 did not resolve RO_C1; trying explicit query
+RO: this firmware does not resolve USER waveform byte queries; verifying acknowledged upload, user file and playback settings (byte readback is unavailable)
+��ʼ����
+RESULT,sine,274.934594751,1.487197998,0
+RO 1/296 final_weak-0001: PASS
+RO 2/296 final_strong-0001: uploading and verifying waveform
+RESULT,sine,274.935467943,1.487496743,0
+RO 2/296 final_strong-0001: PASS
+RO 3/296 final_weak-0002: uploading and verifying waveform
+RESULT,square,224.720764434,1.255982030,78.5579035
+RO 3/296 final_weak-0002: PASS
+RO 4/296 final_strong-0002: uploading and verifying waveform
+RESULT,square,224.721868630,1.256427600,78.3886257
+RO 4/296 final_strong-0002: PASS
+RO 5/296 final_weak-0003: uploading and verifying waveform
+RESULT,triangle,381.732457185,1.028656454,0
+RO 5/296 final_weak-0003: PASS
+RO 6/296 final_strong-0003: uploading and verifying waveform
+RESULT,triangle,381.732403620,1.028790562,0
+RO 6/296 final_strong-0003: PASS
+RO 7/296 final_weak-0004: uploading and verifying waveform
+RESULT,sawtooth,124.999075721,1.071998886,0
+RO 7/296 final_weak-0004: PASS
+RO 8/296 final_strong-0004: uploading and verifying waveform
+RESULT,sawtooth,124.999714857,1.072390340,0
+RO 8/296 final_strong-0004: PASS
+RO 9/296 final_weak-0005: uploading and verifying waveform
+RESULT,sine,399.999675012,1.179350117,0
+RO 9/296 final_weak-0005: PASS
+RO 10/296 final_strong-0005: uploading and verifying waveform
+RESULT,sine,399.999460959,1.179506495,0
+RO 10/296 final_strong-0005: PASS
+RO 11/296 final_weak-0006: uploading and verifying waveform
+RO: {'completed': 10, 'passed': 10}; summary: C:\Users\L\workspace_ccstheia\TI-game\data\20261021T110534.877663Z-18fe6273\ro-1792580775148643300\summary.json
+server: R parallel analysis deadline exhausted; no RESULT emitted
