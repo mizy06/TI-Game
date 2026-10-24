@@ -11,7 +11,17 @@
  * Leave ample analogue settling time within each 50 us timer interval. */
 #define ACQ_ADC_SAMPLE_TIMER_COUNT   (32U)
 #define ACQ_ADC_FULL_SCALE           (4095U)
-#define ACQ_SAMPLE_RATE_MILLIHZ      (20000000UL)
+/* Uniform sampling within each frame. R uses this default; S/T and Udddd\n
+ * select alternative timer periods to resolve unobserved square edges. */
+#ifndef ACQ_TIMER_PERIOD_TICKS
+#define ACQ_TIMER_PERIOD_TICKS       (1600U)
+#endif
+#if ACQ_TIMER_PERIOD_TICKS < 1500U || ACQ_TIMER_PERIOD_TICKS > 1700U
+#error "Acquisition timer trial must stay near the validated 20 kS/s rate"
+#endif
+#define ACQ_RATE_FOR_TICKS(ticks)    \
+    ((uint32_t)((32000000000ULL + (ticks) / 2U) / (ticks)))
+#define ACQ_SAMPLE_RATE_MILLIHZ      ACQ_RATE_FOR_TICKS(ACQ_TIMER_PERIOD_TICKS)
 /* Stock LP-MSPM0G3507 Y2 is 40 MHz (SLAU873, section 2.7).
  * A different physical crystal also requires matching empty.syscfg changes. */
 #ifndef ACQ_HFXT_FREQ_HZ
@@ -19,6 +29,7 @@
 #endif
 #define ACQ_REFERENCE_MICROVOLTS     (3300000UL)
 #define ACQ_FRONTEND_GAIN_PPM        (1000000UL)
-#define ACQ_FLAGS                    (1UL)
+/* Bit 3 advertises S/T and Udddd\n (1500..1700 ticks), uniformly per frame. */
+#define ACQ_FLAGS                    (9UL)
 
 #endif

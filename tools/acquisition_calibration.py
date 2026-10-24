@@ -111,11 +111,22 @@ class AcquisitionCalibration:
 
     def apply_exact(self, payload, meta):
         """Keep wire codes bit-for-bit; apply the affine model only in float64."""
+        rate = self.sample_rate_hz_exact or self.sample_rate_millihz / 1000
         if signature(meta) != self.nominal_metadata:
-            raise ValueError("board metadata changed since calibration; run RO calibration again")
+            # S/T/U change only the timer period, on the same external clock.
+            # Recognize the advertised finite set; arbitrary metadata changes
+            # still invalidate the saved hardware calibration.
+            rates = {round(32000000000 / ticks): ticks for ticks in range(1500, 1701)}
+            before = self.nominal_metadata['sample_rate_millihz']
+            after = meta.sample_rate_millihz
+            same_adc = all(getattr(meta, k) == v for k, v in self.nominal_metadata.items()
+                           if k != 'sample_rate_millihz')
+            if not (meta.flags & 8 and same_adc and before in rates and after in rates):
+                raise ValueError("board metadata changed since calibration; run RO calibration again")
+            rate *= rates[before] / rates[after]
         counts(payload)  # Validate codes before tagging the physical conversion.
-        return payload, replace(meta, sample_rate_millihz=self.sample_rate_millihz,
-            sample_rate_hz_exact=self.sample_rate_hz_exact or self.sample_rate_millihz / 1000,
+        return payload, replace(meta, sample_rate_millihz=round(rate * 1000),
+            sample_rate_hz_exact=rate,
             adc_scale=self.adc_scale, adc_offset_counts=self.adc_offset_counts,
             vpp_transfer=self.vpp_transfer,
             flags=meta.flags | 6)

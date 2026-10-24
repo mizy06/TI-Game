@@ -10,6 +10,7 @@ static volatile uint16_t g_adc_samples[ACQ_SAMPLE_COUNT];
 static volatile bool g_capture_done;
 static volatile bool g_capture_failed;
 static uint32_t g_frame_sequence;
+static uint32_t g_capture_period_ticks = ACQ_TIMER_PERIOD_TICKS;
 
 #if ACQ_SAMPLE_COUNT > 65535
 #error "DMA transfer size must fit the 16-bit transfer counter"
@@ -93,7 +94,7 @@ static void dump_adc_frame(void)
     uart_put_string(",seq=");
     uart_put_u32(++g_frame_sequence);
     uart_put_string(",fs_millihz=");
-    uart_put_u32(ACQ_SAMPLE_RATE_MILLIHZ);
+    uart_put_u32(ACQ_RATE_FOR_TICKS(g_capture_period_ticks));
     uart_put_string(",vref_uv=");
     uart_put_u32(ACQ_REFERENCE_MICROVOLTS);
     uart_put_string(",gain_ppm=");
@@ -119,24 +120,58 @@ static bool button_is_pressed(void)
 
 static bool wait_for_trigger(void)
 {
+    uint32_t requested_period = 0U;
+    uint32_t period_digits = 0U;
+    bool reading_period = false;
     for (;;) {
         (void)uart_rx_error_pending();
         while (!DL_UART_Main_isRXFIFOEmpty(UART_0_INST)) {
             uint8_t value = DL_UART_Main_receiveData(UART_0_INST);
+            if (reading_period) {
+                if ((value >= '0') && (value <= '9') && (period_digits < 4U)) {
+                    requested_period = requested_period * 10U + (uint32_t)(value - '0');
+                    ++period_digits;
+                    continue;
+                }
+                reading_period = false;
+                if ((value == '\n') && (period_digits == 4U) &&
+                    (requested_period >= 1500U) && (requested_period <= 1700U)) {
+                    g_capture_period_ticks = requested_period;
+                    return false;
+                }
+            }
+            if ((value == 'u') || (value == 'U')) {
+                requested_period = 0U;
+                period_digits = 0U;
+                reading_period = true;
+                continue;
+            }
             if ((value == 'r') || (value == 'R')) {
+                g_capture_period_ticks = ACQ_TIMER_PERIOD_TICKS;
+                return false;
+            }
+            if ((value == 's') || (value == 'S')) {
+                g_capture_period_ticks = 1597U;
+                return false;
+            }
+            if ((value == 't') || (value == 'T')) {
+                g_capture_period_ticks = 1613U;
                 return false;
             }
             if ((value == 'd') || (value == 'D')) {
+                g_capture_period_ticks = ACQ_TIMER_PERIOD_TICKS;
                 return false;
             }
         }
         if (button_is_pressed()) {
             delay_cycles(CPUCLK_FREQ / 100U);
             if (button_is_pressed()) {
+                g_capture_period_ticks = ACQ_TIMER_PERIOD_TICKS;
                 return true;
             }
         }
-        delay_cycles(CPUCLK_FREQ / 1000U);
+        /* A six-byte timer command must be drained before RX FIFO overrun. */
+        delay_cycles(CPUCLK_FREQ / 100000U);
     }
 }
 
@@ -206,6 +241,7 @@ static bool capture_samples(void)
     g_capture_done = false;
     g_capture_failed = false;
     DL_TimerA_stopCounter(TIMER_0_INST);
+    DL_TimerA_setLoadValue(TIMER_0_INST, g_capture_period_ticks - 1U);
     configure_adc_dma_capture();
     NVIC_ClearPendingIRQ(ADC12_0_INST_INT_IRQN);
     NVIC_EnableIRQ(ADC12_0_INST_INT_IRQN);
@@ -235,6 +271,7 @@ int main(void)
 {
     SYSCFG_DL_init();
     DL_TimerA_stopCounter(TIMER_0_INST);
+    DL_TimerA_setLoadValue(TIMER_0_INST, ACQ_TIMER_PERIOD_TICKS - 1U);
     DL_ADC12_disableConversions(ADC12_0_INST);
     if (!board_clock_is_ready()) {
         uart_put_string("\r\nERR_EXTERNAL_CLOCK: check Y2 / PA5 / PA6; capture disabled\r\n");
@@ -257,7 +294,9 @@ int main(void)
         ? "SYSOSC_FCL=ON (retained); ADC_CLOCK=ULPCLK\r\n"
         : "SYSOSC_FCL=OFF; ADC_CLOCK=ULPCLK\r\n");
     uart_put_string("SAMPCLK=ULPCLK/2; recalibrate host with RO after clock change\r\n");
-    uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS=20000Hz, N=8192, MCLK=32MHz, SCOMP=32\r\n");
+    uart_put_string("ADC=PA25, UART=PA10/PA11-XDS110, FS_mHz=");
+    uart_put_u32(ACQ_SAMPLE_RATE_MILLIHZ);
+    uart_put_string(", N=8192, MCLK=32MHz, SCOMP=32\r\n");
     uart_put_string("READY: server R -> raw ADC frame; RT runs on host\r\n");
     for (;;) {
         bool from_button = wait_for_trigger();

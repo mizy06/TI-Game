@@ -1742,7 +1742,10 @@ def _square_duty_spectral_refine(y: np.ndarray, t: np.ndarray, fit: dict, step: 
                 float(np.median(power[frequencies > 0.85 * fs / 2.0])) / math.log(2.0),
                 1e-24)
     max_usable = float(np.max(power[usable])) if np.any(usable) else 0.0
-    active = usable & (power > max(20.0 * floor, float(np.max(power)) * 1e-7, max_usable * 1.5e-4))
+    # Before the edges are aligned their mismatch produces broadband energy.
+    # Use the dominant interference band to propose a cutoff; the independent
+    # high-band residual check below must still validate the corrected model.
+    active = usable & (power > max(20.0 * floor, float(np.max(power)) * 1e-7, max_usable * .1))
     if np.count_nonzero(active) < 6:
         return fit, dict(info, reason="no_separated_noise_band")
 
@@ -1778,21 +1781,23 @@ def _square_duty_spectral_refine(y: np.ndarray, t: np.ndarray, fit: dict, step: 
     phase_span_hit = False
     fall_span_hit = False
     for _ in range(2):
-        falling_edge = phase + duty
+        # The model phase is f*t + phase, so the falling edge occurs at
+        # f*t = duty - phase. Preserve that edge while moving the rising one.
+        falling_edge = duty - phase
         phase_values = np.arange(phase - phase_span, phase + phase_span + 0.5 * resolution, resolution)
         phase_values = np.append(phase_values, phase)
         phase_best = (best_loss, phase, duty)
         for index, candidate_phase in enumerate(phase_values):
             if index % 64 == 0:
                 check_time()
-            candidate_duty = falling_edge - float(candidate_phase)
+            candidate_duty = falling_edge + float(candidate_phase)
             candidate_loss = loss(float(candidate_phase), candidate_duty)
             if candidate_loss < phase_best[0]:
                 phase_best = (candidate_loss, float(candidate_phase), candidate_duty)
         best_loss, phase, duty = phase_best
 
-        rising_edge = phase
-        falling_edge = phase + duty
+        rising_phase = phase
+        falling_edge = duty - phase
         falling_values = np.arange(falling_edge - fall_span,
                                    falling_edge + fall_span + 0.5 * resolution, resolution)
         falling_values = np.append(falling_values, falling_edge)
@@ -1800,13 +1805,13 @@ def _square_duty_spectral_refine(y: np.ndarray, t: np.ndarray, fit: dict, step: 
         for index, candidate_fall in enumerate(falling_values):
             if index % 64 == 0:
                 check_time()
-            candidate_duty = float(candidate_fall) - rising_edge
+            candidate_duty = float(candidate_fall) + rising_phase
             candidate_loss = loss(phase, candidate_duty)
             if candidate_loss < falling_best[0]:
                 falling_best = (candidate_loss, phase, candidate_duty)
         best_loss, phase, duty = falling_best
         phase_span_hit = abs(phase - (q[1] - phase_span)) < resolution or abs(phase - (q[1] + phase_span)) < resolution
-        fall_span_hit = abs((phase + duty) - (q[1] + q[2] - fall_span)) < resolution or abs((phase + duty) - (q[1] + q[2] + fall_span)) < resolution
+        fall_span_hit = abs((duty - phase) - (q[2] - q[1] - fall_span)) < resolution or abs((duty - phase) - (q[2] - q[1] + fall_span)) < resolution
 
     improvement = initial_loss - best_loss
     if not math.isfinite(best_loss) or improvement <= max(1e-12, 1e-8 * initial_loss):

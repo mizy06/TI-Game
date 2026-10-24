@@ -431,7 +431,16 @@ class SerialService:
         """Archive a dedicated reference without analysis or measurement stdout."""
         return self.measure(timeout, return_result=True, raw=True)
 
-    def measure(self, timeout=10., *, return_result=False, raw=False):
+    def capture_at_rate(self, command, timeout=10.):
+        """Only use after the first frame advertises rate diversity (flag 3)."""
+        uniform_period = (isinstance(command, bytes) and len(command) == 6 and
+                          command[:1] == b'U' and command[-1:] == b'\n' and
+                          command[1:5].isdigit() and 1500 <= int(command[1:5]) <= 1700)
+        if command not in (b'R', b'S', b'T') and not uniform_period:
+            raise ValueError('unsupported acquisition rate command')
+        return self.measure(timeout, return_result=True, raw=True, command=command)
+
+    def measure(self, timeout=10., *, return_result=False, raw=False, command=b'R'):
         with self.request_lock:
             self.request_sequence += 1
             started = time.perf_counter()
@@ -450,7 +459,7 @@ class SerialService:
                 while True:
                     if time.perf_counter() >= deadline:
                         raise TimeoutError("serial recovery exhausted the R deadline")
-                    if self.port.write(b"R") != 1:
+                    if self.port.write(command) != len(command):
                         raise OSError("serial command write incomplete")
                     self._connection_event("command_sent", attempt=attempt)
                     # A driver-level flush/drain can block without write_timeout.

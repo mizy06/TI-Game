@@ -1573,20 +1573,24 @@ def run(service, store, args, stderr, *, calibration_only=False):
                     if resume_from is not None:
                         from tools.generator_calibration import GeneratorCalibration
                         if not reuse_report:
-                            required = ('calibration.json', 'generator_calibration.json',
-                                        'amplitude_calibration.json', 'arb_voltage_transfer.json')
+                            required = ('calibration.json', 'generator_calibration.json')
+                            if getattr(args, 'ro_vpp_calibrate', False):
+                                required += ('amplitude_calibration.json', 'arb_voltage_transfer.json')
                             if not all((report / name).is_file() for name in required):
                                 raise ValueError('RO resume requires all original calibration snapshots')
                             calibration_snapshot = json.loads((report / 'calibration.json').read_text(encoding='utf-8'))
                             playback_snapshot = json.loads((report / 'generator_calibration.json').read_text(encoding='utf-8'))
-                            amp_reference = json.loads((report / 'amplitude_calibration.json').read_text(encoding='utf-8'))
-                            arb_reference = json.loads((report / 'arb_voltage_transfer.json').read_text(encoding='utf-8'))
+                            amp_reference = (json.loads((report / 'amplitude_calibration.json').read_text(encoding='utf-8'))
+                                             if (report / 'amplitude_calibration.json').is_file() else None)
+                            arb_reference = (json.loads((report / 'arb_voltage_transfer.json').read_text(encoding='utf-8'))
+                                             if (report / 'arb_voltage_transfer.json').is_file() else None)
                             if not all(item.get('complete') and not item.get('error') for item in
-                                       (calibration_snapshot, playback_snapshot, amp_reference, arb_reference)):
+                                       (calibration_snapshot, playback_snapshot, amp_reference, arb_reference)
+                                       if item is not None):
                                 raise ValueError('RO resume cannot use incomplete original calibration')
                             published_profile = service.publish_calibration(report / 'calibration.json')
-                            transfer = amp_reference.get('transfer')
-                            if not transfer:
+                            transfer = amp_reference.get('transfer') if amp_reference else None
+                            if amp_reference and not transfer:
                                 raise ValueError('RO resume amplitude calibration has no ADC transfer')
                             from dataclasses import replace
                             from tools.acquisition_calibration import CalibrationProfile
@@ -1596,7 +1600,7 @@ def run(service, store, args, stderr, *, calibration_only=False):
                             service.calibration_profile = service.calibration_profile_override
                             service.use_saved_calibration = True
                             instrument.playback_calibration = GeneratorCalibration(**playback_snapshot['calibration'])
-                            instrument.playback_transfer = arb_reference['transfer']
+                            instrument.playback_transfer = arb_reference['transfer'] if arb_reference else None
                         atomic_json(report / 'resume.json', {
                             'resumed_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
                             'completed_before_resume': len(results),
@@ -1649,6 +1653,10 @@ def run(service, store, args, stderr, *, calibration_only=False):
                         instrument.playback_transfer=arb_reference['transfer']
                         atomic_json(report/'reference_provenance.json',dict(source_report=str(reference_dir),
                                     note='Reused independent references; fresh matrix ADC samples follow'))
+                    elif resume_from is not None:
+                        # The original snapshots were installed above. Do not
+                        # fall through to the uncalibrated "off" path.
+                        pass
                     elif calibration_mode == "auto":
                         service.use_saved_calibration = True
                         calibration_snapshot = calibrate_link(service, store, args, stderr, instrument, report, vref, gain)

@@ -79,6 +79,8 @@ static inline void DL_GPIO_initDigitalInputFeatures(uint32_t iomux,
 { (void)iomux; (void)inversion; (void)resistor; (void)hysteresis; (void)wakeup; }
 static inline void DL_TimerA_stopCounter(GPTIMER_Regs *timer)
 { (void)timer; }
+static inline void DL_TimerA_setLoadValue(GPTIMER_Regs *timer, uint32_t value)
+{ (void)timer; (void)value; }
 static inline void DL_TimerA_startCounter(GPTIMER_Regs *timer)
 { (void)timer; }
 static inline void DL_ADC12_clearInterruptStatus(ADC12_Regs *adc, uint32_t mask)
