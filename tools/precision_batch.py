@@ -343,5 +343,5 @@ def _measure_batch(service, frames, timeout, *, return_result):
         raise TimeoutError('R archival deadline exhausted; no RESULT emitted')
     print(output, file=engine.output, flush=True)
     if return_result:
-        return line, aggregate, algorithm_elapsed, meta, record
+        return line, aggregate, algorithm_elapsed, prepared[-1][1], record
     return batch
