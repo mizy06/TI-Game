@@ -8,6 +8,75 @@ from scipy.optimize import least_squares
 from scipy.signal.windows import blackmanharris
 from scipy.signal import find_peaks
 
+
+def saw_reset_edges(samples, fs, frequency):
+    """Keep observed resets on the dominant periodic lattice.
+
+    A partial first/last cycle can contain a noise impulse. Its edge must not
+    invalidate a complete train of observed resets. Missing interior resets
+    and incoherent edge trains remain errors; no synthetic edges are inserted.
+    """
+    y=np.asarray(samples,dtype=float)
+    f=float(frequency)
+    if y.ndim!=1 or len(y)<256 or not np.isfinite(y).all() or not np.isfinite(fs+f) or not 0<f<fs/2:
+        raise ValueError('invalid saw reset samples or timebase')
+    span=float(np.ptp(np.quantile(y,[.02,.98])))
+    delta=np.diff(y)
+    candidates=[]
+    for polarity in (1,-1):
+        signed=polarity*delta
+        edges,_=find_peaks(signed,height=.24*span,distance=max(1,int(.65*fs/f)))
+        if len(edges)<5:
+            continue
+        weights=signed[edges]**2
+        phases=(edges+.5)*f/fs
+        vector=np.sum(weights*np.exp(2j*np.pi*phases))
+        coherence=float(abs(vector)/max(float(weights.sum()),1e-30))
+        if coherence<.8:
+            continue
+        phase=float(np.angle(vector)/(2*np.pi))
+        distance=(phases-phase+.5)%1-.5
+        selected=edges[np.abs(distance)<.1]
+        if len(selected)<5 or np.max(np.abs(np.diff(selected)*f/fs-1))>.15:
+            continue
+        # Do not discard any missing cycle at either boundary when a full
+        # lattice edge should have been observed inside the frame.
+        if selected[0]*f/fs>1.15 or (len(y)-1-selected[-1])*f/fs>1.15:
+            continue
+        candidates.append((float(np.sum(signed[selected]**2)),selected,dict(
+            observed_resets=len(selected),discarded_off_lattice_edges=len(edges)-len(selected),
+            edge_phase_coherence=coherence,reset_polarity=polarity,
+            inserted_resets=0)))
+    if not candidates:
+        raise ValueError('unreliable saw reset lattice for amplitude')
+    _,edges,info=max(candidates,key=lambda item:item[0])
+    return edges,info
+
+
+def saw_ramp_amplitude(samples, fs, frequency):
+    """Fit the observed ramp interior with its own DC and a linear gain."""
+    y=np.asarray(samples,dtype=float)
+    edges,reset_info=saw_reset_edges(y,fs,frequency)
+    index=np.arange(len(y))
+    positions=np.searchsorted(edges+.5,index)
+    left=np.where(positions>0,edges[np.maximum(positions-1,0)]+.5,-np.inf)
+    right=np.where(positions<len(edges),edges[np.minimum(positions,len(edges)-1)]+.5,np.inf)
+    valid=np.minimum(index-left,right-index)>2.
+    cycles=np.searchsorted(edges+1,index,side='right')
+    source=-2*(frequency*(index-(len(y)-1)/2)/fs-cycles)
+    s=source[valid]-np.mean(source[valid])
+    observed=y[valid]-np.mean(y[valid])
+    information=float(s@s)
+    if information<=1e-12:
+        raise ValueError('unobservable saw ramp interior')
+    gain=float(s@observed/information)
+    residual=observed-gain*s
+    return 2*abs(gain),dict(method='observed_reset_interior_ramp',
+        source_projection_information=information,reset_lattice=reset_info,
+        retained_fraction=float(np.mean(valid)),
+        relative_rms=float(np.sqrt(np.mean(residual**2))/max(2*abs(gain),1e-30)))
+
+
 def spectral_separation(samples, fs, frequency):
     """Compare nearby background bands; this does not certify absence of a coherent tone."""
     y=np.asarray(samples,dtype=float)
@@ -87,16 +156,14 @@ def harmonic_amplitude(samples, fs, kind, frequency, duty=.5, rise=.03, fall=.03
         return float(4*abs(c[0])),dict(method='isolated_fundamental',harmonics=1,
             relative_window_scatter=scatter,harmonic_tail_ratio=tail,relative_rms=tail)
     if kind==3:
-        span=float(np.diff(np.quantile(y,[.02,.98]))[0])
-        jumps,_=find_peaks(np.diff(y),height=.24*span,distance=max(1,int(.65*fs/f)))
-        if len(jumps)<5 or np.max(np.abs(np.diff(jumps)*f/fs-1))>.15:
-            raise ValueError('unreliable saw reset lattice for amplitude')
+        jumps,reset_info=saw_reset_edges(y,fs,f)
         cycles=np.searchsorted(jumps+1,np.arange(n),side='right')
         source=-2*(f*t-cycles)
         s=sampled_coefficients(source)
         amp=float(np.vdot(s,c).real/np.vdot(s,s).real)
         rms=float(np.linalg.norm(amp*s-c)/max(np.linalg.norm(c),1e-20))
-        return 2*abs(amp),dict(method='sampled_reset_harmonics',harmonics=len(h),relative_rms=rms)
+        return 2*abs(amp),dict(method='sampled_reset_harmonics',harmonics=len(h),relative_rms=rms,
+                              source_harmonic_energy=float(np.vdot(s,s).real), reset_lattice=reset_info)
     if kind in (2,3):
         if kind==2:
             mask=(h%2)==1
@@ -160,7 +227,7 @@ def sine_model_rescue(samples, fs, frequency, triangle_info, separation):
 def joint_frame_amplitude(frames, kind):
     """Fit a shared clean Vpp across independently timed ADC frames."""
     import time
-    from tools.amplitude_calibration import voltage_values
+    from tools.amplitude_calibration import voltage_values, corrected_vpp
     from tools.unified_solver import shape
 
     started=time.perf_counter()
@@ -168,19 +235,39 @@ def joint_frame_amplitude(frames, kind):
         return None
     if kind==3:
         estimates=[]
-        for frame in frames:
-            y=voltage_values(frame['samples'],frame['transfer'])
-            value,info=harmonic_amplitude(y,frame['fs'],kind,frame['frequency'],
-                frame['duty'],frame['rise'],frame['fall'])
+        information=[]
+        reset_diagnostics=[]
+        voltage=[voltage_values(frame['samples'],frame['transfer']) for frame in frames]
+        separation=[frame.get('background_separation') or spectral_separation(y,frame['fs'],frame['frequency'])
+                    for frame,y in zip(frames,voltage)]
+        separated=all(item.get('accepted') for item in separation)
+        for frame,y in zip(frames,voltage):
+            if separated:
+                value,info=harmonic_amplitude(y,frame['fs'],kind,frame['frequency'],
+                    frame['duty'],frame['rise'],frame['fall'])
+            else:
+                value,info=saw_ramp_amplitude(y,frame['fs'],frame['frequency'])
             estimates.append(value)
+            information.append(float(info.get('source_projection_information',info.get('source_harmonic_energy',1.))))
+            reset_diagnostics.append(info.get('reset_lattice',{}))
         estimates=np.asarray(estimates,dtype=float)
-        result=float(np.median(estimates))
-        relative_rms=(float(np.sqrt(np.mean(np.square(estimates/result-1))))
-                      if np.isfinite(result) and result>0 and
-                      np.isfinite(estimates).all() and (estimates>0).all()
-                      else float('inf'))
-        return dict(vpp_v=result,method='median_reset_harmonic_across_frames',
-                    frame_vpp=estimates.tolist(),relative_rms=relative_rms,
+        if not np.isfinite(estimates).all() or np.any(estimates<=0):
+            raise ValueError('invalid saw reset amplitude estimate')
+        information=np.asarray(information,dtype=float)
+        if not np.isfinite(information).all() or np.any(information<=0):
+            raise ValueError('invalid saw harmonic projection information')
+        weights=information/information.sum()
+        # Pool the linear gain information from every observed frame.
+        result=float(weights@estimates)
+        relative_rms=float(np.sqrt(np.mean(np.square(estimates/result-1))))
+        if not np.isfinite(relative_rms):
+            raise ValueError('non-finite saw reset amplitude scatter')
+        result=corrected_vpp(result,float(np.median([frame.get('dc',1.65) for frame in frames])),frames[0]['transfer'])
+        return dict(vpp_v=result,method=('shared_reset_harmonic_least_squares' if separated else
+                                       'shared_reset_interior_ramp_least_squares'),
+                    background_separated=separated,
+                    frame_vpp=estimates.tolist(),frame_weights=weights.tolist(),
+                    reset_lattices=reset_diagnostics,relative_rms=relative_rms,
                     elapsed_s=time.perf_counter()-started)
 
     frequencies=np.asarray([float(frame['frequency']) for frame in frames])
@@ -259,7 +346,8 @@ def joint_frame_amplitude(frames, kind):
 
     fit=least_squares(residual,initial,bounds=(lower,upper),loss='soft_l1',
                       f_scale=.02,max_nfev=160)
-    result=float(2*fit.x[0])
+    result=corrected_vpp(float(2*fit.x[0]),
+        float(np.median([frame.get('dc',1.65) for frame in frames])),frames[0]['transfer'])
     baseline=float(np.median([frame['vpp'] for frame in frames]))
     if not np.isfinite(result) or not .85*baseline<result<1.15*baseline:
         return None

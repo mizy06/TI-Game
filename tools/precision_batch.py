@@ -71,25 +71,26 @@ def _reconcile_joint_vpp(frame_vpps, joint_vpp, joint_relative_rms=None):
     """Reconcile frame consensus with independently measured joint-fit quality."""
     valid_joint = bool(joint_vpp is not None and np.isfinite(joint_vpp) and
                        joint_vpp > 0)
+    quality = (float(joint_relative_rms) if joint_relative_rms is not None and
+               np.isfinite(joint_relative_rms) and joint_relative_rms >= 0 else None)
     values = np.asarray(frame_vpps, dtype=float)
     values = values[np.isfinite(values) & (values > 0)]
     if not len(values):
-        return joint_vpp, dict(accepted=valid_joint,
-            selected_method="joint_frame_fit", relative_disagreement=None,
+        return (float(joint_vpp) if valid_joint else None), dict(accepted=valid_joint,
+            selected_method="joint_frame_fit" if valid_joint else "no_valid_estimate", relative_disagreement=None,
             relative_frame_mad=None, agreement_limit=None,
-            joint_fit_relative_rms=joint_relative_rms,
+            joint_fit_relative_rms=quality,
             joint_fit_quality_support=False)
 
     center = float(np.median(values))
     mad = float(np.median(np.abs(values - center))) / center
-    disagreement = (abs(float(joint_vpp) - center) / center
-                    if joint_vpp is not None and np.isfinite(joint_vpp) and joint_vpp > 0
-                    else float("inf"))
+    disagreement = abs(float(joint_vpp)-center)/center if valid_joint else None
+    if disagreement is not None and not np.isfinite(disagreement):
+        valid_joint, disagreement = False, None
     limit = max(.0005, 5 * mad)
     joint_fit_quality_limit = .0005
     joint_fit_quality_support = bool(valid_joint and
-        joint_relative_rms is not None and np.isfinite(joint_relative_rms) and
-        0 <= joint_relative_rms <= joint_fit_quality_limit)
+        quality is not None and quality <= joint_fit_quality_limit)
     accepted = bool(valid_joint and
                     (disagreement <= limit or joint_fit_quality_support))
     return (float(joint_vpp) if accepted else center), dict(
@@ -99,7 +100,7 @@ def _reconcile_joint_vpp(frame_vpps, joint_vpp, joint_relative_rms=None):
         relative_disagreement=disagreement,
         relative_frame_mad=mad,
         agreement_limit=limit,
-        joint_fit_relative_rms=joint_relative_rms,
+        joint_fit_relative_rms=quality,
         joint_fit_quality_limit=joint_fit_quality_limit,
         joint_fit_quality_support=joint_fit_quality_support)
 
@@ -149,6 +150,7 @@ def _measure_batch(service, frames, timeout, *, return_result):
     algorithm_elapsed = algorithm_work = 0.
     sampling_plan = None
     square_sampling = False
+    requested_frames = frames
 
     def prepare_pending():
         for index in range(len(prepared), len(captures)):
@@ -162,7 +164,7 @@ def _measure_batch(service, frames, timeout, *, return_result):
         start = len(results)
         prepare_pending()
         if parallel:
-            fitted, elapsed = engine.process_frames(prepared[start:], deadline=deadline)
+            fitted, elapsed = engine.process_frames(prepared[start:], deadline=deadline, allow_rejected=True)
             results.extend(details for _, details, _ in fitted)
             algorithm_elapsed += elapsed
             algorithm_work += sum(elapsed for _, _, elapsed in fitted)
@@ -172,8 +174,6 @@ def _measure_batch(service, frames, timeout, *, return_result):
                 _, details, elapsed = engine.process(payload, meta, record, deadline=deadline, emit=False)
                 algorithm_elapsed += elapsed
                 algorithm_work += elapsed
-                if not details['ok']:
-                    raise ValueError(f"R block {index+1} rejected: status={details['status']}; no RESULT emitted")
                 results.append(details)
 
     for index in range(frames):
@@ -230,11 +230,49 @@ def _measure_batch(service, frames, timeout, *, return_result):
     analyse_pending()
     if time.perf_counter() >= deadline:
         raise TimeoutError('R analysis deadline exhausted; no RESULT emitted')
-    if len({x['type'] for x in results}) != 1:
-        raise ValueError('waveform classification changed between R blocks; no RESULT emitted')
+    original_results = results
+    original_prepared = prepared
+    valid = [i for i, r in enumerate(results) if r.get('ok') and r.get('type') in range(4)
+             and all(np.isfinite(r.get(k, np.nan)) for k in
+                     ('frequency_hz', 'vpp_v', 'duty_fraction', 'dc_offset_v'))
+             and r['frequency_hz'] > 0 and r['vpp_v'] > 0]
+    if not valid:
+        reasons = [r.get('rejection_reason', f"status={r.get('status')}") for r in results]
+        raise ValueError(f'R has no usable frame; source Vpp unavailable: {reasons}')
+    groups = {kind: [i for i in valid if results[i]['type'] == kind]
+              for kind in {results[i]['type'] for i in valid}}
+    def quality(i):
+        r = original_results[i]
+        return (bool(r.get('fallback')), float(r.get('unified_solver', {}).get('normalized_residual_rms', 1.)))
+    selected = min(groups.values(), key=lambda g: (-len(g), min(quality(i) for i in g), g[0]))
+    frame_selection = dict(requested_frames=requested_frames, captured_frames=len(captures),
+        used_indices=[i+1 for i in selected],
+        excluded=[dict(index=i+1, reason=r.get('rejection_reason', 'waveform_disagreement'),
+                       status=r.get('status')) for i, r in enumerate(results) if i not in selected],
+        fallback_used=len(selected) != len(results), method='majority_waveform_then_fit_quality')
+    frame_selection['classification_tied'] = sum(len(g) == len(selected) for g in groups.values()) > 1
+    results = [original_results[i] for i in selected]
+    prepared = [original_prepared[i] for i in selected]
     kind = results[0]['type']
     fields = ('frequency_hz', 'vpp_v', 'duty_fraction', 'dc_offset_v')
     values = np.array([[r[k] for k in fields] for r in results])
+    if len(values) > 1:
+        center = np.median(values, axis=0)
+        unstable = (np.ptp(values[:, 0])/center[0] > .002 or
+                    np.ptp(values[:, 1])/center[1] > .10 or
+                    (kind == 1 and np.ptp(values[:, 2]) > .01))
+        if unstable:
+            # Choose a measured frame near the multiframe consensus, rather
+            # than average several changing waveforms into a fictitious one.
+            distance = np.abs(values[:, 0]/center[0]-1)+np.abs(values[:, 1]/center[1]-1)
+            chosen = min(range(len(values)), key=lambda i: (float(distance[i]), quality(selected[i])))
+            frame_selection.update(fallback_used=True, method='nonstationary_consensus_frame',
+                                   used_indices=[selected[chosen]+1],
+                                   observed_vpp_range_v=[float(values[:, 1].min()), float(values[:, 1].max())])
+            frame_selection['excluded'].extend(dict(index=selected[i]+1, reason='nonstationary_batch', status=0)
+                                               for i in range(len(values)) if i != chosen)
+            results, prepared, values = [results[chosen]], [prepared[chosen]], values[[chosen]]
+    frames = len(results)
     mean = values.mean(axis=0)
     batch_duty = None
     reliable_duties = values[:, 2]
@@ -269,9 +307,10 @@ def _measure_batch(service, frames, timeout, *, return_result):
             joint_frames.append(dict(samples=np.frombuffer(payload, dtype='<u2'),
                 transfer=meta.vpp_transfer, fs=(meta.sample_rate_hz_exact or
                 meta.sample_rate_millihz/1000), frequency=details['frequency_hz'],
-                duty=details['duty_fraction'], rise=details.get('unified_solver',{}).get(
+                dc=details['dc_offset_v'],duty=details['duty_fraction'], rise=details.get('unified_solver',{}).get(
                     'square_rise_fraction',1e-5), fall=details.get('unified_solver',{}).get(
-                    'square_fall_fraction',1e-5), vpp=details['vpp_v']))
+                    'square_fall_fraction',1e-5), vpp=details['vpp_v'],
+                background_separation=details.get('spectral_vpp',{}).get('background_separation')))
         try:
             batch_vpp = joint_frame_amplitude(joint_frames, kind)
         except (ValueError, np.linalg.LinAlgError) as error:
@@ -288,16 +327,23 @@ def _measure_batch(service, frames, timeout, *, return_result):
                 mean[1] = selected_vpp
     if time.perf_counter() >= deadline:
         raise TimeoutError('R joint Vpp analysis exceeded deadline; no RESULT emitted')
-    if (np.ptp(values[:, 0])/mean[0] > .002 or
-            np.ptp(values[:, 1])/mean[1] > .10 or
-            (kind == 1 and np.ptp(reliable_duties) > .01)):
-        raise ValueError('R blocks are not stationary; no RESULT emitted')
+    if kind == 1 and np.ptp(reliable_duties) > .01:
+        mean[2] = float(np.median(reliable_duties))
+        frame_selection.update(fallback_used=True, duty_fallback='median_of_observed_duties')
     f, vpp, duty, dc = mean
     line = f'{host.NAMES[kind]},{f:.9f},{vpp:.9f},{duty*100:.7f},{dc:.9f}'
     output = measurement_output(line)
     scatter = np.std(values, axis=0, ddof=1) if frames > 1 else np.zeros(4)
     batch = {'frames': frames, 'output': line, 'display_output': output,
-        'method': ('joint harmonic fit across independently timed frames' if batch_vpp and
+        'frame_selection': frame_selection,
+        'fallback_used': bool(frame_selection['fallback_used'] or any(r.get('fallback') for r in results)
+                              or (batch_vpp and not batch_vpp.get('accepted'))),
+        'fallback_frames': [i+1 for i, r in enumerate(original_results) if r.get('fallback')],
+        'model_ambiguous': bool(frame_selection['classification_tied'] or
+                               any(r.get('fallback', {}).get('model_ambiguous') for r in results)),
+        'method': ('selected actual frame from nonstationary measurements' if
+                   frame_selection['method'] == 'nonstationary_consensus_frame' else
+                   'joint harmonic fit across independently timed frames' if batch_vpp and
                    batch_vpp.get('accepted') else
                    'mean of independently fitted stationary blocks; gaps not concatenated'),
         'measured': dict(zip(fields, map(float, mean))),
@@ -308,16 +354,27 @@ def _measure_batch(service, frames, timeout, *, return_result):
         'absolute_accuracy_verified': False,
         'note': 'Block scatter excludes calibration, model bias and coherent replay noise.',
         'captures': [str(r.path.relative_to(service.store.path)) for r in records],
+        'used_captures': [str(r.path.relative_to(service.store.path)) for _, _, r in prepared],
         'algorithm_elapsed_s': algorithm_elapsed,
         'algorithm_work_s': algorithm_work,
         'analysis_execution': 'parallel_processes' if parallel else 'serial',
         'analysis_workers': min(engine.parallel_pool.workers, frames) if parallel else 1,
         'elapsed_s': time.perf_counter()-started}
+    batch['fallback_reasons'] = (["model_fit"] if batch['fallback_frames'] else [])
+    if frame_selection['fallback_used']:
+        batch['fallback_reasons'].append('frame_selection')
+    if batch_vpp and not batch_vpp.get('accepted'):
+        batch['fallback_reasons'].append('joint_amplitude')
     aggregate = dict(results[-1])
     aggregate.update(batch_frames=frames, batch_captures=batch['captures'],
         measurement_sample_count=sum(r['measurement_sample_count'] for r in results),
         classification_sample_count=sum(r['classification_sample_count'] for r in results),
         **batch['measured'])
+    aggregate['batch_fallback'] = dict(used=batch['fallback_used'], selection=frame_selection,
+                                     fallback_frames=batch['fallback_frames'])
+    if batch['fallback_used']:
+        aggregate.setdefault('vpp_quality', {}).update(fallback_used=True,
+            absolute_accuracy_verified=False, accuracy_0p1_percent_certified=False)
     aggregate.update(frequency_millihz=round(f*1000), vpp_microvolts=round(vpp*1e6),
         duty_ppm=round(duty*1e6))
     if batch_vpp and batch_vpp.get('accepted'):

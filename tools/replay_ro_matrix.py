@@ -191,6 +191,7 @@ def _run_shard(shard_index, rows, data_root, config, progress, progress_lock):
                                     "transfer": meta.vpp_transfer,
                                     "fs": meta.sample_rate_hz_exact or meta.sample_rate_millihz / 1000,
                                     "frequency": details["frequency_hz"],
+                                    "dc": details["dc_offset_v"],
                                     "duty": details["duty_fraction"],
                                     "rise": diagnostic.get("square_rise_fraction", 1e-5),
                                     "fall": diagnostic.get("square_fall_fraction", 1e-5),

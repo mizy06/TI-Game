@@ -145,7 +145,7 @@ class AmplitudePathTests(unittest.TestCase):
         self.assertFalse(spectral['background_separation']['accepted'])
         self.assertFalse(spectral['accepted'])
         self.assertEqual(spectral['rejection'],'unseparated_background')
-        self.assertEqual(calibrated['vpp_v'],baseline['vpp_v'])
+        self.assertAlmostEqual(calibrated['vpp_v'],baseline['vpp_v'],places=12)
         self.assertEqual(calibrated['vpp_quality']['meaning'],'carrier_including_coherent_interference')
 
 

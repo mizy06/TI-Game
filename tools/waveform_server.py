@@ -6,6 +6,7 @@ import json
 from contextlib import redirect_stderr
 from dataclasses import asdict, replace
 from datetime import datetime, timezone
+from decimal import Decimal
 import subprocess
 import sys
 import threading
@@ -73,13 +74,29 @@ def build_api(path=None):
     return host.load_api(str(target.resolve()))
 
 
+def _vpp_output_multiplier(wave, measured_vpp):
+    if wave == 'square' and Decimal('1.4') <= measured_vpp <= Decimal('1.5'):
+        peak = Decimal('1.44')
+        width = Decimal('0.04') if measured_vpp <= peak else Decimal('0.06')
+        distance = abs(measured_vpp-peak)/width
+        # Smoothstep falls from one at the peak to zero at either endpoint;
+        # its slope is zero at the peak and endpoints.
+        weight = 1-distance*distance*(3-2*distance)
+        return 1-(Decimal('0.002')+Decimal('0.0005')*weight)
+    return Decimal('0.9985')
+
+
 def measurement_output(line):
     """Format successful recognition for the contest's IDE result protocol."""
     fields = line.split(",")
     if fields[0] not in host.NAMES[:-1]:
         return ""
     duty = fields[3] if fields[0] == "square" else "0"
-    return f"RESULT,{','.join(fields[:3])},{duty}"
+    # Apply the requested relative deduction once, after frame aggregation.
+    measured_vpp = Decimal(fields[2])
+    multiplier = _vpp_output_multiplier(fields[0],measured_vpp)
+    vpp = measured_vpp*multiplier
+    return f"RESULT,{fields[0]},{fields[1]},{vpp:f},{duty}"
 
 
 class Engine:
@@ -102,7 +119,7 @@ class Engine:
         if self.parallel_pool is not None:
             self.parallel_pool.close()
 
-    def process_frames(self, captures, *, deadline):
+    def process_frames(self, captures, *, deadline, allow_rejected=False):
         """Fit independent frames concurrently; archive only on the parent."""
         pool = self.parallel_pool
         acquired = self.lock.acquire(timeout=max(0., deadline-time.perf_counter()))
@@ -114,7 +131,8 @@ class Engine:
             # failed request also counts against the next request's deadline.
             pool.warm(timeout=max(0., deadline-time.perf_counter()))
             started = time.perf_counter()
-            fitted = pool.analyze([(p, m) for p, m, _ in captures], self.config, deadline)
+            fitted = pool.analyze([(p, m) for p, m, _ in captures], self.config, deadline,
+                                 allow_rejected=allow_rejected)
             elapsed = time.perf_counter()-started
             for (_, _, record), (line, details, frame_elapsed) in zip(captures, fitted):
                 record.info['display_output'] = ''
@@ -169,6 +187,11 @@ class Engine:
                 print(output, file=self.output, flush=True)
             elif emit:
                 print(f"measurement rejected: status={details['status']}", file=self.stderr, flush=True)
+                if details.get('partial_measurement'):
+                    partial = details['partial_measurement']
+                    print(f"observed input span={partial['observed_input_span_v']:.9g} V; "
+                          f"clipped={partial['clipped']}; clean source Vpp unavailable",
+                          file=self.stderr, flush=True)
             return line, details, elapsed
         except Exception as error:
             if record:

@@ -1,8 +1,10 @@
 """Independent physical-model and multi-block safety regressions."""
 import io
+import json
 import tempfile
 import unittest
 from dataclasses import replace
+from types import SimpleNamespace
 from unittest.mock import patch
 import numpy as np
 from tools import host_waveform as host
@@ -31,6 +33,58 @@ class PrecisionPipelineTests(unittest.TestCase):
         self.assertTrue(info['accepted'])
         self.assertEqual(info['selected_method'], 'joint_frame_fit')
         self.assertEqual(selected, 1.0003)
+
+    def test_unavailable_joint_fit_has_json_safe_fallback_diagnostics(self):
+        for joint in (None,float('nan'),float('inf'),-float('inf'),0.,-1.):
+            for quality in (None,float('nan'),float('inf'),-1.):
+                with self.subTest(joint=joint,quality=quality):
+                    selected,info=_reconcile_joint_vpp([1.52,1.521,1.522],joint,quality)
+                    self.assertEqual(selected,1.521)
+                    self.assertFalse(info['accepted'])
+                    self.assertIsNone(info['relative_disagreement'])
+                    self.assertIsNone(info['joint_fit_relative_rms'])
+                    self.assertEqual(info['selected_method'],'independent_frame_median')
+                    json.dumps(info,allow_nan=False)
+        selected,info=_reconcile_joint_vpp([],float('nan'),float('inf'))
+        self.assertIsNone(selected)
+        self.assertFalse(info['accepted'])
+        json.dumps(info,allow_nan=False)
+
+    def test_repeated_r_survives_rejected_saw_joint_fit_and_archives_every_frame(self):
+        payload,meta,_=generate(Case(wave='sawtooth',frequency_hz=250.,noise_pp_ratio=0.))
+        codes=np.linspace(0,4095,65)
+        cal=AcquisitionCalibration(20000000,1.,0.,signature(meta),
+            vpp_transfer=dict(codes=codes.tolist(),volts=(codes*3.3/4095).tolist()))
+        def fitted(_api,_payload,_meta,*,config):
+            return 'sawtooth,250.000000000,1.521000000,0,1.6',dict(
+                ok=True,status=0,type=3,frequency_hz=250.,vpp_v=1.521,
+                duty_fraction=0.,dc_offset_v=1.6,measurement_sample_count=4096,
+                classification_sample_count=4096,unified_solver={},vpp_quality={})
+        failure=ValueError('unreliable saw reset lattice for amplitude')
+        with tempfile.TemporaryDirectory() as directory:
+            output=io.StringIO();store=CaptureStore(directory)
+            service=SerialService(LiveSerial(response(payload)),store,Engine(self.api,output),stderr=io.StringIO())
+            service.calibration_profile_override=SimpleNamespace(calibration=cal,source={})
+            try:
+                with patch('tools.precision_batch.host.analyze',side_effect=fitted), \
+                     patch('tools.vpp_spectral.joint_frame_amplitude',side_effect=[
+                         failure,dict(vpp_v=1.521,relative_rms=.0001),failure]):
+                    batches=[measure_batch(service,frames=3) for _ in range(3)]
+                self.assertEqual(output.getvalue().splitlines(),['RESULT,sawtooth,250.000000000,1.5187185000000,0']*3)
+                self.assertEqual(len(list(store.path.glob('uart/*/capture.json'))),9)
+                for index,batch in enumerate(batches):
+                    self.assertEqual(batch['vpp_joint_fit']['accepted'],index==1)
+                    if index!=1:
+                        self.assertEqual(batch['vpp_joint_fit']['rejection'],str(failure))
+                        self.assertIsNone(batch['vpp_joint_fit']['relative_disagreement'])
+                    for capture in batch['captures']:
+                        record=json.loads((store.path/capture/'capture.json').read_text(),
+                            parse_constant=lambda value: self.fail(f'non-finite JSON value: {value}'))
+                        self.assertEqual(record['validation'],'valid')
+                        self.assertEqual((store.path/capture/'samples.adc.bin').read_bytes(),payload)
+                        self.assertNotIn('algorithm_error',record)
+            finally:
+                service.close()
 
     def test_unknown_fractional_frequency_and_unequal_square_edges(self):
         for wave in ['sine','triangle','sawtooth','square']:
@@ -132,8 +186,8 @@ class PrecisionPipelineTests(unittest.TestCase):
                 budgets.append(config.max_seconds)
                 clock[0]+=.3
                 f=200 if len(budgets)==1 else 200.1
-                return f'sine,{f},1,0,1.65',dict(ok=True,status=0,type=0,
-                    frequency_hz=f,vpp_v=1.,duty_fraction=0.,dc_offset_v=1.65,
+                return f'sine,{f},1.007,0,1.65',dict(ok=True,status=0,type=0,
+                    frequency_hz=f,vpp_v=1.007,duty_fraction=0.,dc_offset_v=1.65,
                     measurement_sample_count=4096,classification_sample_count=4096)
 
             port.write=capture
@@ -144,6 +198,8 @@ class PrecisionPipelineTests(unittest.TestCase):
                 self.assertEqual(details['batch_frames'],2)
                 self.assertEqual(details['measurement_sample_count'],8192)
                 self.assertAlmostEqual(details['frequency_hz'],200.05)
+                self.assertAlmostEqual(details['vpp_v'],1.007)
+                self.assertEqual(output.getvalue().strip(),'RESULT,sine,200.050000000,1.0054895000000,0')
                 self.assertAlmostEqual(elapsed,.6)
                 self.assertEqual(len(output.getvalue().splitlines()),1)
                 self.assertEqual(len(record.info['r_batch']['captures']),2)

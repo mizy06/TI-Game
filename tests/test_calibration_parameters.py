@@ -40,6 +40,8 @@ class ParameterTests(unittest.TestCase):
 
     def options(self, instrument, mode="auto"):
         return parser().parse_args(["RO", "--ro-host", "127.0.0.1", "--ro-port", str(instrument.port),
+                                   "--ro-transport", "vxi11", "--no-ro-vpp-calibrate",
+                                   "--ro-oversample", "1", "--r-frames", "1",
                                    "--ro-settle", "0", "--ro-calibrate", mode, "--max-cases", "1"])
 
     def test_live_r_loads_latest_success_and_preserves_old_file_on_rejection_or_write_error(self):

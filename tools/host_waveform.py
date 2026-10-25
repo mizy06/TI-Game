@@ -247,6 +247,16 @@ def analyze(dll, payload: bytes, meta: Metadata, *, config=None,
         frequency_hz=0., vpp_v=0., duty_fraction=0., dc_offset_v=0.)
     def reject(status, reason):
         details.update(status=status, rejection_reason=reason)
+        if status in (1, 2, 5, 7):
+            unit = meta.reference_microvolts/(meta.adc_full_scale*meta.gain_ppm)
+            span = float(np.ptp(raw.astype(float))/meta.adc_scale*unit)
+            if meta.vpp_transfer is not None:
+                from tools.amplitude_calibration import voltage_values
+                extrema = voltage_values(np.array([raw.min(), raw.max()]), meta.vpp_transfer)
+                span = float(extrema[1]-extrema[0])
+            details['partial_measurement'] = dict(observed_input_span_v=span,
+                clipped=status in (2, 5), source_vpp_identifiable=False,
+                meaning='observed ADC input span including noise; clean source Vpp is unavailable')
         return "unknown,0,0,0,0", details
     fs = meta.sample_rate_hz_exact if meta.sample_rate_hz_exact is not None else meta.sample_rate_millihz/1000
     if (not np.isfinite(fs) or fs <= 0 or meta.adc_full_scale != 4095 or
@@ -270,10 +280,26 @@ def analyze(dll, payload: bytes, meta: Metadata, *, config=None,
     samples = (raw.astype(float)-meta.adc_offset_counts)/meta.adc_scale
     if np.percentile(samples, 98)-np.percentile(samples, 2) < 8:
         return reject(1, "insufficient dynamic range")
+    from dataclasses import replace
+    from tools.unified_solver import SolverConfig
+    cfg = config or SolverConfig()
+    reserve = min(1.25, .25*cfg.max_seconds)
     try:
-        result = estimate(samples, fs, config, quantization_step=1/meta.adc_scale)
-    except ValueError as error:
-        return reject(7, str(error))
+        result = estimate(samples, fs, replace(cfg, max_seconds=cfg.max_seconds-reserve),
+                          quantization_step=1/meta.adc_scale)
+    except (ValueError, TimeoutError, np.linalg.LinAlgError, FloatingPointError) as error:
+        reason = f'{type(error).__name__}: {error}'
+        remaining = cfg.max_seconds-(time.perf_counter()-analysis_started)
+        if remaining <= .02 and isinstance(error, TimeoutError):
+            raise
+        if remaining <= .02 or 'invalid' in str(error).lower():
+            return reject(7, reason)
+        from tools.measurement_fallback import estimate_fallback
+        try:
+            result = estimate_fallback(samples, fs, cfg, max_seconds=remaining, reason=reason)
+        except (ValueError, TimeoutError, np.linalg.LinAlgError, FloatingPointError) as fallback_error:
+            details['fallback_failure'] = str(fallback_error)
+            return reject(7, reason)
     unit = meta.reference_microvolts/(meta.adc_full_scale*meta.gain_ppm)
     f, vpp, duty, dc = result["frequency_hz"], result["vpp"]*unit, result["duty_fraction"], result["dc"]*unit
     kind = result["type"]
@@ -288,18 +314,44 @@ def analyze(dll, payload: bytes, meta: Metadata, *, config=None,
         vpp_counts_q16=round(result["vpp"]*65536),
         accepted_cycles=int(len(raw)*f/fs), quality_flags=flags,
         unified_solver=result["diagnostics"])
+    if result['diagnostics'].get('fallback_used'):
+        details['fallback'] = dict(used=True, reason=result['diagnostics']['fallback_reason'],
+            method=result['diagnostics']['method'],
+            model_ambiguous=result['diagnostics']['model_ambiguous'])
     # Vpp accuracy cannot be inferred from precise timing or repeatability.
     details['vpp_quality'] = dict(input_mode='single_channel',
         meaning=('carrier_including_coherent_interference' if kind == 0 else
                  'source_amplitude_under_unverified_nuisance_model'),
         independent_reference_used=False, absolute_accuracy_verified=False,
         accuracy_0p1_percent_certified=False)
+    if details.get('fallback'):
+        details['vpp_quality'].update(meaning='best_available_periodic_template_estimate',
+                                     fallback_used=True, accuracy_0p1_percent_certified=False)
+    if meta.vpp_transfer is not None:
+        from tools.amplitude_calibration import voltage_values
+        # The denoised model's extrema are in affine-calibrated counts.
+        # Convert them back to raw codes before the voltage lookup. Applying
+        # this only when the spectral gate passed left noisy measurements on
+        # the old DC gain while quiet measurements used the AC calibration.
+        center=float(result['dc']*meta.adc_scale+meta.adc_offset_counts)
+        half_span=float(result['vpp']*.5*meta.adc_scale)
+        extrema=np.array([center-half_span,center+half_span])
+        if np.all((extrema>=0)&(extrema<=meta.adc_full_scale)):
+            low,high=voltage_values(extrema,meta.vpp_transfer)
+            vpp=float(high-low)
+            details.update(vpp_v=vpp,vpp_microvolts=round(vpp*1e6),
+                           vpp_millivolts=round(vpp*1000),vpp_counts_q16=round(vpp/unit*65536))
+            details['vpp_extrema_calibration']=dict(raw_codes=extrema.tolist(),
+                volts=[float(low),float(high)],method='voltage_transfer_of_denoised_source_extrema')
     if meta.vpp_transfer is not None and len(raw)*f/fs>=32:
         from tools.amplitude_calibration import voltage_values
         from tools.vpp_spectral import harmonic_amplitude, spectral_separation, sine_model_rescue
         voltage=voltage_values(raw,meta.vpp_transfer)
         diagnostic=result['diagnostics']
-        separation=spectral_separation(voltage,fs,f)
+        try:
+            separation=spectral_separation(voltage,fs,f)
+        except (ValueError, np.linalg.LinAlgError, FloatingPointError) as error:
+            separation=dict(accepted=False, reason=f'spectral separation unavailable: {error}')
         try:
             proposed,amp_info=harmonic_amplitude(voltage,fs,kind,f,duty,
                 diagnostic['square_rise_fraction'],diagnostic['square_fall_fraction'])
@@ -307,7 +359,11 @@ def analyze(dll, payload: bytes, meta: Metadata, *, config=None,
             proposed=vpp
             amp_info=dict(relative_rms=1.,rejection=str(error))
         if kind==2:
-            rescue=sine_model_rescue(voltage,fs,f,amp_info,separation)
+            try:
+                rescue=sine_model_rescue(voltage,fs,f,amp_info,separation)
+            except (ValueError, np.linalg.LinAlgError, FloatingPointError) as error:
+                rescue=None
+                diagnostic['harmonic_model_rescue_rejection']=str(error)
             if rescue is not None:
                 kind=0
                 proposed=rescue['vpp_v']
@@ -328,6 +384,14 @@ def analyze(dll, payload: bytes, meta: Metadata, *, config=None,
             details.update(vpp_v=vpp,vpp_microvolts=round(vpp*1e6),vpp_millivolts=round(vpp*1000),
                            vpp_counts_q16=round(vpp/unit*65536))
             details['vpp_quality']['meaning']='clean_source_under_separated_harmonic_support_assumption'
+    if meta.vpp_transfer is not None and meta.vpp_transfer.get('operating_response'):
+        from tools.amplitude_calibration import corrected_vpp
+        before=vpp
+        vpp=corrected_vpp(vpp,dc,meta.vpp_transfer)
+        details.update(vpp_v=vpp,vpp_microvolts=round(vpp*1e6),vpp_millivolts=round(vpp*1000),
+                       vpp_counts_q16=round(vpp/unit*65536))
+        details['vpp_operating_response']=dict(before_vpp_v=before,after_vpp_v=vpp,
+            reference='independent span/offset calibration',absolute_accuracy_verified=False)
     if vpp_observation is not None:
         from dataclasses import replace
         from tools.unified_solver import SolverConfig

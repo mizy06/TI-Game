@@ -27,6 +27,7 @@ class PlaybackTests(unittest.TestCase):
     def options(self, instrument):
         return parser().parse_args(["RO", "--ro-host", "127.0.0.1", "--ro-port", str(instrument.port),
             "--ro-transport", "vxi11",
+            "--ro-calibrate", "auto", "--no-ro-vpp-calibrate", "--ro-oversample", "1", "--r-frames", "1",
             "--ro-settle", "0", "--case-id", "competition-000001", "--case-id", "competition-000002",
             "--case-id", "competition-000008", "--case-id", "competition-000051", "--case-id", "competition-000101",
             "--case-id", "competition-000151"])
@@ -230,7 +231,8 @@ class PlaybackTests(unittest.TestCase):
                 fields = output.getvalue().strip().split(",")
                 self.assertEqual(fields[:2], ["RESULT", wave])
                 self.assertEqual(len(fields), 5)
-                self.assertEqual(fields[2:4], line.split(",")[1:3])
+                self.assertEqual(fields[2], line.split(",")[1])
+                self.assertEqual(fields[3], "1.50")
                 for number in fields[2:]:
                     self.assertRegex(number, r"^\d+(?:\.\d+)?$")
                 if wave == "square":

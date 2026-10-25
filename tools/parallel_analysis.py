@@ -94,7 +94,7 @@ class FrameAnalysisPool:
             self.close()
             raise
 
-    def analyze(self, captures, config, deadline):
+    def analyze(self, captures, config, deadline, *, allow_rejected=False):
         """Caller serializes requests and prewarms outside the measurement deadline."""
         self.last_results = [None] * len(captures)
         if not self._processes or not all(p.is_alive() for p in self._processes):
@@ -136,7 +136,7 @@ class FrameAnalysisPool:
                         raise RuntimeError('invalid parallel ADC worker response')
                     result = tuple(message[2:])
                     self.last_results[index] = result
-                    if not result[1]['ok']:
+                    if not result[1]['ok'] and not allow_rejected:
                         raise ValueError(f"R block {index+1} rejected: status={result[1]['status']}; no RESULT emitted")
                     if next_index < len(captures):
                         submit(connection)

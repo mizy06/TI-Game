@@ -11,11 +11,32 @@ from unittest.mock import MagicMock, patch
 from tools.capture_store import CaptureStore
 from tools.ro_test import (_load_resume_report, _new_case_directory,
                            _report_reference, run, select_ro_cases)
-from tools.waveform_server import parser
+from tools.waveform_server import Engine,measurement_output,parser
 from tools.waveform_server import run_server
 
 
 class CommandTests(unittest.TestCase):
+    def test_vpp_output_deduction_without_rounding(self):
+        for vpp,expected in [('1.356','1.3539660'),('2.008','2.0049880'),('1.005','1.0034925'),
+                             ('10','9.9850'),('0.8','0.79880'),('1.007','1.0054895')]:
+            for wave in ('sine','square','triangle','sawtooth'):
+                with self.subTest(vpp=vpp,wave=wave):
+                    duty='63.1730000' if wave=='square' else '0'
+                    self.assertEqual(measurement_output(f'{wave},237.193000000,{vpp},63.1730000,1.6'),
+                                     f'RESULT,{wave},237.193000000,{expected},{duty}')
+        self.assertEqual(measurement_output('unknown,0,0,0,0'),'')
+
+    def test_single_frame_output_keeps_full_precision_analysis(self):
+        output=io.StringIO()
+        engine=Engine(None,output)
+        line='sine,237.193000000,1.007000000,0,1.6'
+        details=dict(ok=True,status=0,vpp_v=1.007)
+        with patch('tools.waveform_server.host.analyze',return_value=(line,details)):
+            actual,measured,_=engine.process(b'',None,None)
+        self.assertEqual(output.getvalue(),'RESULT,sine,237.193000000,1.0054895000000,0\n')
+        self.assertEqual(actual,line)
+        self.assertEqual(measured['vpp_v'],1.007)
+
     def test_current_defaults_and_matrix(self):
         for command in ('R', 'RO', 'RT', 'RS'):
             args = parser().parse_args([command])
